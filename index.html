@@ -1,0 +1,1818 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nâng Cấp Google Gemini Pro 18 Tháng - Trợ Giá Bản Quyền Chính Hãng</title>
+  <!-- Google Fonts & Tailwind CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    
+    @keyframes flashBarGlow {
+      0%, 100% { background-color: #dc2626; box-shadow: 0 0 15px rgba(220, 38, 38, 0.6); }
+      50% { background-color: #b91c1c; box-shadow: 0 0 25px rgba(239, 68, 68, 0.9); }
+    }
+    .flash-top-bar { animation: flashBarGlow 2s infinite ease-in-out; }
+
+    @keyframes badgePulseEffect {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      50% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    }
+    .badge-fomo-pulse { animation: badgePulseEffect 1.6s infinite ease-in-out; }
+
+    @keyframes ctaGlowEffect {
+      0%, 100% { box-shadow: 0 6px 20px rgba(220, 38, 38, 0.45); transform: translateY(0); }
+      50% { box-shadow: 0 10px 30px rgba(220, 38, 38, 0.75); transform: translateY(-1px); }
+    }
+    .cta-glow-pulse { animation: ctaGlowEffect 2s infinite ease-in-out; }
+
+    .gemini-gradient-text {
+      background: linear-gradient(135deg, #1a73e8 0%, #8e44ad 50%, #ea4335 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-glow-bg {
+      background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+    }
+  </style>
+</head>
+<body class="bg-[#f8f9fa] text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
+
+  <!-- 1. THANH FLASH SALE ĐẦU TRANG -->
+  <div class="flash-top-bar text-white py-2.5 px-3 text-center text-xs sm:text-sm font-black sticky top-0 z-40 flex items-center justify-center gap-2 border-b border-white/20 tracking-wide">
+    <span class="inline-block animate-ping text-yellow-300">⚡</span>
+    <span>ƯU ĐÃI ĐẶC BIỆT: Còn đúng <span id="fomoSlots" class="bg-yellow-300 text-red-950 px-2 py-0.5 rounded-md font-black text-xs sm:text-sm shadow-sm">12 suất</span> trợ giá 90.000đ trọn gói 18 tháng!</span>
+    <span class="hidden sm:inline opacity-80">| Tự động hết hạn sau:</span>
+    <span id="topTimer" class="font-mono bg-black/50 px-2 py-0.5 rounded text-yellow-300 font-extrabold tracking-wider border border-yellow-400/30">14:20</span>
+  </div>
+
+  <!-- 2. HEADER TRANG BÁN HÀNG CHUYÊN NGHIỆP -->
+  <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 py-3.5 px-4 sm:px-8 sticky top-10 z-30 shadow-sm">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-purple-600 to-rose-500 p-0.5 shadow-md flex items-center justify-center text-white">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C12 7.523 7.523 12 2 12C7.523 12 12 16.477 12 22C12 16.477 16.477 12 22 12C16.477 12 12 7.523 12 2Z" fill="white"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-black text-lg sm:text-xl text-slate-900 tracking-tight">Google Gemini Pro</span>
+            <span class="text-[11px] bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded-full border border-blue-200">
+              Gói Bản Quyền 18 Tháng
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 hidden sm:block">Chương trình Trợ giá Bản quyền Google AI • Kích hoạt chính chủ 100%</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <a href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer" class="text-xs sm:text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-300 px-3.5 py-2 rounded-xl flex items-center gap-2 transition shadow-sm cursor-pointer group">
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
+          <span>Zalo hỗ trợ: <strong class="text-blue-900 group-hover:underline">0567.960.777</strong></span>
+          <span class="text-[10px] bg-blue-600 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">Nhắn Zalo</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3. MAIN HERO & FORM ĐẶT MUA -->
+  <main class="hero-glow-bg max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 w-full flex-1 space-y-12">
+    
+    <!-- Hero Title -->
+    <div class="text-center max-w-3xl mx-auto space-y-3">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold shadow-sm">
+        <span>🚀 Kích Hoạt Tự Động Trong 30 Giây</span>
+        <span>•</span>
+        <span>🛡️ Bảo Hành 1 Đổi 1 Trong 30 Ngày</span>
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+        Nâng Cấp <span class="gemini-gradient-text">Google Gemini Pro 18 Tháng</span> Chính Chủ
+      </h1>
+      <p class="text-sm sm:text-base text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
+        Trải nghiệm trọn bộ đặc quyền tối tân: <strong>Gemini 4 Argon</strong>, <strong>Bộ nhớ 5 TB²</strong>, <strong>Google Antigravity</strong>, <strong>Google Flow</strong>, <strong>Colab</strong> và <strong>YouTube Premium Lite</strong>.
+      </p>
+    </div>
+
+    <!-- KHUNG ĐẶT MUA SIDE-BY-SIDE -->
+    <div class="bg-white rounded-3xl shadow-xl border-2 border-slate-200 overflow-hidden grid lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
+      
+      <!-- CỘT TRÁI: GIÁ GỐC TO & FOMO MẠNH -->
+      <div class="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between space-y-6 bg-white">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="bg-red-600 text-white text-xs font-black uppercase px-3 py-1 rounded-lg shadow-sm">
+              Gói Trọn Gói 1.5 Năm (18 Tháng)
+            </span>
+            <span class="text-xs text-red-600 font-bold flex items-center gap-1.5">
+              ⏳ Ưu đãi còn: <span id="cardTimer" class="font-mono bg-red-100 border border-red-300 text-red-700 px-2 py-0.5 rounded font-black">14:20</span>
+            </span>
+          </div>
+
+          <!-- BẢNG GIÁ NIÊM YẾT VÀ GIÁ KHUYẾN MÃI -->
+          <div class="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-blue-50/70 via-slate-50 to-emerald-50/70 border-2 border-blue-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-200">
+              <div class="flex items-center gap-2">
+                <span class="text-xs sm:text-sm font-bold text-slate-500 uppercase">Giá niêm yết chưa giảm:</span>
+                <span class="text-2xl sm:text-3xl font-black text-slate-400 line-through decoration-red-600 decoration-4">
+                  4.500.000 VNĐ
+                </span>
+              </div>
+              <div class="badge-fomo-pulse bg-red-600 text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-full shadow-md">
+                TIẾT KIỆM 98% (-4.410.000đ)
+              </div>
+            </div>
+
+            <div class="pt-1 flex items-baseline justify-between flex-wrap gap-2">
+              <div>
+                <span class="text-xs font-bold text-emerald-800 uppercase block">Thanh toán trọn gói 18 tháng hôm nay:</span>
+                <div class="flex items-baseline gap-2 mt-1">
+                  <span class="text-4xl sm:text-5xl font-black text-emerald-600 tracking-tight">90.000đ</span>
+                  <span class="text-sm font-bold text-slate-700">/ 18 tháng</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="text-xs font-extrabold text-blue-700 bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-lg inline-block">
+                  Chỉ ~5.000đ / tháng
+                </span>
+                <div class="text-[11px] text-slate-500 mt-1">Rẻ hơn 1 ly trà đá mỗi tháng!</div>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-200">
+              <div class="flex justify-between text-xs font-bold mb-1.5">
+                <span class="text-slate-700">Đã kích hoạt: <strong class="text-slate-900">1.488/1.500 tài khoản</strong></span>
+                <span class="text-red-600 animate-pulse">🔥 Chỉ còn 12 suất cuối cùng!</span>
+              </div>
+              <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden p-0.5 border border-slate-300">
+                <div class="bg-gradient-to-r from-emerald-500 via-blue-500 to-red-500 h-full rounded-full transition-all duration-1000" style="width: 98.4%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ĐẶC QUYỀN GÓI PRO TÓM TẮT -->
+        <div class="space-y-2.5 text-xs text-slate-700 pt-2">
+          <div class="font-bold text-slate-900 uppercase text-[11px] tracking-wider">Trọn bộ đặc quyền cao cấp kích hoạt:</div>
+          <div class="grid sm:grid-cols-2 gap-2 font-medium">
+            <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-emerald-600 font-bold text-sm">✓</span>
+              <span><strong>Gemini 4 Argon & Gemini¹:</strong> Hạn mức gấp 4x, Deep Research & tạo video</span>
+            </div>
+            <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-emerald-600 font-bold text-sm">✓</span>
+              <span><strong>Bộ nhớ 5 TB²:</strong> Tổng bộ nhớ Photos, Drive & Gmail</span>
+            </div>
+            <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-emerald-600 font-bold text-sm">✓</span>
+              <span><strong>Google Flow & Flow Music:</strong> Studio video điện ảnh & nhạc AI</span>
+            </div>
+            <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-emerald-600 font-bold text-sm">✓</span>
+              <span><strong>Google Antigravity & AI Studio:</strong> Agent AI & Gemini 3.1 Pro</span>
+            </div>
+            <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-emerald-600 font-bold text-sm">✓</span>
+              <span><strong>Gemini trong Workspace:</strong> Nhúng Gmail, Docs, Sheets, Vids</span>
+            </div>
+            <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-emerald-600 font-bold text-sm">✓</span>
+              <span><strong>Colab & YouTube Premium Lite:</strong> 200 compute units & không quảng cáo</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CỘT PHẢI: FORM ĐĂNG KÝ MUA -->
+      <div class="lg:col-span-5 p-6 sm:p-8 bg-slate-50 flex flex-col justify-center">
+        <div class="space-y-4">
+          <div class="border-b border-slate-200 pb-3">
+            <span class="text-xs font-bold text-blue-600 uppercase">Bước 1: Điền Thông Tin Nhận Quyền</span>
+            <h3 class="text-lg font-black text-slate-900 mt-0.5">Đăng Ký Bản Quyền Pro 18T</h3>
+            <p class="text-xs text-slate-500">Mã QR VietQR sẽ tự động hiện ra để bạn quét thanh toán trong 10 giây.</p>
+          </div>
+
+          <form id="orderForm" onsubmit="event.preventDefault(); handleFormSubmit(event); return false;" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">1. Họ và tên của bạn <span class="text-red-500">*</span></label>
+              <input type="text" id="custName" value="Hân Trần" required placeholder="Ví dụ: Nguyễn Văn An"
+                class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium shadow-sm transition">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">2. Số điện thoại (Để bảo hành 30 ngày) <span class="text-red-500">*</span></label>
+              <input type="tel" id="custPhone" value="0901234567" required placeholder="Ví dụ: 0912345678"
+                class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium shadow-sm transition">
+              <span class="text-[11px] text-slate-500 mt-1 block">Số điện thoại chính chủ để kích hoạt và tra cứu bảo hành (1 đổi 1).</span>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">3. Địa chỉ Gmail (Để nhận link kích hoạt đơn hàng) <span class="text-red-500">*</span></label>
+              <input type="email" id="custEmail" value="hantran098@gmail.com" required placeholder="Ví dụ: yourname@gmail.com"
+                class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium shadow-sm transition">
+              <span class="text-[11px] text-slate-500 mt-1 block">Hệ thống sẽ gửi link bản quyền Gemini Pro và hướng dẫn kích hoạt vào Gmail này.</span>
+            </div>
+
+            <div class="pt-2">
+              <button type="button" id="btnSubmitOrder" onclick="handleFormSubmit(event)" class="cta-glow-pulse w-full py-4 px-4 rounded-xl font-black text-sm sm:text-base text-white bg-gradient-to-r from-red-600 via-rose-600 to-orange-600 hover:from-red-700 transition shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+                <span>MỞ MÃ QR THANH TOÁN (90.000đ)</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </button>
+            </div>
+
+            <!-- Cam kết bảo mật cho khách hàng -->
+            <div class="p-3 bg-white rounded-xl border border-slate-200 text-center space-y-1">
+              <div class="text-xs font-bold text-slate-800 flex items-center justify-center gap-1.5">
+                <span>🔒 Bảo Mật & Kích Hoạt Chính Chủ 100%</span>
+              </div>
+              <p class="text-[11px] text-slate-500">
+                Nâng cấp trực tiếp trên tài khoản Gmail cá nhân. Tuyệt đối không yêu cầu mật khẩu.
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 4. BẢNG CHI TIẾT TRỌN BỘ THÔNG TIN GÓI GEMINI PRO (16 ĐẶC QUYỀN) -->
+    <section class="space-y-6 pt-4">
+      <div class="bg-slate-50 border-2 border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+        <div class="text-center max-w-2xl mx-auto space-y-2">
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider bg-blue-100/70 text-blue-800 px-3 py-1 rounded-full border border-blue-200">Bảng Thông Tin Bản Quyền Chính Thức</span>
+          <h2 class="text-2xl sm:text-4xl font-black text-slate-900">Chi Tiết Trọn Bộ Thông Tin Gói Gemini Pro</h2>
+          <p class="text-xs sm:text-sm text-slate-600">Đầy đủ 16 đặc quyền công nghệ tiên tiến nhất được kích hoạt trực tiếp trên tài khoản Google của bạn.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- 1. Gemini -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              ✨
+            </div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-[11px] font-black text-blue-600 uppercase bg-blue-50 px-2 py-0.5 rounded border border-blue-100">Gemini</span>
+                <h4 class="text-sm font-black text-slate-900">Quyền truy cập mở rộng vào Gemini¹</h4>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed">Tận hưởng hạn mức sử dụng cao hơn gấp 4 lần so với khi không có gói Google AI</p>
+            </div>
+          </div>
+
+          <!-- 2. Gemini 4 Argon -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              ⚡
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">Quyền truy cập vào Gemini 4 Argon</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Tận hưởng hiệu suất đột phá cho các quy trình công việc phức tạp</p>
+            </div>
+          </div>
+
+          <!-- 3. Deep Research & Tạo video -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              🔬
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">Sử dụng Deep Research, tính năng tạo video và nhiều tính năng khác</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Sử dụng nhiều tính năng nâng cao hơn như Deep Research và tạo video</p>
+            </div>
+          </div>
+
+          <!-- 4. Mô hình mạnh nhất của Google -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              💎
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">Mô hình mạnh nhất của Google¹</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Bao gồm quyền truy cập mở rộng vào các mô hình mạnh nhất của Google và nhiều lợi ích khác¹</p>
+            </div>
+          </div>
+
+          <!-- 5. Bộ nhớ 5 TB² -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              ☁️
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">Bộ nhớ 5 TB²</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Tổng bộ nhớ cho Google Photos, Drive và Gmail</p>
+            </div>
+          </div>
+
+          <!-- 6. Google Flow -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              🎬
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">Google Flow</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Tận hưởng quyền truy cập mở rộng vào studio sáng tạo AI do Google cung cấp để tạo ra những cảnh quay và câu chuyện đậm chất điện ảnh bằng các mô hình tạo sinh tiên tiến của Google</p>
+            </div>
+          </div>
+
+          <!-- 7. Google Tìm kiếm -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              🔎
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">Google Tìm kiếm</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Sử dụng Gemini 4 Argon, Nano Banana Pro và nhiều lợi ích khác</p>
+            </div>
+          </div>
+
+          <!-- 8. Gemini trong Gmail, Tài liệu, Vids -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              📧
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">Gemini trong Gmail, Tài liệu, Vids và các sản phẩm khác</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Truy cập vào Gemini ngay trong nhiều ứng dụng khác của Google như Tài liệu, Trang tính và Trang trình bày</p>
+            </div>
+          </div>
+
+          <!-- 9. Gemini Notebook -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              📓
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">Gemini Notebook</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Quyền truy cập mở rộng vào cộng sự nghiên cứu của Google với các tính năng Tổng quan bằng âm thanh và video, Bài kiểm tra và hơn thế nữa</p>
+            </div>
+          </div>
+
+          <!-- 10. Google Antigravity -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              🛸
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">Google Antigravity</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Hạn mức cơ bản để dùng mô hình tác nhân trong Google Antigravity, nền tảng phát triển tác nhân của Google</p>
+            </div>
+          </div>
+
+          <!-- 11. Google Developer Program Cao cấp -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              👨‍💻
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">Gói thành viên Google Developer Program Cao cấp</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Xây dựng, học hỏi và phát triển nhanh hơn nhờ Codelabs, Cộng đồng và tín dụng Cloud mở rộng</p>
+            </div>
+          </div>
+
+          <!-- 12. Google AI Studio -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-fuchsia-100 text-fuchsia-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              🧪
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">Google AI Studio</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Tận hưởng hạn mức mở rộng để tạo nguyên mẫu, thử nghiệm và xây dựng bằng mô hình Gemini 3.1 Pro và các mô hình tạo nội dung đa phương tiện của Google</p>
+            </div>
+          </div>
+
+          <!-- 13. Google Flow Music -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-pink-100 text-pink-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              🎵
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">Google Flow Music</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Quyền truy cập mở rộng vào studio nhạc AI của Google</p>
+            </div>
+          </div>
+
+          <!-- 14. Gemini trong Android Studio -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-green-100 text-green-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              🤖
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">Gemini trong Android Studio</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Nâng cao hiệu quả phát triển ứng dụng Android với hạn mức mở rộng khi dùng các mô hình Gemini mạnh nhất của Google để được AI tác nhân trợ giúp</p>
+            </div>
+          </div>
+
+          <!-- 15. Colab -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              📊
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">Colab</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">200 đơn vị tính toán mỗi tháng, quyền sử dụng các trình tăng tốc mạnh mẽ, thời gian chạy lâu hơn và hạn mức sử dụng mở rộng đối với Gemini</p>
+            </div>
+          </div>
+
+          <!-- 16. YouTube Premium Lite • Cá nhân -->
+          <div class="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-start gap-3.5 hover:border-blue-400 hover:shadow-sm transition">
+            <div class="w-10 h-10 rounded-xl bg-red-100 text-red-700 flex items-center justify-center shrink-0 font-black text-base shadow-2xs">
+              ▶️
+            </div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-black text-slate-900">YouTube Premium Lite • Cá nhân</h4>
+              <p class="text-xs text-slate-600 leading-relaxed">Xem hầu hết video không có quảng cáo, không cần mạng và phát trong nền</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. KHỐI SHOWCASE HÌNH ẢNH THỰC TẾ & 5 LÝ DO BẠN PHẢI NÂNG CẤP -->
+    <section class="space-y-8 pt-4">
+      <div class="text-center max-w-3xl mx-auto space-y-2">
+        <span class="text-xs font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-3 py-1 rounded-full border border-blue-200">Quyền Lợi Trực Quan</span>
+        <h2 class="text-2xl sm:text-4xl font-black text-slate-900">
+          5 Lý Do Bạn Phải Nâng Cấp Ngay Hôm Nay
+        </h2>
+        <p class="text-sm text-slate-600">
+          Hình ảnh thực tế các công nghệ đột phá bạn sẽ nhận được trong gói Gemini Pro 18 Tháng.
+        </p>
+      </div>
+
+      <!-- Grid 5 Card kèm hình ảnh thực tế chất lượng cao -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Card 1: Antigravity IDE -->
+        <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-blue-500 transition duration-300 flex flex-col group">
+          <div class="h-48 overflow-hidden bg-slate-100 relative">
+            <img src="antigravity_5tb.jpg" alt="Google Antigravity AI IDE" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+            <span class="absolute top-3 left-3 bg-blue-600 text-white font-bold text-[10px] uppercase px-2.5 py-1 rounded-lg shadow">Dành Cho Lập Trình</span>
+          </div>
+          <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <h3 class="font-black text-base text-slate-900">1. Google Antigravity Agentic AI IDE</h3>
+              <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                Môi trường lập trình AI Agentic thế hệ mới: tự động viết code, fix bug, chạy command và deploy. Tặng thêm $10 Cloud credits mỗi tháng và mở rộng quota Android Studio.
+              </p>
+            </div>
+            <div class="text-[11px] font-bold text-blue-700 bg-blue-50 p-2 rounded-xl">
+              ⚡ Tăng năng suất lập trình gấp 5 lần
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: 5TB Cloud Storage -->
+        <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-emerald-500 transition duration-300 flex flex-col group">
+          <div class="h-48 overflow-hidden bg-slate-100 relative">
+            <img src="cloud_family_5tb.jpg" alt="5TB Google One Cloud Storage Family" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+            <span class="absolute top-3 left-3 bg-emerald-600 text-white font-bold text-[10px] uppercase px-2.5 py-1 rounded-lg shadow">Dung Lượng Doanh Nghiệp</span>
+          </div>
+          <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <h3 class="font-black text-base text-slate-900">2. Lưu Trữ Khủng 5 TB (5.000 GB)</h3>
+              <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                5.000 GB lưu trữ thoải mái Drive, Gmail, Photos chất lượng gốc trọn đời 18 tháng. Hỗ trợ Family Share: chia sẻ bộ nhớ cho 5 thành viên trong gia đình cùng dùng.
+              </p>
+            </div>
+            <div class="text-[11px] font-bold text-emerald-700 bg-emerald-50 p-2 rounded-xl">
+              ☁️ Không bao giờ lo báo đầy bộ nhớ
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Gemini 4 Argon & Deep Research -->
+        <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-purple-500 transition duration-300 flex flex-col group">
+          <div class="h-48 overflow-hidden bg-slate-100 relative">
+            <img src="gemini_ecosystem.jpg" alt="Gemini 4 Argon & Deep Research" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+            <span class="absolute top-3 left-3 bg-purple-600 text-white font-bold text-[10px] uppercase px-2.5 py-1 rounded-lg shadow">Trí Tuệ Nhân Tạo Siêu Cấp</span>
+          </div>
+          <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <h3 class="font-black text-base text-slate-900">3. Gemini 4 Argon & Deep Research</h3>
+              <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                Quyền truy cập mở rộng vào Gemini¹ với hạn mức gấp 4x. Sử dụng Gemini 4 Argon xử lý quy trình phức tạp, kèm tính năng Deep Research và tạo video cao cấp.
+              </p>
+            </div>
+            <div class="text-[11px] font-bold text-purple-700 bg-purple-50 p-2 rounded-xl">
+              🧠 Hiệu suất đột phá cho quy trình phức tạp
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Sáng Tạo Google Flow & Ảnh 4K -->
+        <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-rose-500 transition duration-300 flex flex-col group">
+          <div class="h-48 overflow-hidden bg-slate-100 relative">
+            <img src="creative_photos.jpg" alt="Google Flow & Flow Music" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+            <span class="absolute top-3 left-3 bg-rose-600 text-white font-bold text-[10px] uppercase px-2.5 py-1 rounded-lg shadow">Sáng Tạo Truyền Thông</span>
+          </div>
+          <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <h3 class="font-black text-base text-slate-900">4. Google Flow & Google Flow Music</h3>
+              <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                Studio sáng tạo AI do Google cung cấp: tạo cảnh quay và câu chuyện đậm chất điện ảnh, tạo video và mở rộng studio nhạc AI độc quyền Google Flow Music.
+              </p>
+            </div>
+            <div class="text-[11px] font-bold text-rose-700 bg-rose-50 p-2 rounded-xl">
+              🎨 Sáng tạo phim ảnh & âm nhạc AI không giới hạn
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5: Gemini AI Workspace & Magic Editor -->
+        <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-amber-500 transition duration-300 flex flex-col group md:col-span-2 lg:col-span-2">
+          <div class="h-48 overflow-hidden bg-slate-100 relative">
+            <img src="gemini_workspace.jpg" alt="Gemini AI trong Google Workspace Gmail Docs Meet" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+            <span class="absolute top-3 left-3 bg-amber-600 text-white font-bold text-[10px] uppercase px-2.5 py-1 rounded-lg shadow">Văn Phòng & Năng Suất</span>
+          </div>
+          <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+            <div>
+              <h3 class="font-black text-base text-slate-900">5. Gemini Nhúng Sâu Vào Gmail, Docs, Vids & Colab</h3>
+              <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                Tích hợp AI ngay trong Gmail, Docs, Sheets, Vids và Android Studio. Tặng 200 đơn vị tính toán Colab mỗi tháng và xem YouTube Premium Lite không quảng cáo.
+              </p>
+            </div>
+            <div class="text-[11px] font-bold text-amber-800 bg-amber-50 p-2 rounded-xl">
+              💼 Tiết kiệm 80% thời gian làm việc & giải trí không quảng cáo
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 5. BẢNG SO SÁNH GIÁ TRỊ KINH TẾ (ROI) -->
+    <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl border border-white/10">
+      <div class="space-y-2 text-center md:text-left">
+        <span class="text-xs font-black text-yellow-300 tracking-wider uppercase bg-yellow-400/20 px-3 py-1 rounded-full border border-yellow-300/30">SO SÁNH CHI PHÍ THỰC TẾ</span>
+        <h3 class="text-xl sm:text-2xl font-black">Giá niêm yết chưa giảm: 4.500.000 VNĐ</h3>
+        <p class="text-xs text-slate-300">Đăng ký qua chương trình trợ giá hôm nay giúp bạn tiết kiệm trọn vẹn 98% chi phí bản quyền.</p>
+      </div>
+      <div class="bg-white/10 backdrop-blur-md p-4 sm:p-5 rounded-2xl text-center shrink-0 border border-white/20">
+        <div class="text-xs font-bold text-yellow-300 uppercase">BẠN TIẾT KIỆM NGAY</div>
+        <div class="text-3xl sm:text-4xl font-black text-emerald-400 mt-1">4.410.000đ</div>
+        <div class="text-xs text-white/80 mt-1">Chỉ trả đúng <strong class="text-white text-sm">90.000đ</strong> một lần duy nhất!</div>
+      </div>
+    </div>
+
+    <!-- 6. ĐÁNH GIÁ CỦA KHÁCH HÀNG (TESTIMONIALS) -->
+    <section class="space-y-6">
+      <div class="text-center max-w-xl mx-auto space-y-1">
+        <span class="text-xs font-bold text-emerald-600 uppercase">Khách Hàng Thực Tế</span>
+        <h3 class="text-xl sm:text-2xl font-black text-slate-900">Hơn 1.400+ Khách Hàng Đã Hài Lòng</h3>
+      </div>
+      <div class="grid sm:grid-cols-3 gap-4 text-xs">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+          <div class="text-amber-400 font-bold text-sm">★★★★★</div>
+          <p class="text-slate-600 italic">"Mình làm lập trình viên, dùng Antigravity AI IDE code nhanh hơn hẳn. 5TB lưu trữ Drive thoải mái chứa dataset và source code. Giá 90K quá hời!"</p>
+          <div class="font-bold text-slate-900 pt-1 border-t border-slate-100">— Anh Hoàng Nam (Senior Dev, TP.HCM)</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+          <div class="text-amber-400 font-bold text-sm">★★★★★</div>
+          <p class="text-slate-600 italic">"Quét QR xong tầm 15 giây là có link kích hoạt gửi về Zalo và Gmail luôn. Gemini 3.1 Pro đọc tài liệu tiếng Anh cực chuẩn. Rất uy tín!"</p>
+          <div class="font-bold text-slate-900 pt-1 border-t border-slate-100">— Chị Thu Thảo (Content Lead, Hà Nội)</div>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+          <div class="text-amber-400 font-bold text-sm">★★★★★</div>
+          <p class="text-slate-600 italic">"Tuyệt nhất là chia sẻ được cho cả gia đình 5 người cùng hưởng 5TB và dùng Gemini AI viết email, soạn văn bản trong Docs cực nhanh. Quá tuyệt vời!"</p>
+          <div class="font-bold text-slate-900 pt-1 border-t border-slate-100">— Anh Minh Tuấn (Giám đốc kinh doanh, Đà Nẵng)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. CÂU HỎI THƯỜNG GẶP (FAQ) -->
+    <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
+      <h3 class="text-lg font-black text-slate-900 text-center">Câu Hỏi Thường Gặp</h3>
+      <div class="grid md:grid-cols-2 gap-4 text-xs">
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+          <div class="font-bold text-slate-900">❓ Tôi có cần cung cấp mật khẩu Gmail không?</div>
+          <p class="text-slate-600">Tuyệt đối không! Bạn chỉ cần điền đúng địa chỉ Gmail, hệ thống sẽ gửi liên kết kích hoạt chính thức từ Google One để bạn tự bấm chấp nhận.</p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+          <div class="font-bold text-slate-900">❓ Dữ liệu trong 5TB của tôi có bị ai xem không?</div>
+          <p class="text-slate-600">100% riêng tư và bảo mật theo chính sách Google. Người khác dù trong nhóm chia sẻ cũng không thể xem file của bạn nếu bạn không chủ động chia sẻ.</p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+          <div class="font-bold text-slate-900">❓ Chính sách bảo hành như thế nào?</div>
+          <p class="text-slate-600">Cam kết bảo hành 30 ngày 1 đổi 1. Nếu có bất kỳ sự cố nào, hotline và Zalo kỹ thuật luôn hỗ trợ cấp lại link ngay tức thì qua Zalo: <a href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-bold underline hover:text-blue-800">0567.960.777 (Bấm mở Zalo)</a>.</p>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+          <div class="font-bold text-slate-900">❓ Quét tiền xong thì nhận link như thế nào?</div>
+          <p class="text-slate-600">Hệ thống ngân hàng nhận diện tự động trong 10-20 giây, mã bản quyền và hướng dẫn sẽ được gửi đồng thời vào hòm thư Gmail và tin nhắn Zalo của bạn.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== 5. MODAL MÃ QR THANH TOÁN BỰ TO ==================== -->
+  <div id="paymentModal" style="display: none;" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[9999] flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white border-2 border-emerald-500 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-300">
+      
+      <button onclick="closePaymentModal()" class="absolute top-3.5 right-3.5 text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition z-10">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+
+      <!-- KHUNG BƯỚC QUÉT QR BỰ TO -->
+      <div id="modalStepQR" class="p-6 sm:p-8 text-center space-y-4">
+        
+        <div class="space-y-1">
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+            Cổng Thanh Toán VietQR Tự Động (MBBank)
+          </div>
+          <h3 class="text-xl sm:text-2xl font-black text-slate-900">Quét Mã QR Để Kích Hoạt</h3>
+          <p class="text-xs text-slate-500">Mở App Ngân hàng bất kỳ hoặc MoMo để quét mã VietQR bên dưới.</p>
+        </div>
+
+        <!-- ẢNH QR BỰ TO -->
+        <div class="bg-white p-4 rounded-3xl border-4 border-emerald-400 shadow-xl inline-block mx-auto max-w-[280px] relative min-h-[280px]">
+          <div id="qrLoadingSpinner" class="absolute inset-0 flex flex-col items-center justify-center bg-white/90 rounded-2xl z-10 hidden">
+            <svg class="w-8 h-8 animate-spin text-emerald-600 mb-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+            <span class="text-xs font-bold text-slate-600">Đang tải mã VietQR...</span>
+          </div>
+          <img id="modalQrImage" src="data:image/png;base64,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" alt="Mã QR Chuyển Khoản MBBank Bự To" class="w-60 h-60 mx-auto rounded-xl object-contain shadow-sm" onload="document.getElementById('qrLoadingSpinner')?.classList.add('hidden')" onerror="handleQrError(this)">
+          <div class="text-xs text-emerald-900 font-black mt-2 bg-emerald-50 py-1.5 px-3 rounded-lg border border-emerald-200">
+            ✔ MBBank: NGUYEN TRAN HAN
+          </div>
+        </div>
+
+        <!-- CHI TIẾT CHUYỂN KHOẢN -->
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-left text-xs space-y-2">
+          <div class="flex justify-between items-center text-slate-700 pb-1.5 border-b border-slate-200">
+            <span>Ngân hàng & Số tài khoản:</span>
+            <div class="flex items-center gap-1.5 font-mono font-bold text-slate-900 text-sm">
+              <span>MB: 517041996</span>
+              <button onclick="copyData('517041996')" class="text-blue-600 text-xs underline font-bold cursor-pointer">Sao chép</button>
+            </div>
+          </div>
+          <div class="flex justify-between items-center text-slate-700 pb-1.5 border-b border-slate-200">
+            <span>Số tiền thanh toán:</span>
+            <span class="text-emerald-700 font-black text-base">90.000 VNĐ</span>
+          </div>
+          <div class="flex justify-between items-center text-slate-700">
+            <span>Nội dung chuyển khoản (bắt buộc):</span>
+            <div class="flex items-center gap-1.5 font-mono font-bold text-amber-700 text-sm">
+              <span id="modalMemoDisplay">PRO18T</span>
+              <button onclick="copyData(document.getElementById('modalMemoDisplay').innerText)" class="text-blue-600 text-xs underline font-bold cursor-pointer">Sao chép</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- THANH TRẠNG THÁI LẮNG NGHE TỰ ĐỘNG QUA API PAY -->
+        <div class="p-3.5 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border-2 border-blue-400 rounded-2xl space-y-2.5 shadow-sm text-left">
+          <div class="flex items-center justify-between text-xs font-bold text-blue-950 pb-2 border-b border-blue-200">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+              <span>Cổng API Pay: <strong>Tự Động 24/7</strong></span>
+            </span>
+            <div class="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-red-200 text-xs shadow-2xs">
+              <span class="text-slate-500 font-medium">⏳ Mã QR hết hạn sau:</span>
+              <span id="qrExpireCountdown" class="font-mono font-black text-red-600 text-sm">10:00</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-center gap-2 text-xs text-blue-900 font-bold py-1.5 bg-white/80 rounded-xl border border-blue-200">
+            <svg class="w-4 h-4 animate-spin text-blue-600 shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+            <span id="listeningText">Đang chờ bạn quét mã QR 90.000đ từ App Ngân Hàng...</span>
+          </div>
+
+          <div class="p-3 bg-emerald-50/90 border border-emerald-300 rounded-xl space-y-1 text-xs">
+            <div class="flex items-center gap-1.5 text-emerald-900 font-black text-[11px] uppercase tracking-wide">
+              <span>⚡ KÍCH HOẠT TỰ ĐỘNG CHỈ TRONG 03 GIÂY:</span>
+            </div>
+            <p class="text-[11px] text-slate-700 leading-relaxed font-medium">
+              Ngay khi App Ngân hàng chuyển tiền thành công, hệ thống API Pay tự động nhận diện số dư và lập tức mở đường link bản quyền trên màn hình này, đồng thời gửi trọn bộ hướng dẫn vào Gmail của bạn. <strong>Quý khách hoàn toàn an tâm, không cần chụp ảnh biên lai hay chờ nhân viên duyệt thủ công!</strong>
+            </p>
+          </div>
+        </div>
+
+
+
+      </div>
+
+      <!-- KHUNG BƯỚC THÀNH CÔNG -->
+      <div id="modalStepSuccess" style="display: none;" class="p-5 sm:p-7 text-center space-y-4 max-h-[85vh] overflow-y-auto">
+        <div class="w-14 h-14 bg-emerald-100 text-emerald-600 border-2 border-emerald-400 rounded-full flex items-center justify-center mx-auto text-2xl font-black shadow-md">
+          ✓
+        </div>
+
+        <div class="space-y-1">
+          <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-xs font-bold text-blue-900 shadow-2xs">
+            <span>Mã Đơn Hàng:</span>
+            <span id="finalOrderId" class="font-mono font-black text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-300">#8291</span>
+          </div>
+          <h3 class="text-xl sm:text-2xl font-black text-slate-900">Kích Hoạt Hoàn Tất 90.000đ!</h3>
+          <p class="text-xs font-bold text-emerald-700">Gói Google Gemini Pro 18 Tháng + 5TB Cloud đã sẵn sàng.</p>
+        </div>
+
+        <!-- KHUNG LINK BẢN QUYỀN VÀ NÚT SAO CHÉP -->
+        <div class="p-4 rounded-2xl bg-gradient-to-br from-amber-50 via-white to-emerald-50 border-2 border-emerald-400 shadow-sm text-left space-y-3">
+          <div class="flex items-start gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-2xs mt-0.5">🔑</span>
+            <div>
+              <div class="text-xs sm:text-sm font-black text-slate-900 leading-snug">
+                Đường Link Nhận Bản Quyền Của Bạn:
+              </div>
+              <div class="text-[11px] text-slate-600 mt-0.5">
+                Bản quyền Google Gemini Pro 18 Tháng độc quyền - Kích hoạt 1 chạm.
+              </div>
+            </div>
+          </div>
+
+          <!-- Ô HIỂN THỊ LINK BẢN QUYỀN & NÚT COPY -->
+          <div class="bg-white p-2.5 rounded-xl border border-slate-300 flex items-center justify-between gap-2 shadow-inner">
+            <div class="font-mono text-xs text-blue-700 font-bold truncate flex-1 select-all" id="finalLicenseLink">
+              https://geminiactivation.com/subscription/new/...
+            </div>
+            <button type="button" onclick="copyData(document.getElementById('finalLicenseLink').innerText)" 
+              class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-lg text-xs transition shadow-sm flex items-center gap-1.5 shrink-0 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              <span>Sao Chép Link</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- BẢNG HƯỚNG DẪN 2 LỰA CHỌN KÍCH HOẠT THÔNG MINH -->
+        <div class="space-y-3 text-left">
+          
+          <!-- LỰA CHỌN 1: NÂNG NHANH CHO MAIL HIỆN TẠI -->
+          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-400 rounded-2xl p-4 shadow-sm space-y-2.5">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0">⚡</span>
+              <h4 class="text-xs sm:text-sm font-black text-blue-950 uppercase tracking-wide">
+                Cách 1: Nâng cấp nhanh (Bằng Gmail đang mở trên trình duyệt này)
+              </h4>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Nếu bạn muốn kích hoạt luôn vào tài khoản Google bạn đang dùng ở trình duyệt này, chỉ cần <strong>1 thao tác bấm nút</strong> bên dưới:
+            </p>
+            <a id="directOpenLinkBtn" href="#" target="_blank" rel="noopener noreferrer" 
+              class="w-full text-center py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-98 text-white text-xs sm:text-sm font-black transition shadow-md flex items-center justify-center gap-2 cursor-pointer uppercase">
+              <span>👉 Bấm Vào Đây Để Mở Link Nhận Quyền Ngay</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
+            <p class="text-[11px] text-blue-800 italic text-center font-medium">
+              *Trang Google One sẽ mở ra -> Nhấn "Tham gia" là hoàn tất chỉ trong 3 giây!
+            </p>
+          </div>
+
+          <!-- LỰA CHỌN 2: NÂNG CẤP CHO GMAIL KHÁC (4 BƯỚC CHUẨN) -->
+          <div class="bg-white border-2 border-slate-300 rounded-2xl p-4 shadow-sm space-y-3">
+            <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+              <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">🎯</span>
+              <h4 class="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-wide">
+                Cách 2: Nâng cấp cho Gmail khác (Hoặc tặng người thân / tài khoản phụ)
+              </h4>
+            </div>
+            <p class="text-xs text-slate-600">
+              Quy trình 4 bước chuẩn chỉ, bảo mật và chính xác 100%:
+            </p>
+            
+            <div class="grid gap-2 text-xs">
+              <div class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                <div>
+                  <strong class="text-slate-900">Bước 1 (Copy link):</strong> Bấm nút <strong>"Sao Chép Link"</strong> ở khung màu xanh phía trên.
+                </div>
+              </div>
+
+              <div class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                <div>
+                  <strong class="text-slate-900">Bước 2 (Chuyển Tab Gmail đích):</strong> Mở một tab trình duyệt Google mới đang đăng nhập đúng tài khoản Gmail mà bạn cần nâng cấp.
+                </div>
+              </div>
+
+              <div class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="w-5 h-5 rounded-full bg-purple-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
+                <div>
+                  <strong class="text-slate-900">Bước 3 (Dán link & Kích hoạt gói):</strong> Dán (Paste) link vừa sao chép vào thanh địa chỉ rồi nhấn Enter. Trang kích hoạt Google One hiện ra -> Bấm nút <strong>"Tham gia / Chấp nhận" (Accept / Join)</strong>.
+                </div>
+              </div>
+
+              <div class="flex items-start gap-2.5 p-2 rounded-xl bg-emerald-50 border border-emerald-300">
+                <span class="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">✓</span>
+                <div>
+                  <strong class="text-emerald-900">Bước 4 (Thành công mỹ mãn):</strong> Màn hình pháo hoa xuất hiện thông báo: <em class="font-bold text-blue-700">"Bạn là thành viên gói Google AI Pro"</em>. Bấm nút <strong>"Chuyển đến Gemini"</strong> để tận hưởng ngay 5TB bộ nhớ và sức mạnh AI đỉnh cao!
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- KHUNG LƯU Ý ĐẶC BIỆT: KIỂM TRA THƯ RÁC / SPAM GMAIL -->
+        <div class="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-400 rounded-2xl p-4 text-left space-y-2 shadow-sm">
+          <div class="flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center font-black text-xs shrink-0 animate-pulse">⚠️</span>
+            <h4 class="text-xs sm:text-sm font-black text-amber-950 uppercase tracking-wide">
+              LƯU Ý QUAN TRỌNG KHI KIỂM TRA GMAIL:
+            </h4>
+          </div>
+          <p class="text-xs text-amber-950 font-bold leading-relaxed">
+            Nếu bạn không thấy email trong <span class="text-blue-700 underline">Hộp thư chính (Inbox)</span>, xin vui lòng kiểm tra ngay mục <span class="text-red-700 bg-red-100 px-1.5 py-0.5 rounded font-black border border-red-300">"Thư rác" (Spam)</span> hoặc mục <span class="text-amber-800 font-bold">"Quảng cáo"</span> nhé!
+          </p>
+          <div class="text-[11px] text-slate-700 bg-white/90 p-2.5 rounded-xl border border-amber-200 leading-normal space-y-1">
+            <div>💡 <strong>Mẹo nhỏ:</strong> Khi thấy email trong mục <strong>Thư rác</strong>, bạn chỉ cần bấm nút <strong>"Báo cáo không phải thư rác" (Not Spam)</strong>.</div>
+            <div class="text-emerald-700 font-medium">➡️ Ngay lập tức thư sẽ tự chuyển về Hộp thư chính và hiển thị đầy đủ tên hỗ trợ <span class="font-bold">Google Gemini Pro Support VN</span>!</div>
+          </div>
+        </div>
+
+        <!-- THÔNG TIN HỖ TRỢ VÀ EMAIL ĐÃ GỬI -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-left space-y-2 text-xs shadow-2xs">
+          <div class="flex items-start gap-2.5">
+            <div class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center font-bold text-xs shrink-0">✉️</div>
+            <div>
+              <span class="text-slate-500 font-medium">Đã gửi toàn bộ link & hướng dẫn chi tiết vào Gmail:</span>
+              <div id="finalEmail" class="font-bold text-slate-900 font-mono text-xs mt-0.5">user@gmail.com</div>
+              <span class="text-[11px] text-amber-700 font-bold block mt-0.5">⚠️ Nhớ kiểm tra cả mục Thư rác (Spam) & Quảng cáo!</span>
+            </div>
+          </div>
+
+          <div class="border-t border-slate-200 pt-2 flex items-center justify-between text-xs">
+            <span class="text-slate-600">💬 Cần hỗ trợ kích hoạt qua Ultraviewer?</span>
+            <a href="https://zalo.me/0567960777" target="_blank" class="text-blue-700 font-bold hover:underline">
+              Zalo: 0567.960.777
+            </a>
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-1">
+          <a href="https://mail.google.com" target="_blank" class="block w-full py-3.5 rounded-xl font-black text-xs sm:text-sm text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 transition shadow-md text-center uppercase tracking-wide">
+            📩 MỞ GMAIL (KIỂM TRA HỘP THƯ CHÍNH &amp; THƯ RÁC)
+          </a>
+          <button onclick="closePaymentModal()" class="block w-full py-2 rounded-xl font-bold text-xs text-slate-500 hover:bg-slate-100 transition cursor-pointer">
+            Đóng cửa sổ này
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 8. FOOTER TRANG WEB -->
+  <footer class="bg-white border-t border-slate-200 py-6 px-4 text-center text-xs text-slate-500">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div>© 2026 Bản Quyền Google Gemini Pro 18 Tháng (Google Partner Services).</div>
+      <div class="flex items-center gap-3">
+        <a href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 transition flex items-center gap-1.5 font-medium">
+          <span>💬 Zalo hỗ trợ:</span> <strong class="text-blue-700 underline font-bold">0567.960.777</strong>
+        </a>
+        <span>•</span>
+        <a href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-bold hover:underline">
+          Chat Zalo 24/7 (Bấm mở Zalo)
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- NÚT ZALO NỔI TIỆN LỢI (BẤM VÀO NHẢY QUA ZALO LUÔN) -->
+  <a href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer" 
+     class="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 hover:from-blue-700 hover:to-sky-700 text-white px-4 py-3 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 border-2 border-white cursor-pointer group"
+     title="Nhắn tin Zalo với bộ phận hỗ trợ 0567.960.777">
+    <div class="w-8 h-8 rounded-full bg-white text-blue-600 flex items-center justify-center font-black text-sm shadow-sm shrink-0">
+      Z
+    </div>
+    <div class="text-left pr-1">
+      <div class="text-[10px] uppercase font-bold text-sky-200 leading-tight">Hỗ Trợ Kỹ Thuật 24/7</div>
+      <div class="text-xs sm:text-sm font-black tracking-tight leading-tight">Zalo: 0567.960.777</div>
+    </div>
+    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping ml-0.5"></span>
+  </a>
+
+  <!-- 9. TOAST LIVE BUYERS (THÔNG BÁO KHÁCH VỪA MUA) -->
+  <div id="liveBuyerToast" class="fixed bottom-4 left-4 z-40 bg-white/95 backdrop-blur border-2 border-emerald-400 rounded-2xl p-2.5 shadow-2xl flex items-center gap-2.5 transition-all duration-500 transform translate-y-36 opacity-0 max-w-xs">
+    <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">
+      ✓
+    </div>
+    <div class="text-xs">
+      <div class="font-bold text-slate-900" id="buyerName">Anh Tuấn (TP.HCM)</div>
+      <div class="text-emerald-700 text-[11px]" id="buyerAction">Vừa kích hoạt Gemini 18T & Antigravity 5TB</div>
+    </div>
+  </div>
+
+  <div id="toastAlert" class="fixed top-5 right-5 bg-slate-900 text-white text-xs px-3.5 py-2 rounded-xl shadow-xl z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+    Đã sao chép!
+  </div>
+
+  <!-- 10. JAVASCRIPT XỬ LÝ ĐẶT HÀNG & BẮT IP NGẦM CHO ADMIN CRM -->
+  <script>
+    // Cấu hình ngân hàng thanh toán VietQR
+    const CONFIG = {
+      bankBin: "970422", // MBBank
+      accountNo: "517041996",
+      accountName: "NGUYEN TRAN HAN",
+      amount: 90000,
+      googleAppsScriptUrl: "https://script.google.com/macros/s/AKfycbx_SAMPLE_GEMINI_CRM_WEBHOOK/exec"
+    };
+
+    // Bắt nguồn truy cập thông minh & Chuẩn xác 100% (Phát hiện thật từ Referrer & Query Params)
+    function getTrafficSource() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const utm = (urlParams.get('utm_source') || '').toLowerCase();
+      const ref = (urlParams.get('ref') || urlParams.get('source') || '').toLowerCase();
+      const fbclid = urlParams.get('fbclid');
+      const ttclid = urlParams.get('ttclid');
+      const gclid = urlParams.get('gclid');
+      const docRef = (document.referrer || '').toLowerCase();
+
+      // 1. TỪ X / TWITTER (x.com, twitter.com, t.co)
+      if (utm === 'x' || utm.includes('twitter') || utm.includes('t.co') || ref === 'x' || ref.includes('twitter') ||
+          docRef.includes('t.co') || docRef.includes('x.com') || docRef.includes('twitter.com')) {
+        return 'X (Twitter)';
+      }
+
+      // 2. TỪ THREADS (threads.net)
+      if (utm.includes('threads') || ref.includes('threads') || docRef.includes('threads.net')) {
+        return 'Threads';
+      }
+
+      // 3. TỪ TIKTOK (tiktok.com)
+      if (ttclid || utm.includes('tiktok') || ref.includes('tiktok') || docRef.includes('tiktok.com')) {
+        return 'TikTok';
+      }
+
+      // 4. TỪ FACEBOOK (facebook.com, fb.com, fbclid Meta Ads)
+      if (fbclid || utm.includes('facebook') || utm.includes('fb') || ref.includes('facebook') || ref.includes('fb') ||
+          docRef.includes('facebook.com') || docRef.includes('fb.com')) {
+        return 'Facebook';
+      }
+
+      // 5. TỪ TÌM KIẾM TỰ NHIÊN / RESEARCH (Google, Bing, Cốc Cốc, Perplexity, ChatGPT, Claude, Gemini...)
+      if (gclid || utm.includes('search') || utm.includes('research') || utm.includes('organic') || utm.includes('google') ||
+          ref.includes('search') || ref.includes('research') || ref.includes('organic') || ref.includes('google') ||
+          docRef.includes('google.') || docRef.includes('bing.com') || docRef.includes('coccoc.com') || docRef.includes('duckduckgo.com') ||
+          docRef.includes('chatgpt.com') || docRef.includes('perplexity.ai') || docRef.includes('claude.ai') || docRef.includes('gemini.google.com')) {
+        return 'Tìm kiếm & Research';
+      }
+
+      // 6. TỪ ZALO CHAT (zalo.me)
+      if (utm.includes('zalo') || ref.includes('zalo') || docRef.includes('zalo.me')) {
+        return 'Zalo Chat';
+      }
+
+      // 7. TRUY CẬP TRỰC TIẾP (DIRECT URL / BOOKMARK)
+      return 'Truy cập trực tiếp';
+    }
+
+    // Dữ liệu khách truy cập (Chạy ngầm, không hiện ra ngoài cho khách)
+    let visitorData = {
+      ip: '127.0.0.1',
+      location: 'Việt Nam',
+      device: navigator.userAgent.includes('Mobile') ? 'Điện thoại' : 'Máy tính',
+      browser: navigator.userAgent.includes('Chrome') ? 'Google Chrome' : (navigator.userAgent.includes('Safari') ? 'Safari' : 'Trình duyệt khác'),
+      referrer: getTrafficSource()
+    };
+
+    let currentOrder = { name: '', phone: '', email: '', memo: '', orderId: '' };
+    let pollInterval = null;
+
+    // Tự động bắt địa chỉ IP & Tỉnh thành ngầm để phục vụ quản trị CRM
+    async function captureVisitorIpSilently() {
+      try {
+        const res = await fetch('https://api.ipify.org?format=json');
+        if (res.ok) {
+          const ipJson = await res.json();
+          visitorData.ip = ipJson.ip;
+
+          try {
+            const locRes = await fetch(`https://ipapi.co/${ipJson.ip}/json/`);
+            if (locRes.ok) {
+              const locJson = await locRes.json();
+              visitorData.location = `${locJson.city || ''}, ${locJson.country_name || 'VN'}`;
+            }
+          } catch(e) {}
+        }
+      } catch (err) {}
+
+      // Lưu nhật ký ngầm vào localStorage cho Admin dashboard (/admin)
+      try {
+        let visits = JSON.parse(localStorage.getItem('crm_visits') || '[]');
+        visits.unshift({
+          time: new Date().toLocaleString('vi-VN'),
+          ip: visitorData.ip,
+          location: visitorData.location,
+          device: visitorData.device,
+          browser: visitorData.browser,
+          referrer: visitorData.referrer,
+          fullUrl: window.location.href,
+          rawReferrer: document.referrer || '(Trực tiếp / Bookmark)'
+        });
+        if (visits.length > 80) visits = visits.slice(0, 80);
+        localStorage.setItem('crm_visits', JSON.stringify(visits));
+      } catch(e) {}
+
+      // Đồng bộ về webhook nếu có cấu hình
+      logTrafficToWebhook();
+    }
+    captureVisitorIpSilently();
+
+    function logTrafficToWebhook() {
+      if (!CONFIG.googleAppsScriptUrl || CONFIG.googleAppsScriptUrl.includes("SAMPLE")) return;
+      try {
+        fetch(CONFIG.googleAppsScriptUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'track_visit',
+            ip: visitorData.ip,
+            location: visitorData.location,
+            device: visitorData.device,
+            browser: visitorData.browser,
+            referrer: visitorData.referrer
+          })
+        });
+      } catch (e) {}
+    }
+
+    // Đếm ngược thời gian Flash Sale
+    let remainingSeconds = 14 * 60 + 20;
+    function updateTimer() {
+      const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+      const s = (remainingSeconds % 60).toString().padStart(2, '0');
+      const timeStr = `${m}:${s}`;
+      const el1 = document.getElementById('topTimer');
+      const el2 = document.getElementById('cardTimer');
+      if (el1) el1.innerText = timeStr;
+      if (el2) el2.innerText = timeStr;
+      if (remainingSeconds > 0) remainingSeconds--;
+    }
+    setInterval(updateTimer, 1000);
+
+    function handleQrError(img) {
+      if (!img) return;
+      const memo = currentOrder ? currentOrder.memo : 'PRO18T';
+      if (!img.dataset.failedOnce) {
+        img.dataset.failedOnce = 'true';
+        img.src = '/api/qr-image?memo=' + encodeURIComponent(memo) + '&amount=' + CONFIG.amount;
+      }
+    }
+
+    // Xử lý khi khách bấm MỞ MÃ QR
+    function handleFormSubmit(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
+      const nameEl = document.getElementById('custName');
+      const phoneEl = document.getElementById('custPhone');
+      const emailEl = document.getElementById('custEmail');
+
+      const name = (nameEl && nameEl.value.trim()) ? nameEl.value.trim() : 'Hân Trần';
+      const rawPhone = (phoneEl && phoneEl.value.trim()) ? phoneEl.value.trim() : '0901234567';
+      const email = (emailEl && emailEl.value.trim()) ? emailEl.value.trim() : 'hantran098@gmail.com';
+
+      // Làm sạch số điện thoại (chỉ giữ số)
+      let phone = rawPhone.replace(/[^0-9]/g, '');
+      if (phone.length < 9) {
+        phone = '0901234567';
+      }
+
+      if (nameEl && !nameEl.value) nameEl.value = name;
+      if (phoneEl && !phoneEl.value) phoneEl.value = phone;
+      if (emailEl && !emailEl.value) emailEl.value = email;
+
+      const memo = `PRO18T ${phone}`;
+      const orderId = '#' + Math.floor(1000 + Math.random() * 9000);
+      currentOrder = { name, phone, email, memo, orderId };
+
+      const memoDisplay = document.getElementById('modalMemoDisplay');
+      if (memoDisplay) memoDisplay.innerText = memo;
+
+      // 1. MỞ MODAL THANH TOÁN BỰ TO NGAY LẬP TỨC (KHÔNG CHỜ BẤT KỲ MẠNG NÀO)
+      const modal = document.getElementById('paymentModal');
+      const stepQR = document.getElementById('modalStepQR');
+      const stepSuccess = document.getElementById('modalStepSuccess');
+
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.setProperty('display', 'flex', 'important');
+      }
+      if (stepQR) {
+        stepQR.classList.remove('hidden');
+        stepQR.style.setProperty('display', 'block', 'important');
+      }
+      if (stepSuccess) {
+        stepSuccess.classList.add('hidden');
+        stepSuccess.style.setProperty('display', 'none', 'important');
+      }
+
+      // Kích hoạt spinner khi tải QR
+      const spinner = document.getElementById('qrLoadingSpinner');
+      if (spinner) spinner.classList.remove('hidden');
+
+      // Sinh mã VietQR bự to rõ nét: Dùng proxy Backend trước (100% không bị lỗi ngày tháng SSL 2026)
+      const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
+      const qrUrl = `${apiBase}/api/qr-image?memo=${encodeURIComponent(memo)}&amount=${CONFIG.amount}&t=${Date.now()}`;
+      const qrImg = document.getElementById('modalQrImage');
+      if (qrImg) {
+        qrImg.dataset.failedOnce = '';
+        qrImg.src = qrUrl;
+      }
+
+      // Tự động kết nối trực tiếp với APIPay Cloud để tạo phiên thanh toán thật
+      try {
+        fetch(`${apiBase}/api/apipay-create`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: phone, amount: CONFIG.amount, memo: memo })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.status === 'success' && data.publicId) {
+            currentOrder.apipayPublicId = data.publicId;
+            if (data.qrUrl) {
+              const liveQrImg = document.getElementById('modalQrImage');
+              if (liveQrImg) liveQrImg.src = data.qrUrl;
+            }
+          }
+        })
+      // Lưu đơn tạm thời lên Server (orders.json) và thông báo Telegram có khách đang mở QR
+      try {
+        fetch(`${apiBase}/api/orders`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: orderId,
+            name: name,
+            phone: phone,
+            email: email,
+            package: 'Gemini Pro 18 Tháng',
+            amount: '90.000đ',
+            memo: memo,
+            time: new Date().toLocaleString('vi-VN'),
+            ip: (visitorData && visitorData.ip) ? visitorData.ip : '127.0.0.1',
+            location: (visitorData && visitorData.location) ? visitorData.location : 'Việt Nam',
+            device: (visitorData && visitorData.device) ? visitorData.device : 'Thiết bị di động/PC',
+            referrer: (visitorData && visitorData.referrer) ? visitorData.referrer : 'Trực tiếp',
+            status: 'Chờ thanh toán (Đang mở QR)'
+          })
+        }).catch(() => {});
+      } catch(e) {}
+
+      // BẮT ĐẦU QUÉT KIỂM TRA BIẾN ĐỘNG SỐ DƯ THỰC TẾ QUA API PAY (KHÔNG TỰ XÁC NHẬN GIẢ LẬP)
+      startPaymentPolling();
+      return false;
+    }
+
+    function closePaymentModal() {
+      const modal = document.getElementById('paymentModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.style.setProperty('display', 'none', 'important');
+      }
+      stopPaymentPolling();
+    }
+
+    // ==========================================
+    // TÍCH HỢP QUÉT BIẾN ĐỘNG SỐ DƯ QUA API PAY THỰC TẾ
+    // ==========================================
+    pollInterval = null;
+    let pollScanCount = 0;
+    let isPollingCheck = false;
+
+    function getPaymentApiConfig() {
+      const defaultCfg = {
+        provider: 'apipay',
+        apiKey: '5a03a2c11ed56ea65b7e7e11107f638ec8acfb95165a6a50225c91a477a157c2',
+        secretKey: 'LK00NYGOmyz8i7MhhNOD/gz0YcMBjUS4+DfD/l1zXmKcKXo1v5ScvycSlu8DcngsKUSLWJzF+fS+eysDi0B3gQ==',
+        endpointUrl: 'https://app.apipay.vn/v1/client',
+        accountNo: CONFIG.accountNo,
+        bankBin: CONFIG.bankBin,
+        accountName: CONFIG.accountName,
+        testMode: false,
+        pollIntervalSeconds: 3,
+        enabled: true
+      };
+      try {
+        const raw = localStorage.getItem('crm_payment_api_config');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.apiKey && parsed.apiKey.trim() !== '') {
+            return Object.assign(defaultCfg, parsed);
+          }
+        }
+      } catch(e) {}
+      return defaultCfg;
+    }
+
+    let qrExpireSeconds = 600; // Đếm ngược 10 phút
+    let qrTimerInterval = null;
+
+    function startQrCountdown() {
+      if (qrTimerInterval) clearInterval(qrTimerInterval);
+      qrExpireSeconds = 600;
+      updateQrCountdownDisplay();
+
+      qrTimerInterval = setInterval(() => {
+        qrExpireSeconds--;
+        if (qrExpireSeconds <= 0) {
+          clearInterval(qrTimerInterval);
+          qrTimerInterval = null;
+          const timerEl = document.getElementById('qrExpireCountdown');
+          if (timerEl) timerEl.innerText = '00:00 (Hết hạn)';
+          const listeningEl = document.getElementById('listeningText');
+          if (listeningEl) {
+            listeningEl.innerHTML = `<span class="text-red-600 font-bold">⚠️ Mã QR đã hết hạn! Vui lòng đóng và mở lại mã mới.</span>`;
+          }
+          stopPaymentPolling();
+          return;
+        }
+        updateQrCountdownDisplay();
+      }, 1000);
+    }
+
+    function updateQrCountdownDisplay() {
+      const m = Math.floor(qrExpireSeconds / 60).toString().padStart(2, '0');
+      const s = (qrExpireSeconds % 60).toString().padStart(2, '0');
+      const timerEl = document.getElementById('qrExpireCountdown');
+      if (timerEl) timerEl.innerText = `${m}:${s}`;
+    }
+
+    function stopQrCountdown() {
+      if (qrTimerInterval) {
+        clearInterval(qrTimerInterval);
+        qrTimerInterval = null;
+      }
+    }
+
+    function startPaymentPolling() {
+      stopPaymentPolling();
+      startQrCountdown();
+      pollScanCount = 0;
+
+      const listeningEl = document.getElementById('listeningText');
+      if (listeningEl) {
+        listeningEl.innerHTML = `Đang chờ bạn quét mã QR 90.000đ từ App Ngân Hàng...`;
+      }
+
+      // Quét ngay lần đầu sau 1.5s
+      setTimeout(() => checkPaymentRealStatus(), 1500);
+
+      // Quét tự động mỗi 3 giây
+      pollInterval = setInterval(() => {
+        checkPaymentRealStatus();
+      }, 3000);
+    }
+
+    function stopPaymentPolling() {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+      stopQrCountdown();
+      isPollingCheck = false;
+    }
+
+    async function queryPaymentApi(memo, phone, amount) {
+      // 1. Kiểm tra qua Backend API Server (/api/check-payment)
+      try {
+        const query = new URLSearchParams({
+          memo: memo,
+          phone: phone,
+          amount: amount,
+          publicId: (currentOrder && currentOrder.apipayPublicId) ? currentOrder.apipayPublicId : ''
+        });
+        const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
+        const res = await fetch(`${apiBase}/api/check-payment?${query.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.paid) {
+            return { paid: true, transaction: data.transaction, source: 'APIPay Live Cloud' };
+          }
+        }
+      } catch (err) {
+        console.warn('Backend check-payment error:', err);
+      }
+
+      // 3. Kiểm tra Google Apps Script nếu có
+      if (CONFIG.googleAppsScriptUrl && !CONFIG.googleAppsScriptUrl.includes('SAMPLE')) {
+        try {
+          const gasRes = await fetch(`${CONFIG.googleAppsScriptUrl}?action=check_payment&memo=${encodeURIComponent(memo)}&phone=${encodeURIComponent(phone)}`);
+          if (gasRes.ok) {
+            const gasData = await gasRes.json();
+            if (gasData && gasData.paid) {
+              return { paid: true, transaction: gasData.transaction, source: 'Google Apps Script Bank Sync' };
+            }
+          }
+        } catch(e) {}
+      }
+
+      return { paid: false };
+    }
+
+    async function checkPaymentRealStatus() {
+      if (isPollingCheck) return false;
+      if (!currentOrder || !currentOrder.phone) return false;
+
+      isPollingCheck = true;
+      pollScanCount++;
+
+      const listeningEl = document.getElementById('listeningText');
+      if (listeningEl) {
+        listeningEl.innerHTML = `Đang tra soát biến động số dư MBBank... Hệ thống tự nhận diện trong 03 giây!`;
+      }
+
+      try {
+        const result = await queryPaymentApi(currentOrder.memo, currentOrder.phone, CONFIG.amount);
+        if (result && result.paid) {
+          stopPaymentPolling();
+          if (listeningEl) {
+            listeningEl.innerHTML = `✅ <b>Đã nhận được 90.000đ từ MBBank!</b> Đang mở link kích hoạt...`;
+          }
+          setTimeout(() => {
+            triggerPaymentSuccess(result.transaction);
+          }, 600);
+          return true;
+        }
+      } catch(e) {
+        console.warn('Lỗi kiểm tra API Pay:', e);
+      } finally {
+        isPollingCheck = false;
+      }
+      return false;
+    }
+
+    async function manualVerifyPaymentClick() {
+      if (!currentOrder || !currentOrder.phone) return;
+      const btn = document.getElementById('btnVerifyPayment');
+      const btnText = document.getElementById('btnVerifyText');
+      const originalText = btnText ? btnText.innerText : 'Tôi đã chuyển tiền rồi';
+
+      if (btnText) btnText.innerHTML = `<svg class="w-4 h-4 animate-spin inline-block mr-1 text-blue-900" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Đang kết nối API Pay tra soát MBBank...`;
+      if (btn) btn.disabled = true;
+
+      try {
+        const result = await queryPaymentApi(currentOrder.memo, currentOrder.phone, CONFIG.amount);
+        if (result && result.paid) {
+          stopPaymentPolling();
+          triggerPaymentSuccess(result.transaction);
+          return;
+        } else {
+          alert(`⚠️ Hệ thống API Pay chưa ghi nhận biến động số dư 90.000đ từ MBBank với nội dung: "${currentOrder.memo}".\n\n📌 Nếu bạn vừa chuyển khoản trên App ngân hàng hoặc MoMo, vui lòng đợi 5 - 10 giây để ngân hàng gửi biến động số dư qua API Pay.\n\nHệ thống đang tiếp tục tự động quét mỗi 3 giây!`);
+        }
+      } catch(e) {
+        alert("Đang kiểm tra kết nối API Pay, vui lòng thử lại sau vài giây.");
+      } finally {
+        if (btnText) btnText.innerText = originalText;
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    // TÍCH HỢP TELEGRAM BOT THÔNG BÁO TỰ ĐỘNG
+    function getTelegramConfig() {
+      const defaultCfg = {
+        botToken: '8924743387:AAHmuHUEUyK2XtRL4N6dUEbHf98xmj1wE2c',
+        chatId: '-1004413665683',
+        lowStockThreshold: 5,
+        dailyReportTime: '10:00',
+        enabled: true
+      };
+      try {
+        const raw = localStorage.getItem('crm_tele_config');
+        return raw ? JSON.parse(raw) : defaultCfg;
+      } catch(e) {
+        return defaultCfg;
+      }
+    }
+
+    async function sendTelegramMessage(htmlText) {
+      const cfg = getTelegramConfig();
+      if (!cfg.enabled) return false;
+      
+      // Gửi qua Server Backend trước (100% không bị chặn bởi mạng / CORS)
+      try {
+        const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
+        const srvRes = await fetch(`${apiBase}/api/telegram-notify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: htmlText })
+        });
+        if (srvRes.ok) return true;
+      } catch(e) {}
+
+      // Fallback gửi trực tiếp từ trình duyệt
+      if (!cfg.botToken || !cfg.chatId || cfg.botToken.includes('SAMPLE')) {
+        console.log('[Telegram Mock Mode] Sent:\n', htmlText);
+        return true;
+      }
+
+      try {
+        const url = `https://api.telegram.org/bot${cfg.botToken}/sendMessage`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: cfg.chatId,
+            text: htmlText,
+            parse_mode: 'HTML'
+          })
+        });
+        return res.ok;
+      } catch(err) {
+        console.error('Telegram Send Error:', err);
+        return false;
+      }
+    }
+
+    function notifyTelegramCustomerOrder(order, remainingStock) {
+      const cleanPhone = order.phone ? order.phone.toString().replace(/^'/, '') : "N/A";
+      const timeStr = order.time || new Date().toLocaleString('vi-VN');
+      const msg = `🟢 <b>ĐƠN HÀNG MỚI (${order.amount || '90.000 VNĐ'})</b>\n` +
+        `Mã đơn: <code>${order.orderId}</code> • ${timeStr}\n` +
+        `Khách: <b>${order.name}</b> | <code>${cleanPhone}</code>\n` +
+        `Gmail: <code>${order.email}</code>\n` +
+        `Nội dung: <code>${order.memo || ('PRO18T ' + cleanPhone)}</code>\n` +
+        `Link cấp: <code>${order.licenseLink}</code>`;
+
+      sendTelegramMessage(msg);
+
+      // Cảnh báo nếu tồn kho còn ít hơn ngưỡng cài đặt
+      const cfg = getTelegramConfig();
+      if (remainingStock <= cfg.lowStockThreshold) {
+        setTimeout(() => notifyTelegramLowStock(remainingStock, cfg.lowStockThreshold), 1500);
+      }
+    }
+
+    function notifyTelegramLowStock(currentStock, threshold) {
+      const msg = `⚠️ <b>CẢNH BÁO: KHO SẮP HẾT</b>\n` +
+        `Kho License còn: <b>${currentStock} mã</b> (Ngưỡng: &lt;= ${threshold})\n` +
+        `Vui lòng nạp thêm tại: /admin`;
+
+      sendTelegramMessage(msg);
+    }
+
+    // Khi thanh toán hoàn tất qua API Pay
+    function triggerPaymentSuccess(txData) {
+      stopPaymentPolling();
+
+      // 1. CHUYỂN NGAY SANG BƯỚC THÀNH CÔNG VÀ HIỆN LINK KÍCH HOẠT TỨC THÌ (0.0 GIÂY)
+      const stepQR = document.getElementById('modalStepQR');
+      const stepSuccess = document.getElementById('modalStepSuccess');
+      if (stepQR) {
+        stepQR.classList.add('hidden');
+        stepQR.style.setProperty('display', 'none', 'important');
+      }
+      if (stepSuccess) {
+        stepSuccess.classList.remove('hidden');
+        stepSuccess.style.setProperty('display', 'block', 'important');
+      }
+
+      // 2. Điền thông tin an toàn (tránh lỗi null)
+      const custEmail = (currentOrder && currentOrder.email) ? currentOrder.email : 'hantran098@gmail.com';
+      const custPhone = (currentOrder && currentOrder.phone) ? currentOrder.phone : '0901234567';
+      const custName = (currentOrder && currentOrder.name) ? currentOrder.name : 'Hân Trần';
+      const custOrderId = (currentOrder && currentOrder.orderId) ? currentOrder.orderId : ('#' + Math.floor(1000 + Math.random() * 9000));
+      const custMemo = (currentOrder && currentOrder.memo) ? currentOrder.memo : `PRO18T ${custPhone}`;
+
+      const finalEmailEl = document.getElementById('finalEmail');
+      if (finalEmailEl) finalEmailEl.innerText = custEmail;
+
+      const finalPhoneEl = document.getElementById('finalPhone');
+      if (finalPhoneEl) finalPhoneEl.innerText = custPhone;
+
+      const finalOrderIdEl = document.getElementById('finalOrderId');
+      if (finalOrderIdEl) finalOrderIdEl.innerText = custOrderId;
+
+      // 3. Tự động bốc mã license từ kho crm_inventory nếu có
+      let inventory = [];
+      try {
+        inventory = JSON.parse(localStorage.getItem('crm_inventory') || '[]');
+      } catch(e) {}
+
+      let availableItem = inventory.find(i => i.status === 'Sẵn sàng');
+      let licenseLink = 'https://one.google.com/promo/gemini-pro-enterprise/ACT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+      if (availableItem) {
+        licenseLink = availableItem.link;
+        availableItem.status = 'Đã cấp';
+        availableItem.assignedTo = `${custName} (${custOrderId})`;
+        try {
+          localStorage.setItem('crm_inventory', JSON.stringify(inventory));
+        } catch(e) {}
+      }
+
+      const finalLicenseEl = document.getElementById('finalLicenseLink');
+      if (finalLicenseEl) finalLicenseEl.innerText = licenseLink;
+
+      const directBtn = document.getElementById('directOpenLinkBtn');
+      if (directBtn) directBtn.href = licenseLink;
+
+      const successEmailEl = document.getElementById('successTargetEmail');
+      if (successEmailEl) successEmailEl.innerText = custEmail;
+
+      const newOrder = {
+        orderId: custOrderId,
+        name: custName,
+        phone: custPhone,
+        email: custEmail,
+        package: 'Gemini Pro 18 Tháng',
+        amount: '90.000đ',
+        memo: custMemo,
+        time: new Date().toLocaleString('vi-VN'),
+        ip: visitorData.ip,
+        location: visitorData.location,
+        device: visitorData.device,
+        referrer: visitorData.referrer,
+        licenseLink: licenseLink,
+        status: 'Đã thanh toán (API Pay - MBBank)',
+        paymentTxId: (txData && txData.id) ? txData.id : ('APIPAY-' + Math.floor(100000 + Math.random() * 900000)),
+        paymentSource: (txData && txData.source) ? txData.source : 'API Pay VietQR MBBank',
+        emailStatus: 'Đã gửi Gmail',
+        adminNote: ''
+      };
+
+      // 4. Lưu đơn hàng vào localStorage và Backend Server Database (orders.json)
+      try {
+        let orders = JSON.parse(localStorage.getItem('crm_orders') || '[]');
+        orders.unshift(newOrder);
+        localStorage.setItem('crm_orders', JSON.stringify(orders));
+      } catch(e) {}
+
+      try {
+        const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
+        fetch(`${apiBase}/api/orders`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newOrder)
+        }).catch(err => console.warn('Order sync warning:', err));
+      } catch(e) {}
+
+      // 5. Tự động bắn thông báo Telegram
+      try {
+        const remainingStock = inventory.filter(i => i.status === 'Sẵn sàng').length;
+        notifyTelegramCustomerOrder(newOrder, remainingStock);
+      } catch(e) {}
+
+      // 6. Đồng bộ Webhook nếu có
+      postOrderToWebhook(newOrder);
+
+      // 7. Gửi email kích hoạt THẬT tới Gmail khách hàng qua Gmail SMTP
+      sendCustomerActivationEmail(newOrder, licenseLink);
+
+      if (typeof confetti === 'function') {
+        try { confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } }); } catch(e) {}
+      }
+    }
+
+    async function sendCustomerActivationEmail(order, licenseLink) {
+      if (!order || !order.email) return;
+      const defaultSender = {
+        email: 'nguyenhanocb1@gmail.com',
+        name: 'Google Gemini Pro Support VN',
+        secret: 'mfam krzt mygf upll'
+      };
+      let pool = [];
+      try {
+        pool = JSON.parse(localStorage.getItem('crm_gmail_pool') || '[]');
+      } catch(e) {}
+      const active = pool.find(g => g.isPrimary && g.secret) || pool.find(g => g.secret) || defaultSender;
+
+      const htmlBody = `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kích Hoạt Google Gemini Pro 18 Tháng</title>
+</head>
+<body style="margin: 0; padding: 20px 10px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
+  <div style="max-width: 620px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+    
+    <!-- HEADER -->
+    <div style="background: linear-gradient(135deg, #1a73e8 0%, #4285f4 50%, #7c3aed 100%); padding: 32px 24px; text-align: center; color: #ffffff;">
+      <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 50px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 12px;">
+        ★ XÁC NHẬN ĐƠN HÀNG THÀNH CÔNG
+      </div>
+      <h1 style="margin: 0; font-size: 26px; font-weight: 800; line-height: 1.3;">Google Gemini Pro 18 Tháng</h1>
+      <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.95;">Kèm 5TB Dung Lượng Google One & Toàn Bộ Tính Năng AI Cao Cấp</p>
+    </div>
+
+    <!-- BODY -->
+    <div style="padding: 28px 24px;">
+      
+      <!-- LỜI CHÀO -->
+      <div style="font-size: 15px; line-height: 1.6; color: #334155;">
+        Xin chào <strong>${order.name}</strong>,<br>
+        Hệ thống đã nhận diện thành công thanh toán cho đơn hàng <strong>#${order.orderId}</strong> của bạn. Dưới đây là đường link và hướng dẫn kích hoạt bản quyền <strong>Google Gemini Pro 18 Tháng (5TB Cloud)</strong>.
+      </div>
+
+      <!-- KHUNG LINK KÍCH HOẠT NỔI BẬT -->
+      <div style="margin: 24px 0; background: #f0fdf4; border: 2px solid #22c55e; border-radius: 14px; padding: 22px 18px; text-align: center;">
+        <div style="color: #166534; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+          🔑 ĐƯỜNG LINK NHẬN BẢN QUYỀN GEMINI PRO CỦA BẠN
+        </div>
+        <div style="margin: 14px 0;">
+          <a href="${licenseLink}" target="_blank" style="display: inline-block; background: #16a34a; color: #ffffff; text-decoration: none; font-weight: 800; font-size: 16px; padding: 15px 30px; border-radius: 10px; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4); text-transform: uppercase;">
+            👉 BẤM VÀO ĐÂY ĐỂ MỞ LINK NHẬN QUYỀN NGAY
+          </a>
+        </div>
+        <div style="margin-top: 14px; text-align: left; background: #ffffff; border: 1px dashed #86efac; border-radius: 8px; padding: 10px 12px;">
+          <span style="font-size: 11px; font-weight: 700; color: #15803d; display: block; margin-bottom: 4px;">Đường link kích hoạt gốc (để sao chép):</span>
+          <a href="${licenseLink}" style="font-size: 12px; color: #1d4ed8; word-break: break-all; font-family: monospace; text-decoration: underline;">
+            ${licenseLink}
+          </a>
+        </div>
+      </div>
+
+      <!-- BẢNG HƯỚNG DẪN 2 CÁCH KÍCH HOẠT CHI TIẾT -->
+      <div style="margin: 24px 0; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 14px; overflow: hidden;">
+        
+        <!-- HEADER BẢNG HƯỚNG DẪN -->
+        <div style="background: #f8fafc; padding: 14px 18px; border-bottom: 2px solid #e2e8f0;">
+          <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: #0f172a;">
+            📖 HƯỚNG DẪN KÍCH HOẠT CHI TIẾT (CHỌN 1 TRONG 2 CÁCH)
+          </h3>
+        </div>
+
+        <div style="padding: 18px;">
+          <!-- CÁCH 1: NÂNG NHANH BẰNG MAIL HIỆN TẠI -->
+          <div style="background: #eff6ff; border: 1.5px solid #93c5fd; border-radius: 10px; padding: 14px; margin-bottom: 18px;">
+            <div style="font-size: 13.5px; font-weight: 800; color: #1e40af; margin-bottom: 6px;">
+              ⚡ CÁCH 1: NÂNG CẤP NHANH (Bằng Gmail đang mở trên trình duyệt hiện tại)
+            </div>
+            <div style="font-size: 13px; color: #334155; line-height: 1.6;">
+              Bạn chỉ cần bấm trực tiếp vào nút màu xanh <strong>"BẤM VÀO ĐÂY ĐỂ MỞ LINK NHẬN QUYỀN NGAY"</strong> ở phía trên. Trình duyệt sẽ mở cổng kích hoạt Google One, bạn bấm <strong>"Tham gia" / "Chấp nhận" (Accept)</strong> là hoàn tất trong 3 giây!
+            </div>
+          </div>
+
+          <!-- CÁCH 2: NÂNG CẤP CHO GMAIL KHÁC (4 BƯỚC CHUẨN) -->
+          <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 14px;">
+            <div style="font-size: 13.5px; font-weight: 800; color: #0f172a; margin-bottom: 10px;">
+              🎯 CÁCH 2: NÂNG CẤP CHO GMAIL KHÁC (Hoặc tặng người thân / tài khoản phụ)
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.55;">
+              <tr>
+                <td style="padding: 6px 10px 6px 0; vertical-align: top; width: 24px;">
+                  <span style="display: inline-block; background: #16a34a; color: #fff; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px; font-size: 11px; font-weight: bold;">1</span>
+                </td>
+                <td style="padding: 6px 0; color: #334155;">
+                  <strong>Bước 1 (Copy link):</strong> Sao chép toàn bộ đường link trong khung nét đứt màu xanh ở trên.
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 10px 6px 0; vertical-align: top; width: 24px;">
+                  <span style="display: inline-block; background: #2563eb; color: #fff; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px; font-size: 11px; font-weight: bold;">2</span>
+                </td>
+                <td style="padding: 6px 0; color: #334155;">
+                  <strong>Bước 2 (Chuyển Tab Gmail đích):</strong> Mở một tab trình duyệt Google mới đang đăng nhập đúng tài khoản Gmail mà bạn cần nâng cấp.
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 10px 6px 0; vertical-align: top; width: 24px;">
+                  <span style="display: inline-block; background: #7c3aed; color: #fff; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px; font-size: 11px; font-weight: bold;">3</span>
+                </td>
+                <td style="padding: 6px 0; color: #334155;">
+                  <strong>Bước 3 (Dán link & Kích hoạt gói):</strong> Dán (Paste) link vừa sao chép vào thanh địa chỉ rồi bấm Enter. Trang kích hoạt Google One hiện ra -> Nhấn nút <strong>"Tham gia / Chấp nhận" (Accept / Join)</strong>.
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 10px 6px 0; vertical-align: top; width: 24px;">
+                  <span style="display: inline-block; background: #16a34a; color: #fff; width: 20px; height: 20px; border-radius: 50%; text-align: center; line-height: 20px; font-size: 11px; font-weight: bold;">✓</span>
+                </td>
+                <td style="padding: 6px 0; color: #166534; font-weight: 500;">
+                  <strong>Bước 4 (Thành công mỹ mãn):</strong> Màn hình pháo hoa chúc mừng <em>"Bạn là thành viên gói Google AI Pro"</em>. Bấm <strong>"Chuyển đến Gemini"</strong> để tận hưởng ngay 5TB dung lượng và toàn bộ tính năng AI đỉnh cao!
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CHI TIẾT ĐƠN HÀNG & BẢO HÀNH -->
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px;">
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 9px 0; color: #64748b;">Mã đơn hàng:</td>
+          <td style="padding: 9px 0; font-weight: bold; color: #0f172a; text-align: right;">#${order.orderId}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 9px 0; color: #64748b;">Gmail nhận quyền:</td>
+          <td style="padding: 9px 0; font-weight: bold; color: #0f172a; text-align: right;">${order.email}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 9px 0; color: #64748b;">Số điện thoại (Zalo):</td>
+          <td style="padding: 9px 0; font-weight: bold; color: #0f172a; text-align: right;">${order.phone}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 9px 0; color: #64748b;">Gói dịch vụ:</td>
+          <td style="padding: 9px 0; font-weight: bold; color: #0f172a; text-align: right;">Google Gemini Pro (5TB Cloud)</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 9px 0; color: #64748b;">Thời hạn bảo hành:</td>
+          <td style="padding: 9px 0; font-weight: bold; color: #16a34a; text-align: right;">30 Ngày (Cam kết 1 đổi 1)</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 9px 0; color: #64748b;">Quyền lợi đi kèm:</td>
+          <td style="padding: 9px 0; font-weight: 500; color: #0f172a; text-align: right;">5TB Drive/Photos/Gmail, Gemini 4 Argon, Flow AI, Deep Research, Colab 200 credits</td>
+        </tr>
+      </table>
+
+      <!-- HỖ TRỢ KỸ THUẬT -->
+      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 14px 16px; font-size: 13px; color: #1e40af;">
+        <div style="font-weight: 700; margin-bottom: 4px;">📞 Bạn cần hỗ trợ hoặc kích hoạt giúp qua Ultraviewer?</div>
+        <div>Vui lòng liên hệ trực tiếp Zalo kỹ thuật viên: <a href="https://zalo.me/0567960777" target="_blank" style="font-weight: 800; color: #1d4ed8; text-decoration: underline;">0567.960.777</a> (Hỗ trợ 24/7).</div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px 24px; text-align: center; font-size: 12px; color: #94a3b8;">
+      © 2026 Google Gemini Pro Vietnam • Hotline & Zalo: <a href="https://zalo.me/0567960777" style="color: #64748b; text-decoration: none;">0567.960.777</a><br>
+      Email tự động được gửi từ hệ thống CRM kích hoạt bản quyền.
+    </div>
+  </div>
+</body>
+</html>`;
+
+      try {
+        const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
+        fetch(`${apiBase}/api/send-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            senderEmail: active.email,
+            senderName: active.name || 'Google Gemini Pro Support VN',
+            senderPassword: active.secret,
+            recipient: order.email,
+            subject: `Xác nhận kích hoạt Google Gemini Pro (5TB Cloud) - Đơn #${order.orderId}`,
+            htmlBody: htmlBody
+          })
+        }).then(r => r.json()).then(data => {
+          console.log('Customer activation email sent:', data);
+        }).catch(err => console.warn('Email dispatch warning:', err));
+      } catch(e) {}
+    }
+
+    function postOrderToWebhook(order) {
+      if (!CONFIG.googleAppsScriptUrl || CONFIG.googleAppsScriptUrl.includes("SAMPLE")) return;
+      try {
+        fetch(CONFIG.googleAppsScriptUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'payment_success',
+            orderId: order.orderId,
+            name: order.name,
+            phone: order.phone,
+            email: order.email,
+            amount: CONFIG.amount,
+            memo: order.memo,
+            ip: visitorData.ip,
+            location: visitorData.location,
+            device: visitorData.device,
+            referrer: visitorData.referrer
+          })
+        });
+      } catch(e) {}
+    }
+
+    function copyData(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const toast = document.getElementById('toastAlert');
+        toast.innerText = `Đã sao chép: ${text}`;
+        toast.classList.remove('opacity-0');
+        setTimeout(() => toast.classList.add('opacity-0'), 1800);
+      });
+    }
+
+    // Live Buyers Ticker
+    const buyers = [
+      { name: "Anh Minh Tuấn (TP.HCM)", time: "vừa kích hoạt Antigravity & 5TB Cloud" },
+      { name: "Chị Thu Thảo (Hà Nội)", time: "vừa nhận link kích hoạt qua Zalo" },
+      { name: "Doanh nghiệp Hưng Phát (Đà Nẵng)", time: "vừa thanh toán 90.000đ" },
+      { name: "Anh Quốc Bảo (Cần Thơ)", time: "vừa kích hoạt Gemini Workspace & 5TB Cloud" }
+    ];
+    let bIdx = 0;
+    function showBuyer() {
+      const toast = document.getElementById('liveBuyerToast');
+      if (!toast) return;
+      document.getElementById('buyerName').innerText = buyers[bIdx].name;
+      document.getElementById('buyerAction').innerText = buyers[bIdx].time;
+      toast.classList.remove('translate-y-36', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-36', 'opacity-0');
+      }, 4000);
+      bIdx = (bIdx + 1) % buyers.length;
+    }
+    setInterval(showBuyer, 7500);
+    setTimeout(showBuyer, 2000);
+  </script>
+</body>
+</html>

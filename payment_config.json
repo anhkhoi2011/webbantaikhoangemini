@@ -1,0 +1,20 @@
+{
+    "provider": "apipay",
+    "accessKey": "5a03a2c11ed56ea65b7e7e11107f638ec8acfb95165a6a50225c91a477a157c2",
+    "secretKey": "LK00NYGOmyz8i7MhhNOD/gz0YcMBjUS4+DfD/l1zXmKcKXo1v5ScvycSlu8DcngsKUSLWJzF+fS+eysDi0B3gQ==",
+    "apiKey": "5a03a2c11ed56ea65b7e7e11107f638ec8acfb95165a6a50225c91a477a157c2",
+    "bankPublicId": "cmv2nmvn408tb01mny26u27ie",
+    "vaNumber": "VQRQAMRMQ5816",
+    "accountNo": "517041996",
+    "bankBin": "970422",
+    "accountName": "NGUYEN TRAN HAN",
+    "endpointUrl": "https://app.apipay.vn/v1/client",
+    "pollIntervalSeconds": 3,
+    "testMode": false,
+    "enabled": true,
+    "googleSheetWebhookUrl": "https://script.google.com/macros/s/AKfycbxBCAtlOD-v0bqTJSsjjiksBccuJSlBnybznPsxOHj6f8rkT44cUlnF__i6Ms14U2uS/exec",
+    "googleSheetUrl": "https://docs.google.com/spreadsheets/d/17JXfu0NcYQ2sJ9AQn8ZR-gOIYDQBgTquT4bu9pM6QrE/edit?gid=0#gid=0",
+    "appsScriptProjectUrl": "https://script.google.com/u/0/home/projects/1xnhMbdNvNLmW0PB6BNDq88vyUM53Akf435nkfQ9Wi9JlTX4ogzrDGa_U/edit",
+    "telegramBotToken": "8924743387:AAHmuHUEUyK2XtRL4N6dUEbHf98xmj1wE2c",
+    "telegramChatId": "-1004413665683"
+}

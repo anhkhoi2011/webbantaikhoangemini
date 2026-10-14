@@ -1,0 +1,56 @@
+================================================================================
+   TRỌN BỘ FULL SOURCE CODE BÁN HÀNG & QUẢN TRỊ CRM GEMINI PRO 18 THÁNG
+================================================================================
+
+1. CẤU TRÚC THƯ MỤC SOURCE CODE:
+--------------------------------------------------------------------------------
+- index.html                   : Giao diện Landing Page bán hàng chuyên nghiệp cho khách hàng
+                                 (Tích hợp đồng hồ đếm ngược, form đặt hàng, VietQR MBBank tự động,
+                                  5 quyền lợi chính chuẩn Google Workspace, Live Buyers Ticker,
+                                  nhận diện nguồn traffic tự động thật 100%).
+- admin.html                   : Hệ thống Quản trị Doanh thu & CRM Doanh nghiệp
+                                 (Quản lý danh sách đơn hàng, cấp mã bản quyền tự động,
+                                  kho License tồn kho, nhật ký đo lường 7 kênh traffic real-time,
+                                  trung tâm điều khiển Bot Telegram tự động, kết nối Google Sheets).
+- server.ps1                   : Máy chủ HTTP cục bộ viết bằng PowerShell HttpListener
+                                 (Định tuyến `/` cho khách và `/admin` cho trang quản trị, port 8080).
+- START_SERVER.bat             : File chạy 1-click trên Windows (Nhấp đúp chuột là tự bật server
+                                 và tự mở cả 2 trang trên trình duyệt).
+- telegram_automation.ps1      : Kịch bản chạy ngầm tự động gửi báo cáo Telegram:
+                                 + Đơn hàng mới khách vừa mua.
+                                 + Cảnh báo khẩn cấp khi tồn kho <= ngưỡng cài đặt.
+                                 + Báo cáo tổng kết ngày vào 10:00 sáng.
+- GoogleAppsScript_CRM_AutoBot.js: Mã nguồn Google Apps Script đồng bộ dữ liệu về Google Sheets
+                                 và tự động dùng Gmail của bạn gửi link kích hoạt cho khách.
+- Các file ảnh chất lượng cao phục vụ giao diện:
+  + antigravity_5tb.jpg        : Ảnh minh họa Google Antigravity Agentic AI IDE.
+  + cloud_family_5tb.jpg       : Ảnh minh họa 5TB Google One Cloud Storage chia sẻ gia đình.
+  + gemini_ecosystem.jpg       : Ảnh minh họa Gemini 3.1 Pro & Deep Research 2M Tokens.
+  + creative_photos.jpg        : Ảnh minh họa Google Flow & Sáng tạo ảnh 4K.
+  + gemini_workspace.jpg       : Ảnh minh họa Gemini nhúng sâu vào Gmail, Docs, Sheets & Meet.
+  + gemini_lifestyle.jpg       : Ảnh bổ trợ phong cách sống công nghệ.
+
+--------------------------------------------------------------------------------
+2. HƯỚNG DẪN KHỞI CHẠY TRÊN MÁY TÍNH:
+--------------------------------------------------------------------------------
+Cách 1: Nhấp đúp chuột vào file `START_SERVER.bat`
+Cách 2: Mở PowerShell tại thư mục này và gõ:
+        powershell -ExecutionPolicy Bypass -File server.ps1
+
+Đường dẫn truy cập:
+- Trang Bán Hàng: http://localhost:8080/
+- Trang Quản Trị: http://localhost:8080/admin
+
+--------------------------------------------------------------------------------
+3. HƯỚNG DẪN ĐƯA LÊN HOSTING / TÊN MIỀN ONLINE (NẾU MUỐN):
+--------------------------------------------------------------------------------
+- Vì toàn bộ hệ thống viết bằng HTML5/CSS3/JavaScript hiện đại (Tailwind CSS CDN, Lucide, VietQR),
+  bạn có thể đưa trực tiếp lên:
+  + Hosting cPanel / DirectAdmin: Tải toàn bộ file trong thư mục này lên thư mục `public_html`.
+  + Nền tảng miễn phí (Netlify, Vercel, GitHub Pages, Cloudflare Pages): Kéo thả toàn bộ thư mục.
+  + Khi chạy online, khách hàng vào `tenmien.com` sẽ thấy trang bán hàng, và bạn vào
+    `tenmien.com/admin.html` để quản trị đơn hàng!
+
+================================================================================
+Chúc bạn kinh doanh thành công và bùng nổ doanh số!
+================================================================================

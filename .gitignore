@@ -1,0 +1,23 @@
+# Executables & Binaries
+cloudflared.exe
+*.exe
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Logs & Temporary files
+*.log
+temp_*
+lh_err.txt
+lh_out.txt
+test_browser_click.py
+debug_mail.ps1
+
+# OS generated files
+Thumbs.db
+.DS_Store

@@ -1,0 +1,7 @@
+{
+  "botToken": "8924743387:AAHmuHUEUyK2XtRL4N6dUEbHf98xmj1wE2c",
+  "chatId": "-1004413665683",
+  "lowStockThreshold": 5,
+  "dailyReportTime": "10:00",
+  "enabled": true
+}
