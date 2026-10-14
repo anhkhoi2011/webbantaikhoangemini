@@ -17,23 +17,30 @@
 <body class="text-slate-800 min-h-screen flex flex-col antialiased bg-slate-50 selection:bg-blue-600 selection:text-white">
 
   <!-- MODAL XÁC THỰC MÃ PIN BẢO MẬT ADMIN (BẢO VỆ CHỐNG TRUY CẬP TRÁI PHÉP TỪ ONLINE) -->
-  <div id="adminPinModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4" style="display: none;">
-    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 text-center space-y-5 animate-in fade-in zoom-in duration-200">
-      <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center mx-auto shadow-lg shadow-blue-500/30">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+  <div id="adminPinModal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 min-h-screen">
+    <div class="bg-white rounded-3xl p-7 sm:p-9 max-w-md w-full shadow-2xl border border-slate-100 text-center space-y-6 animate-in fade-in zoom-in duration-200">
+      <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center mx-auto shadow-xl shadow-blue-500/25 ring-4 ring-blue-50">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
       </div>
       <div>
-        <h2 class="text-xl font-black text-slate-900">Xác Thực Quản Trị Viên</h2>
-        <p class="text-xs text-slate-500 mt-1">Vui lòng nhập mật khẩu Admin để truy cập bảng điều khiển CRM</p>
+        <span class="text-[11px] font-extrabold uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">Gemini Pro Enterprise CRM</span>
+        <h2 class="text-2xl font-black text-slate-900 mt-2 tracking-tight">Xác Thực Quản Trị Viên</h2>
+        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Khu vực bảo mật cấp cao. Vui lòng nhập mật khẩu Quản Trị Viên để mở khóa quyền điều hành hệ thống.</p>
       </div>
       <form onsubmit="event.preventDefault(); verifyAdminPin();" class="space-y-4">
-        <div>
-          <input type="password" id="adminPinInput" maxlength="32" placeholder="Mật khẩu Admin (Khoi@123)" autofocus
-            class="w-full text-center text-lg font-mono font-bold py-3 px-4 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 transition">
-          <p id="adminPinError" class="text-xs font-bold text-red-500 mt-2 hidden">Mật khẩu Admin không đúng, vui lòng thử lại!</p>
+        <div class="relative">
+          <input type="password" id="adminPinInput" maxlength="32" placeholder="Nhập mật khẩu Admin..." autofocus required
+            class="w-full text-center text-lg font-mono font-bold py-3.5 px-4 bg-slate-50 border-2 border-slate-200 rounded-2xl focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-100 transition shadow-inner">
+          <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+            <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </button>
+          <p id="adminPinError" class="text-xs font-bold text-red-500 mt-2 hidden flex items-center justify-center gap-1">
+            <span>⚠️</span><span>Mật khẩu không chính xác, vui lòng thử lại!</span>
+          </p>
         </div>
-        <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black rounded-xl text-sm shadow-md shadow-blue-500/25 transition cursor-pointer">
-          MỞ KHÓA BẢNG ĐIỀU KHIỂN
+        <button type="submit" id="btnAdminLogin" class="w-full py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black rounded-2xl text-sm shadow-lg shadow-blue-500/30 hover:scale-[1.01] active:scale-[0.99] transition cursor-pointer flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+          <span>ĐĂNG NHẬP BẢNG ĐIỀU KHIỂN</span>
         </button>
       </form>
       <div class="text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex items-center justify-center gap-1.5">
@@ -42,6 +49,9 @@
       </div>
     </div>
   </div>
+
+  <!-- BỌC TOÀN BỘ BẢNG ĐIỀU KHIỂN CRM (ẨN 100% KHI CHƯA ĐĂNG NHẬP) -->
+  <div id="adminAppWrapper" style="display: none;">
 
   <!-- ======================================================== -->
   <!-- 1. TOP HEADER -->
@@ -1293,6 +1303,7 @@
       </div>
     </div>
   </div>
+  </div><!-- Đóng adminAppWrapper -->
 
   <!-- TOAST NOTIFICATION -->
   <div id="adminToast" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 transition-opacity duration-300 opacity-0 pointer-events-none border border-slate-700">
@@ -2750,30 +2761,48 @@
     // ==========================================
     // BẢO MẬT ADMIN PIN & ĐỒNG BỘ ĐƠN HÀNG DATABASE
     // ==========================================
+    function togglePasswordVisibility() {
+      const pinInput = document.getElementById('adminPinInput');
+      if (!pinInput) return;
+      pinInput.type = (pinInput.type === 'password') ? 'text' : 'password';
+    }
+
     function checkAdminAuth() {
       const pinModal = document.getElementById('adminPinModal');
+      const appWrapper = document.getElementById('adminAppWrapper');
       const isAuth = sessionStorage.getItem('admin_authenticated') === 'true';
+
       if (isAuth) {
-        if (pinModal) pinModal.style.display = 'none';
+        if (pinModal) pinModal.style.setProperty('display', 'none', 'important');
+        if (appWrapper) appWrapper.style.setProperty('display', 'block', 'important');
       } else {
-        if (pinModal) pinModal.style.display = 'flex';
-        setTimeout(() => document.getElementById('adminPinInput')?.focus(), 200);
+        if (pinModal) pinModal.style.setProperty('display', 'flex', 'important');
+        if (appWrapper) appWrapper.style.setProperty('display', 'none', 'important');
+        setTimeout(() => document.getElementById('adminPinInput')?.focus(), 250);
       }
     }
 
-    function verifyAdminPin() {
+    async function verifyAdminPin() {
       const input = document.getElementById('adminPinInput');
       const error = document.getElementById('adminPinError');
       const savedPin = localStorage.getItem('admin_security_pin') || 'Khoi@123';
+
       if (input && input.value.trim() === savedPin) {
         sessionStorage.setItem('admin_authenticated', 'true');
         const pinModal = document.getElementById('adminPinModal');
-        if (pinModal) pinModal.style.display = 'none';
+        const appWrapper = document.getElementById('adminAppWrapper');
+
+        if (pinModal) pinModal.style.setProperty('display', 'none', 'important');
+        if (appWrapper) appWrapper.style.setProperty('display', 'block', 'important');
         if (error) error.classList.add('hidden');
-        showToast('✓ Đã xác thực quyền Quản trị viên thành công!');
-        
-        // TỰ ĐỘNG BẮN CẢNH BÁO ĐĂNG NHẬP VỀ TELEGRAM BOT
+
+        showToast('✓ Đăng nhập Quản Trị Viên thành công!');
+
+        // BẮN THÔNG BÁO BẢO MẬT VỀ TELEGRAM BOT NGAY LẬP TỨC
         notifyAdminLoginSuccess();
+
+        // Nạp và đồng bộ toàn bộ dữ liệu quản trị
+        renderAllData();
       } else {
         if (error) error.classList.remove('hidden');
         if (input) {
@@ -2786,15 +2815,23 @@
     function logoutAdmin() {
       sessionStorage.removeItem('admin_authenticated');
       checkAdminAuth();
+      const input = document.getElementById('adminPinInput');
+      if (input) input.value = '';
       showToast('🔒 Đã khóa bảng điều khiển Quản trị viên!');
     }
 
     async function notifyAdminLoginSuccess() {
       try {
-        let visitorData = {};
+        let clientIp = '127.0.0.1';
+        let clientLocation = 'Việt Nam';
+
+        // Lấy nhanh IP thật của thiết bị đăng nhập qua ipify
         try {
-          const raw = localStorage.getItem('crm_visitor_meta');
-          if (raw) visitorData = JSON.parse(raw);
+          const ipRes = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(2500) });
+          if (ipRes.ok) {
+            const ipData = await ipRes.json();
+            if (ipData.ip) clientIp = ipData.ip;
+          }
         } catch(e) {}
 
         const ua = navigator.userAgent;
@@ -2810,22 +2847,30 @@
         else if (/Firefox/i.test(ua)) browserName = 'Mozilla Firefox';
         else if (/Safari/i.test(ua)) browserName = 'Apple Safari';
 
-        const payload = {
-          role: "Quản Trị Viên Cấp Cao (Super Admin)",
-          time: new Date().toLocaleString('vi-VN'),
-          ip: (visitorData && visitorData.ip) ? visitorData.ip : '127.0.0.1',
-          location: (visitorData && visitorData.location) ? visitorData.location : 'Việt Nam',
-          device: `${deviceName} • ${browserName}`
-        };
+        const loginMsg = `🛡️ <b>ĐĂNG NHẬP ADMIN THÀNH CÔNG</b>\n` +
+          `Thời gian: ${new Date().toLocaleString('vi-VN')}\n` +
+          `Quyền hạn: <b>Quản Trị Viên Cấp Cao (Super Admin)</b>\n` +
+          `IP: <code>${clientIp}</code> (${clientLocation})\n` +
+          `Thiết bị: ${deviceName} • ${browserName}`;
 
-        const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
-        await fetch(`${apiBase}/api/admin-login-notify`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-      } catch(e) {
-        console.warn('Lỗi gửi thông báo admin login:', e);
+        // Bắn thông báo Telegram (100% gửi trực tiếp về Bot Token & Chat ID)
+        await sendTelegramMessage(loginMsg);
+
+        // Ghi nhận log phía backend
+        try {
+          await fetch('/api/admin-login-notify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              time: new Date().toLocaleString('vi-VN'),
+              ip: clientIp,
+              location: clientLocation,
+              device: `${deviceName} • ${browserName}`
+            })
+          });
+        } catch(e) {}
+      } catch(err) {
+        console.warn('Lỗi gửi thông báo admin login:', err);
       }
     }
 
@@ -3439,6 +3484,8 @@
 
     // Init
     function initAdmin() {
+      checkAdminAuth();
+
       const btnLive = document.getElementById('btnTrafficMode-LIVE');
       const btnHybrid = document.getElementById('btnTrafficMode-HYBRID');
       if (btnLive && btnHybrid) {
@@ -3455,7 +3502,6 @@
       try { renderInventory(); } catch(e) { console.error("Error renderInventory:", e); }
       try { renderTraffic(); } catch(e) { console.error("Error renderTraffic:", e); }
       try { renderGmailPool(); } catch(e) { console.error("Error renderGmailPool:", e); }
-      checkAdminAuth();
       loadTelegramConfigFromServer();
       syncTelegramUI();
       syncPaymentUI();
@@ -3464,6 +3510,9 @@
       syncOrdersFromBackend();
       setInterval(syncOrdersFromBackend, 10000);
     }
+
+    // Luôn kiểm tra khóa bảo mật ngay lập tức khi load trang
+    checkAdminAuth();
 
     if (document.readyState === 'loading') {
       window.addEventListener('DOMContentLoaded', initAdmin);
