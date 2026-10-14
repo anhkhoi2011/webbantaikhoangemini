@@ -1,16 +1,1 @@
-[
-  {
-    "orderId": "#GEM-8899",
-    "name": "Hân Trần",
-    "phone": "0901234567",
-    "email": "hantran098@gmail.com",
-    "package": "Gemini Pro 18 Tháng",
-    "amount": "90.000đ",
-    "memo": "PRO18T 0901234567",
-    "time": "14/10/2026 19:44:00",
-    "ip": "192.168.100.196",
-    "location": "TP. Hồ Chí Minh, VN",
-    "licenseLink": "https://one.google.com/promo/gemini-pro-enterprise/ACT-LIVE-8899",
-    "status": "Đã thanh toán (MBBank)"
-  }
-]
+[]

@@ -1,0 +1,17 @@
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Điều hướng /admin sang admin.html
+    RewriteRule ^admin/?$ admin.html [L,QSA]
+
+    # Điều hướng toàn bộ /api/* sang api.php
+    RewriteRule ^api/(.*)$ api.php [L,QSA]
+
+    # Nếu file hoặc thư mục tồn tại thật thì phục vụ trực tiếp
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+</IfModule>

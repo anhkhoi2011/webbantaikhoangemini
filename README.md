@@ -56,12 +56,28 @@ webbantaikhoangemini/
 - Hệ điều hành: Windows 10 / 11 / Windows Server
 - Đã cài đặt **Python 3.8+** và **PowerShell**
 
-### 2. Khởi Động Server
+### 2. Các Lựa Chọn Triển Khai Lên Hosting (Đầy Đủ 100%)
+
+#### 🌐 Lựa chọn A: Hosting cPanel / DirectAdmin / PHP (Hostinger, AZDIGI, Vietnix, TinoHost...)
+1. Nén toàn bộ các file trong thư mục này thành file `.zip`.
+2. Tải lên thư mục `public_html/` trên hosting của bạn và giải nén.
+3. Hệ thống đã có sẵn `.htaccess` và `api.php` tự động nhận diện và xử lý mọi API mà không cần cài đặt thêm bất cứ thứ gì!
+
+#### 🐧 Lựa chọn B: VPS Linux (Ubuntu / Debian / CentOS / Docker)
+Chạy lệnh khởi động máy chủ Python hiệu năng cao tích hợp sẵn:
+```bash
+python3 server.py
+# Hoặc chạy nền qua PM2:
+pm2 start server.py --name "gemini-crm" --interpreter python3
+```
+
+#### 💻 Lựa chọn C: Chạy cục bộ trên máy tính Windows
 Nhấp đúp chuột vào file `START_SERVER.bat` hoặc mở terminal chạy:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\server.ps1
 ```
-- Truy cập trang bán hàng cho khách: `http://localhost:8080/`
+
+- Truy cập trang bán hàng cho khách: `http://localhost:8080/` (hoặc tên miền của bạn)
 - Truy cập trang Quản trị CRM: `http://localhost:8080/admin` (Mật khẩu: `Khoi@123`)
 
 ---

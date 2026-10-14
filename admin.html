@@ -1304,77 +1304,9 @@
   <!-- 3. JAVASCRIPT LOGIC -->
   <!-- ======================================================== -->
   <script>
-    // Initial Seed Data for Demo
-    const DEFAULT_ORDERS = [
-      {
-        orderId: '#8942',
-        name: 'Anh Minh Tuấn',
-        phone: '0912345678',
-        email: 'minhtuan.dev@gmail.com',
-        package: 'Gemini 3.1 Pro 18 Tháng',
-        amount: '90.000đ',
-        memo: 'PRO18T 0912345678',
-        time: '11/10/2026, 02:15:30',
-        ip: '113.161.42.18',
-        location: 'TP. Hồ Chí Minh, VN',
-        device: 'Máy tính (Windows)',
-        licenseLink: 'https://one.google.com/promo/gemini-pro-enterprise/ACT-8921-TK9A',
-        status: 'Đã thanh toán (MBBank)',
-        emailStatus: 'Đã gửi Gmail',
-        adminNote: 'Đã gọi hỗ trợ kết nối Antigravity 5TB'
-      },
-      {
-        orderId: '#8941',
-        name: 'Chị Thu Thảo',
-        phone: '0983719284',
-        email: 'thuthao.content@gmail.com',
-        package: 'Gemini 3.1 Pro 18 Tháng',
-        amount: '90.000đ',
-        memo: 'PRO18T 0983719284',
-        time: '11/10/2026, 01:52:14',
-        ip: '27.72.105.94',
-        location: 'Hà Nội, VN',
-        device: 'Điện thoại (iPhone)',
-        licenseLink: 'https://one.google.com/promo/gemini-pro-enterprise/ACT-4428-PL2X',
-        status: 'Đã thanh toán (MBBank)',
-        emailStatus: 'Đã gửi Gmail',
-        adminNote: 'Đã gửi thêm hướng dẫn qua Zalo'
-      },
-      {
-        orderId: '#8940',
-        name: 'Doanh nghiệp Hưng Phát',
-        phone: '0905182991',
-        email: 'ceo.hungphat@gmail.com',
-        package: 'Gemini 3.1 Pro 18 Tháng',
-        amount: '90.000đ',
-        memo: 'PRO18T 0905182991',
-        time: '11/10/2026, 01:30:05',
-        ip: '14.241.229.112',
-        location: 'Đà Nẵng, VN',
-        device: 'Máy tính (MacBook)',
-        licenseLink: 'https://one.google.com/promo/gemini-pro-enterprise/ACT-9912-XZ8Q',
-        status: 'Đã thanh toán (MBBank)',
-        emailStatus: 'Đã gửi Gmail',
-        adminNote: 'Yêu cầu xuất hóa đơn VAT công ty'
-      },
-      {
-        orderId: '#8939',
-        name: 'Anh Quốc Bảo',
-        phone: '0939551203',
-        email: 'quocbao.ai@gmail.com',
-        package: 'Gemini 3.1 Pro 18 Tháng',
-        amount: '90.000đ',
-        memo: 'PRO18T 0939551203',
-        time: '11/10/2026, 00:45:22',
-        ip: '115.79.208.64',
-        location: 'Cần Thơ, VN',
-        device: 'Máy tính (Windows)',
-        licenseLink: 'https://one.google.com/promo/gemini-pro-enterprise/ACT-1033-MN5T',
-        status: 'Đã thanh toán (MBBank)',
-        emailStatus: 'Đã gửi Gmail',
-        adminNote: 'Khách quen giới thiệu, hỗ trợ nhiệt tình'
-      }
-    ];
+    // Production Data Containers (Sạch dữ liệu demo sẵn sàng lên hosting)
+    const DEFAULT_ORDERS = [];
+    const DEFAULT_VISITS = [];
 
     const DEFAULT_INVENTORY = [
       { id: 1, link: 'https://geminiactivation.com/subscription/new/v30_nHCb8tEWYRfqJzaFygouXwMRg2LoQUVFxGdCduEh1prZSDdkgTYFdy7i_HcbgFIhz-9bvTe2IpKNOMU_JjKRIuMqr0fUm0yYk0W5VX4FdIkKHcwO61FQxCyCH7PbMCGOX7axMfuCReWgGyhsC9P_Q1ZNZAB1tvRGq3xyaqmYawaOxzxwleAnXdYRZy1Sl9ms3YGUFgYmfDDxVJQw_8eLTjKal7m4YFtZmn7vQFayJrkxpFgzr1ByfhxP4hG6', status: 'Sẵn sàng', assignedTo: '-' },
@@ -1385,35 +1317,14 @@
       { id: 6, link: 'https://one.google.com/promo/gemini-pro-enterprise/GM-STOCK-A106', status: 'Sẵn sàng', assignedTo: '-' }
     ];
 
-    const DEFAULT_VISITS = [
-      { time: '11/10/2026, 03:22:10', ip: '113.161.42.18', location: 'TP. Hồ Chí Minh, VN', device: 'Máy tính (Windows)', browser: 'Google Chrome', referrer: 'Facebook', fullUrl: 'http://localhost:8080/?ref=facebook' },
-      { time: '11/10/2026, 03:19:45', ip: '27.72.105.94', location: 'Hà Nội, VN', device: 'Điện thoại (iPhone)', browser: 'Mobile Safari', referrer: 'Tìm kiếm & Research', fullUrl: 'http://localhost:8080/?ref=research' },
-      { time: '11/10/2026, 03:15:02', ip: '14.241.229.112', location: 'Đà Nẵng, VN', device: 'Máy tính (MacBook)', browser: 'Google Chrome', referrer: 'Zalo Chat', fullUrl: 'http://localhost:8080/?ref=zalo' },
-      { time: '11/10/2026, 03:12:30', ip: '171.244.11.92', location: 'Bình Dương, VN', device: 'Điện thoại (iPhone)', browser: 'Mobile Safari', referrer: 'TikTok', fullUrl: 'http://localhost:8080/?ref=tiktok' },
-      { time: '11/10/2026, 03:10:19', ip: '115.79.208.64', location: 'Cần Thơ, VN', device: 'Máy tính (Windows)', browser: 'Cốc Cốc', referrer: 'Truy cập trực tiếp', fullUrl: 'http://localhost:8080/' },
-      { time: '11/10/2026, 03:07:44', ip: '14.162.180.25', location: 'Hà Nội, VN', device: 'Máy tính (Windows)', browser: 'Firefox', referrer: 'X (Twitter)', fullUrl: 'http://localhost:8080/?ref=x' },
-      { time: '11/10/2026, 03:04:55', ip: '42.119.155.80', location: 'Hải Phòng, VN', device: 'Điện thoại (Android)', browser: 'Chrome Mobile', referrer: 'Threads', fullUrl: 'http://localhost:8080/?ref=threads' },
-      { time: '11/10/2026, 02:58:30', ip: '116.108.82.45', location: 'Nha Trang, VN', device: 'Máy tính (Windows)', browser: 'Google Chrome', referrer: 'Tìm kiếm & Research', fullUrl: 'https://google.com/search' },
-      { time: '11/10/2026, 02:51:14', ip: '1.53.198.114', location: 'Vũng Tàu, VN', device: 'Máy tính (Windows)', browser: 'Google Chrome', referrer: 'Facebook', fullUrl: 'http://localhost:8080/?ref=facebook' },
-      { time: '11/10/2026, 02:45:00', ip: '123.24.180.33', location: 'Huế, VN', device: 'Điện thoại (Android)', browser: 'Samsung Browser', referrer: 'Zalo Chat', fullUrl: 'http://localhost:8080/?ref=zalo' }
-    ];
-
-    // LocalStorage Helper (Tự động nạp dữ liệu mẫu an toàn)
+    // LocalStorage Helper (Lưu trữ và đồng bộ dữ liệu)
     function getOrders() {
       try {
         const data = localStorage.getItem('crm_orders');
-        if (!data) {
-          localStorage.setItem('crm_orders', JSON.stringify(DEFAULT_ORDERS));
-          return DEFAULT_ORDERS;
-        }
+        if (!data) return DEFAULT_ORDERS;
         const parsed = JSON.parse(data);
-        if (!Array.isArray(parsed) || parsed.length === 0) {
-          localStorage.setItem('crm_orders', JSON.stringify(DEFAULT_ORDERS));
-          return DEFAULT_ORDERS;
-        }
-        return parsed;
+        return Array.isArray(parsed) ? parsed : DEFAULT_ORDERS;
       } catch (e) {
-        localStorage.setItem('crm_orders', JSON.stringify(DEFAULT_ORDERS));
         return DEFAULT_ORDERS;
       }
     }
@@ -1440,14 +1351,13 @@
     function getVisits() {
       try {
         const data = localStorage.getItem('crm_visits');
-        if (!data) {
-          localStorage.setItem('crm_visits', JSON.stringify(DEFAULT_VISITS));
-          return DEFAULT_VISITS;
-        }
+        if (!data) return DEFAULT_VISITS;
         const parsed = JSON.parse(data);
-        if (!Array.isArray(parsed) || parsed.length === 0) {
-          localStorage.setItem('crm_visits', JSON.stringify(DEFAULT_VISITS));
-          return DEFAULT_VISITS;
+        return Array.isArray(parsed) ? parsed : DEFAULT_VISITS;
+      } catch (e) {
+        return DEFAULT_VISITS;
+      }
+    }
         }
         return parsed;
       } catch (e) {
