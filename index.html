@@ -1097,6 +1097,9 @@
       const memo = `PRO18T ${phone}`;
       const orderId = '#' + Math.floor(1000 + Math.random() * 9000);
       currentOrder = { name, phone, email, memo, orderId };
+      try {
+        localStorage.setItem('crm_pending_order', JSON.stringify(currentOrder));
+      } catch(e) {}
 
       const memoDisplay = document.getElementById('modalMemoDisplay');
       if (memoDisplay) memoDisplay.innerText = memo;
@@ -1287,6 +1290,34 @@
     }
 
     async function queryPaymentApi(memo, phone, amount) {
+      // 0. Kiểm tra mô phỏng Sandbox tức thì từ Admin Dashboard qua localStorage (0s realtime)
+      try {
+        const simRaw = localStorage.getItem('crm_simulated_payment');
+        if (simRaw) {
+          const sim = JSON.parse(simRaw);
+          const cleanPhone = (phone || '').replace(/[^0-9]/g, '');
+          const simCleanPhone = (sim.phone || '').replace(/[^0-9]/g, '');
+          const isPhoneMatch = cleanPhone && simCleanPhone && (cleanPhone === simCleanPhone || simCleanPhone.includes(cleanPhone) || cleanPhone.includes(simCleanPhone));
+          const isMemoMatch = memo && sim.memo && (memo.toUpperCase().replace(/\s+/g, '').includes(sim.memo.toUpperCase().replace(/\s+/g, '')) || sim.memo.toUpperCase().replace(/\s+/g, '').includes(memo.toUpperCase().replace(/\s+/g, '')));
+          
+          if (isPhoneMatch || isMemoMatch || sim.forceAll) {
+            localStorage.removeItem('crm_simulated_payment');
+            return {
+              paid: true,
+              transaction: {
+                id: 'SIM_' + Math.floor(100000 + Math.random() * 900000),
+                amount: sim.amount || 90000,
+                description: sim.memo || `PRO18T ${phone}`,
+                bank: 'MBBank',
+                time: new Date().toLocaleTimeString('vi-VN'),
+                source: 'Mô phỏng Admin Sandbox'
+              },
+              source: 'Sandbox Test Admin'
+            };
+          }
+        }
+      } catch(e) {}
+
       // 1. Kiểm tra qua Backend API Server (/api/check-payment)
       try {
         const query = new URLSearchParams({
@@ -1502,13 +1533,18 @@
         inventory = JSON.parse(localStorage.getItem('crm_inventory') || '[]');
       } catch(e) {}
 
-      let availableItem = inventory.find(i => i.status === 'Sẵn sàng');
+      // Lọc các mã sẵn sàng và xếp theo thứ tự ID tăng dần (FIFO: Link 1 -> Link 2 -> Link 3...)
+      let availableItems = inventory.filter(i => i.status === 'Sẵn sàng').sort((a,b) => (a.id || 0) - (b.id || 0));
+      let availableItem = availableItems[0];
       let licenseLink = 'https://one.google.com/promo/gemini-pro-enterprise/ACT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
       if (availableItem) {
         licenseLink = availableItem.link;
-        availableItem.status = 'Đã cấp';
-        availableItem.assignedTo = `${custName} (${custOrderId})`;
+        const targetInInventory = inventory.find(i => i.id === availableItem.id);
+        if (targetInInventory) {
+          targetInInventory.status = 'Đã cấp';
+          targetInInventory.assignedTo = `${custName} (${custOrderId})`;
+        }
         try {
           localStorage.setItem('crm_inventory', JSON.stringify(inventory));
         } catch(e) {}
@@ -1808,6 +1844,13 @@
     }
     window.addEventListener('DOMContentLoaded', clearOrderFormInputs);
     window.addEventListener('pageshow', clearOrderFormInputs);
+
+    // Lắng nghe tín hiệu mô phỏng bắn thử thanh toán từ Admin Sandbox (nhận diện tức thì 0s)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'crm_simulated_payment' && currentOrder && currentOrder.phone) {
+        checkPaymentRealStatus();
+      }
+    });
 
     // Live Buyers Ticker
     const buyers = [

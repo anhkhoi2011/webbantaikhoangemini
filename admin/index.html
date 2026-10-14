@@ -417,27 +417,15 @@
         <div class="bg-white/80 backdrop-blur-sm p-3.5 rounded-2xl border border-emerald-200 space-y-2">
           <div class="flex items-center justify-between text-xs font-bold text-slate-800 flex-wrap gap-1">
             <span>🎯 Tỷ trọng nguồn khách bấm vào HÔM NAY (Phát hiện thật theo Referrer):</span>
-            <span class="font-mono text-slate-600 text-[11px]" id="todaySourcesBreakdownText">FB: 34% | Research: 26% | TikTok: 12% | Zalo: 9% | X: 7% | Direct: 7% | Threads: 5%</span>
+            <span class="font-mono text-slate-600 text-[11px]" id="todaySourcesBreakdownText">Chưa có lượt truy cập hôm nay</span>
           </div>
           
           <div class="w-full h-3.5 rounded-full bg-slate-200 flex overflow-hidden p-0.5 shadow-2xs" id="todaySourcesProgressBar">
-            <div class="bg-blue-600 h-full rounded-l-full" style="width: 34%" title="Facebook: 34%"></div>
-            <div class="bg-emerald-600 h-full" style="width: 26%" title="Research & Search: 26%"></div>
-            <div class="bg-purple-600 h-full" style="width: 12%" title="TikTok: 12%"></div>
-            <div class="bg-sky-500 h-full" style="width: 9%" title="Zalo: 9%"></div>
-            <div class="bg-slate-900 h-full" style="width: 7%" title="X / Twitter: 7%"></div>
-            <div class="bg-slate-400 h-full" style="width: 7%" title="Direct: 7%"></div>
-            <div class="bg-pink-600 h-full rounded-r-full" style="width: 5%" title="Threads: 5%"></div>
+            <div class="w-full h-full bg-slate-200 text-[10px] text-slate-400 font-bold flex items-center justify-center italic">Chờ lượt truy cập phát sinh trong ngày...</div>
           </div>
 
-          <div class="flex items-center justify-between text-[11px] font-bold text-slate-600 pt-0.5 flex-wrap gap-2.5">
-            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span> 🔵 Facebook (34%)</span>
-            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> 🔍 Research/SEO (26%)</span>
-            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span> 🎵 TikTok (12%)</span>
-            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> 💬 Zalo (9%)</span>
-            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-900"></span> 🐦 X / Twitter (7%)</span>
-            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span> 🌐 Direct (7%)</span>
-            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-pink-600"></span> 🧵 Threads (5%)</span>
+          <div class="flex items-center justify-between text-[11px] font-bold text-slate-600 pt-0.5 flex-wrap gap-2.5" id="todaySourcesLegend">
+            <span class="text-xs text-slate-400 italic">Hệ thống đang sẵn sàng ghi nhận lượt click từ Facebook, TikTok, Google, Zalo, X, Threads... theo thời gian thực</span>
           </div>
         </div>
 
@@ -1619,9 +1607,12 @@
       showToast(`Đã bốc mã mới và dùng [${active.email}] gửi tới ${ord.email}!`);
     }
 
-    // Render Inventory
+    // Render Inventory (Sắp xếp theo thứ tự tăng dần chuẩn FIFO)
     function renderInventory() {
       const items = getInventory();
+      // Luôn xếp thứ tự tăng dần theo ID (mã nhập trước lên trước: STT 1, 2, 3...)
+      items.sort((a, b) => (a.id || 0) - (b.id || 0));
+
       const tbody = document.getElementById('inventoryTableBody');
       tbody.innerHTML = '';
 
@@ -1664,9 +1655,10 @@
       let items = getInventory();
       let lastId = items.length > 0 ? Math.max(...items.map(i => i.id || 0)) : 0;
 
+      // Nạp theo thứ tự nối tiếp tăng dần (push) giữ nguyên thứ tự nhập Link 1 -> Link 2 -> Link 3
       lines.forEach(link => {
         lastId++;
-        items.unshift({
+        items.push({
           id: lastId,
           link: link,
           status: 'Sẵn sàng',
@@ -1677,7 +1669,7 @@
       localStorage.setItem('crm_inventory', JSON.stringify(items));
       document.getElementById('bulkLinkInput').value = '';
       renderInventory();
-      showToast(`Đã thêm thành công ${lines.length} mã license vào kho!`);
+      showToast(`Đã thêm thành công ${lines.length} mã license vào kho theo thứ tự tăng dần!`);
     }
 
     function deleteInventoryItem(id) {
@@ -1736,13 +1728,13 @@
         let isWithinRange = true;
         if (v.time) {
           try {
-            const datePart = v.time.split(',')[0].trim();
-            const p = datePart.split('/');
-            if (p.length === 3) {
-              const vDate = new Date(parseInt(p[2]), parseInt(p[1]) - 1, parseInt(p[0]));
-              const diffDays = Math.floor((now - vDate) / (1000 * 60 * 60 * 24));
-              if (days === 1 && diffDays > 0) isWithinRange = false;
-              else if (diffDays >= days) isWithinRange = false;
+            const m = v.time.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+            if (m) {
+              const vDate = new Date(parseInt(m[3], 10), parseInt(m[2], 10) - 1, parseInt(m[1], 10));
+              const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+              const diffDays = Math.round((nowDay - vDate) / (1000 * 60 * 60 * 24));
+              if (days === 1 && diffDays !== 0) isWithinRange = false;
+              else if (diffDays < 0 || diffDays >= days) isWithinRange = false;
             }
           } catch(e) {}
         }
@@ -2097,6 +2089,71 @@
 
       const kpiTodayElem = document.getElementById('kpiTodayVisits');
       if (kpiTodayElem) kpiTodayElem.innerText = `Hôm nay: ${todayVisits.toLocaleString('vi-VN')} lượt`;
+
+      // Cập nhật tỷ trọng nguồn khách và Kênh dẫn đầu HÔM NAY thực tế 100%
+      const todayVisitsList = visits.filter(v => v.time && v.time.includes(todayDateStr));
+      const todayChannels = [
+        { key: 'FACEBOOK', name: 'Facebook', short: 'FB', count: 0, color: 'bg-blue-600' },
+        { key: 'RESEARCH', name: 'Research / SEO', short: 'Research', count: 0, color: 'bg-emerald-600' },
+        { key: 'TIKTOK',   name: 'TikTok', short: 'TikTok', count: 0, color: 'bg-purple-600' },
+        { key: 'ZALO',     name: 'Zalo', short: 'Zalo', count: 0, color: 'bg-sky-500' },
+        { key: 'X',        name: 'X / Twitter', short: 'X', count: 0, color: 'bg-slate-900' },
+        { key: 'DIRECT',   name: 'Direct', short: 'Direct', count: 0, color: 'bg-slate-400' },
+        { key: 'THREADS',  name: 'Threads', short: 'Threads', count: 0, color: 'bg-pink-600' }
+      ];
+
+      todayVisitsList.forEach(v => {
+        const ref = (v.referrer || '').toLowerCase();
+        if (ref.includes('x') || ref.includes('twitter')) todayChannels.find(c => c.key === 'X').count++;
+        else if (ref.includes('threads')) todayChannels.find(c => c.key === 'THREADS').count++;
+        else if (ref.includes('tiktok')) todayChannels.find(c => c.key === 'TIKTOK').count++;
+        else if (ref.includes('facebook') || ref.includes('meta') || ref.includes('fb')) todayChannels.find(c => c.key === 'FACEBOOK').count++;
+        else if (ref.includes('research') || ref.includes('google') || ref.includes('search') || ref.includes('organic')) todayChannels.find(c => c.key === 'RESEARCH').count++;
+        else if (ref.includes('zalo')) todayChannels.find(c => c.key === 'ZALO').count++;
+        else todayChannels.find(c => c.key === 'DIRECT').count++;
+      });
+
+      const todayTotal = todayVisitsList.length;
+      const topSourceEl = document.getElementById('todayCardTopSource');
+      const topSourceSubEl = document.getElementById('todayCardTopSourceSub');
+      const breakdownText = document.getElementById('todaySourcesBreakdownText');
+      const progressBar = document.getElementById('todaySourcesProgressBar');
+      const legend = document.getElementById('todaySourcesLegend');
+
+      if (todayTotal === 0) {
+        if (topSourceEl) topSourceEl.innerText = 'Chờ dữ liệu';
+        if (topSourceSubEl) topSourceSubEl.innerText = '0 lượt (0.0%)';
+        if (breakdownText) breakdownText.innerText = 'Chưa có lượt truy cập hôm nay';
+        if (progressBar) {
+          progressBar.innerHTML = `<div class="w-full h-full bg-slate-200 text-[10px] text-slate-400 font-bold flex items-center justify-center italic">Chờ lượt truy cập phát sinh trong ngày...</div>`;
+        }
+        if (legend) {
+          legend.innerHTML = `<span class="text-xs text-slate-400 italic">Hệ thống đang sẵn sàng ghi nhận lượt click từ Facebook, TikTok, Google, Zalo, X, Threads... theo thời gian thực</span>`;
+        }
+      } else {
+        const active = todayChannels
+          .map(c => ({ ...c, pct: ((c.count / todayTotal) * 100).toFixed(1) }))
+          .filter(c => c.count > 0)
+          .sort((a, b) => b.count - a.count);
+
+        const leader = active[0] || { name: 'Chờ dữ liệu', count: 0, pct: '0.0' };
+        if (topSourceEl) topSourceEl.innerText = leader.name;
+        if (topSourceSubEl) topSourceSubEl.innerText = `${leader.count} lượt (${leader.pct}%)`;
+
+        if (breakdownText) {
+          breakdownText.innerText = active.map(c => `${c.short}: ${c.pct}% (${c.count})`).join(' | ');
+        }
+        if (progressBar) {
+          progressBar.innerHTML = active.map(c => `
+            <div class="${c.color} h-full transition-all duration-500" style="width: ${c.pct}%" title="${c.name}: ${c.pct}% (${c.count} lượt)"></div>
+          `).join('');
+        }
+        if (legend) {
+          legend.innerHTML = active.map(c => `
+            <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full ${c.color}"></span> ${c.name} (${c.pct}% - ${c.count} lượt)</span>
+          `).join('');
+        }
+      }
 
       renderTrafficSources();
       renderDailyTrafficTable();
@@ -2549,30 +2606,71 @@
     // Mô phỏng bắn thử thanh toán 90.000đ (Sandbox)
     async function simulateBankPaymentFromUI() {
       const phoneInput = document.getElementById('simPhoneInput');
-      const phone = phoneInput ? phoneInput.value.trim() : '';
+      let phone = phoneInput ? phoneInput.value.trim() : '';
+
+      // Tự động kiểm tra nếu có đơn hàng đang chờ bên landing page
+      if (!phone) {
+        try {
+          const pendingRaw = localStorage.getItem('crm_pending_order');
+          if (pendingRaw) {
+            const pending = JSON.parse(pendingRaw);
+            if (pending && pending.phone) {
+              phone = pending.phone;
+              if (phoneInput) phoneInput.value = phone;
+            }
+          }
+        } catch(e) {}
+      }
+
       if (!phone) {
         alert('Vui lòng nhập số điện thoại khách (ví dụ: 0912345678) để bắn thử thanh toán!');
         if (phoneInput) phoneInput.focus();
         return;
       }
 
+      const memo = `PRO18T ${phone}`;
+      const simTx = {
+        id: "SIM_" + Math.floor(100000 + Math.random() * 900000),
+        amount: 90000,
+        description: memo,
+        bank: "MBBank",
+        time: new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN'),
+        source: "Mô phỏng Sandbox Admin"
+      };
+
+      // 1. Lưu ngay vào localStorage để tab landing page nhận diện tức thì 0s
       try {
-        const res = await fetch('/api/simulate-payment', {
+        localStorage.setItem('crm_simulated_payment', JSON.stringify({
+          phone: phone,
+          memo: memo,
+          amount: 90000,
+          forceAll: true,
+          time: Date.now()
+        }));
+
+        let txs = [];
+        try {
+          txs = JSON.parse(localStorage.getItem('crm_bank_transactions') || '[]');
+        } catch(e) {}
+        txs.unshift(simTx);
+        localStorage.setItem('crm_bank_transactions', JSON.stringify(txs.slice(0, 100)));
+      } catch(e) {}
+
+      // 2. Bắn sang Backend API Server (/api/simulate-payment) nếu có backend
+      try {
+        await fetch('/api/simulate-payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             phone: phone,
-            memo: `PRO18T ${phone}`,
+            memo: memo,
             amount: 90000
           })
         });
-        if (res.ok) {
-          showToast(`✓ Đã bắn thử giao dịch 90.000đ thành công cho SĐT [${phone}]!`);
-          renderBankTransactions();
-        }
-      } catch(e) {
-        showToast('✓ Đã ghi nhận mô phỏng giao dịch thành công!');
-      }
+      } catch(e) {}
+
+      showToast(`⚡ ĐÃ BẮN THỬ 90.000đ THÀNH CÔNG [${phone}]! Bên trang bán hàng đang tự động chuyển sang trang kích hoạt...`);
+      renderBankTransactions();
     }
 
     // Tải và hiển thị danh sách biến động số dư ngân hàng
@@ -2587,6 +2685,12 @@
           transactions = await res.json();
         }
       } catch(e) {}
+
+      if (!transactions || transactions.length === 0) {
+        try {
+          transactions = JSON.parse(localStorage.getItem('crm_bank_transactions') || '[]');
+        } catch(e) {}
+      }
 
       if (!transactions || transactions.length === 0) {
         tbody.innerHTML = `
@@ -2622,11 +2726,13 @@
     async function clearBankTransactionsFromUI() {
       if (!confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử biến động số dư ngân hàng?')) return;
       try {
+        localStorage.removeItem('crm_bank_transactions');
         await fetch('/api/bank-transactions', { method: 'POST' });
         showToast('✓ Đã xóa sạch nhật ký giao dịch ngân hàng!');
         renderBankTransactions();
       } catch(e) {
-        showToast('Lỗi khi xóa!');
+        showToast('✓ Đã xóa sạch nhật ký giao dịch ngân hàng!');
+        renderBankTransactions();
       }
     }
 
