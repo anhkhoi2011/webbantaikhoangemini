@@ -1099,12 +1099,42 @@
     }
     startFlashSaleCountdown();
 
+    // Lưu trữ sẵn chuỗi Base64 QR dự phòng từ HTML (100% không bao giờ lỗi)
+    let defaultQrDataUri = '';
+    try {
+      const existingQrImg = document.getElementById('modalQrImage');
+      if (existingQrImg && existingQrImg.src && existingQrImg.src.startsWith('data:image')) {
+        defaultQrDataUri = existingQrImg.src;
+      }
+    } catch(e) {}
+
     function handleQrError(img) {
       if (!img) return;
-      const memo = currentOrder ? currentOrder.memo : 'PRO18T';
-      if (!img.dataset.failedOnce) {
-        img.dataset.failedOnce = 'true';
-        img.src = '/api/qr-image?memo=' + encodeURIComponent(memo) + '&amount=' + CONFIG.amount;
+      const memo = (currentOrder && currentOrder.memo) ? currentOrder.memo : 'PRO18T';
+      const step = parseInt(img.dataset.qrStep || '1', 10);
+      
+      // Ẩn spinner ngay khi gặp lỗi để chuyển ảnh tức thì
+      const spinner = document.getElementById('qrLoadingSpinner');
+      if (spinner) spinner.classList.add('hidden');
+
+      if (step === 1) {
+        // Dự phòng 1: Dùng server CDN api.vietqr.io
+        img.dataset.qrStep = '2';
+        img.src = `https://api.vietqr.io/image/${CONFIG.bankBin}-${CONFIG.accountNo}-compact2.jpg?amount=${CONFIG.amount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(CONFIG.accountName)}`;
+      } else if (step === 2) {
+        // Dự phòng 2: Thử proxy backend nếu đang chạy localhost
+        img.dataset.qrStep = '3';
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          img.src = `/api/qr-image?memo=${encodeURIComponent(memo)}&amount=${CONFIG.amount}&t=${Date.now()}`;
+        } else {
+          // Nếu trên hosting công khai (Mắt Bão) thì dùng ngay mã QR Base64 chuẩn
+          if (defaultQrDataUri) img.src = defaultQrDataUri;
+        }
+      } else {
+        // Dự phòng 3: Nạp mã QR Base64 tích hợp sẵn trong mã nguồn (100% thành công không cần mạng)
+        if (defaultQrDataUri) {
+          img.src = defaultQrDataUri;
+        }
       }
     }
 
@@ -1171,17 +1201,28 @@
         stepSuccess.style.setProperty('display', 'none', 'important');
       }
 
-      // Kích hoạt spinner khi tải QR
+      // 1. Kích hoạt spinner khi tải QR, tự động tắt an toàn sau 1.2 giây (đảm bảo không bao giờ bị kẹt xoay xoay)
       const spinner = document.getElementById('qrLoadingSpinner');
       if (spinner) spinner.classList.remove('hidden');
+      setTimeout(() => {
+        const sp = document.getElementById('qrLoadingSpinner');
+        if (sp) sp.classList.add('hidden');
+      }, 1200);
 
-      // Sinh mã VietQR bự to rõ nét: Dùng proxy Backend trước (100% không bị lỗi ngày tháng SSL 2026)
-      const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
-      const qrUrl = `${apiBase}/api/qr-image?memo=${encodeURIComponent(memo)}&amount=${CONFIG.amount}&t=${Date.now()}`;
+      // 2. Tải mã VietQR: Dùng CDN VietQR Cloud chính hãng trước (chạy mượt trên cả hosting Mắt Bão và máy cá nhân)
       const qrImg = document.getElementById('modalQrImage');
       if (qrImg) {
-        qrImg.dataset.failedOnce = '';
-        qrImg.src = qrUrl;
+        if (!defaultQrDataUri && qrImg.src && qrImg.src.startsWith('data:image')) {
+          defaultQrDataUri = qrImg.src;
+        }
+        qrImg.dataset.qrStep = '1';
+        qrImg.onload = function() {
+          const sp = document.getElementById('qrLoadingSpinner');
+          if (sp) sp.classList.add('hidden');
+        };
+        // URL VietQR chính hãng chuẩn NAPAS: Có tên, STK MBBank 517041996, 90.000đ và Memo PRO18T SĐT
+        const primaryQrUrl = `https://img.vietqr.io/image/${CONFIG.bankBin}-${CONFIG.accountNo}-compact2.png?amount=${CONFIG.amount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(CONFIG.accountName)}`;
+        qrImg.src = primaryQrUrl;
       }
 
       // Tự động kết nối trực tiếp với APIPay Cloud để tạo phiên thanh toán thật
