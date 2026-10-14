@@ -18,8 +18,9 @@ $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
 
 function readJsonFile($filename, $default = []) {
-    if (file_exists($filename)) {
-        $content = file_get_contents($filename);
+    $fullPath = __DIR__ . '/' . basename($filename);
+    if (file_exists($fullPath)) {
+        $content = file_get_contents($fullPath);
         $data = json_decode($content, true);
         return $data !== null ? $data : $default;
     }
@@ -27,7 +28,8 @@ function readJsonFile($filename, $default = []) {
 }
 
 function writeJsonFile($filename, $data) {
-    file_put_contents($filename, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    $fullPath = __DIR__ . '/' . basename($filename);
+    file_put_contents($fullPath, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
 function getPostJson() {
@@ -218,10 +220,23 @@ if (strpos($requestUri, '/api/admin-login-notify') !== false) {
     exit();
 }
 
-// 8. API: Get Apps Script
+// 8. API: Cấu hình Telegram (Lấy và Lưu Bot Token & Chat ID)
+if (strpos($requestUri, '/api/telegram-config') !== false) {
+    if ($method === 'POST') {
+        $body = getPostJson();
+        writeJsonFile('telegram_config.json', $body);
+        echo json_encode(["status" => "success", "message" => "Telegram config saved"]);
+    } else {
+        echo json_encode(readJsonFile('telegram_config.json', []));
+    }
+    exit();
+}
+
+// 9. API: Get Apps Script
 if (strpos($requestUri, '/api/get-apps-script') !== false) {
-    if (file_exists('GoogleAppsScript_CRM_AutoBot.js')) {
-        echo json_encode(["status" => "success", "code" => file_get_contents('GoogleAppsScript_CRM_AutoBot.js')]);
+    $scriptFile = __DIR__ . '/GoogleAppsScript_CRM_AutoBot.js';
+    if (file_exists($scriptFile)) {
+        echo json_encode(["status" => "success", "code" => file_get_contents($scriptFile)]);
     } else {
         echo json_encode(["status" => "error", "message" => "File not found"]);
     }

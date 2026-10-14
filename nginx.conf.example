@@ -1,0 +1,40 @@
+# Cấu hình Nginx tối ưu cho dự án Gemini Pro CRM
+# Đặt trong file cấu hình site Nginx (ví dụ /etc/nginx/sites-available/... hoặc trong aaPanel / FastPanel / CyberPanel)
+
+server {
+    listen 80;
+    server_name webbantaikhoangemini.n2.tinhgon.xyz; # Thay bằng domain của bạn
+    root /var/www/html/webbantaikhoangemini;         # Thay bằng thư mục chứa code
+    index index.html index.php;
+
+    # 1. Hỗ trợ truy cập /admin hoặc /admin/ tự động mở Admin CRM
+    location /admin {
+        try_files $uri $uri/ /admin/index.html /admin.html;
+    }
+
+    # 2. Hỗ trợ toàn bộ API /api/... chuyển đến api.php
+    location /api/ {
+        try_files $uri $uri/ /api.php?$query_string;
+    }
+
+    # 3. Phục vụ file tĩnh trực tiếp (ảnh, css, js)
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|txt|json)$ {
+        expires 7d;
+        add_header Cache-Control "public, no-transform";
+        try_files $uri =404;
+    }
+
+    # 4. Xử lý PHP (nếu hosting chạy PHP-FPM)
+    location ~ \.php$ {
+        include fastcgi_params;
+        # fastcgi_pass unix:/run/php/php8.1-fpm.sock; # Bỏ comment dòng này hoặc dòng dưới tuỳ cấu hình hosting
+        # fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+
+    # 5. Điều hướng mặc định
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

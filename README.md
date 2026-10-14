@@ -61,9 +61,14 @@ webbantaikhoangemini/
 #### 🌐 Lựa chọn A: Hosting cPanel / DirectAdmin / PHP (Hostinger, AZDIGI, Vietnix, TinoHost...)
 1. Nén toàn bộ các file trong thư mục này thành file `.zip`.
 2. Tải lên thư mục `public_html/` trên hosting của bạn và giải nén.
-3. Hệ thống đã có sẵn `.htaccess` và `api.php` tự động nhận diện và xử lý mọi API mà không cần cài đặt thêm bất cứ thứ gì!
+3. Hệ thống đã có sẵn `.htaccess`, thư mục `admin/` và `api.php` tự động nhận diện và xử lý mọi API mà không cần cài đặt thêm bất cứ thứ gì!
 
-#### 🐧 Lựa chọn B: VPS Linux (Ubuntu / Debian / CentOS / Docker)
+#### 🚀 Lựa chọn B: Hosting Nginx (aaPanel, FastPanel, CloudPanel, Nginx Server)
+1. Tải toàn bộ mã nguồn lên thư mục web của Nginx (ví dụ `/www/wwwroot/webbantaikhoangemini`).
+2. Dự án đã cấu trúc sẵn thư mục `admin/index.html` và `admin/index.php` nên bạn có thể truy cập ngay `domain.com/admin` mà không bị lỗi 404!
+3. (Tùy chọn) Thao khảo file mẫu [nginx.conf.example](file:///c:/Users/Admin/Desktop/GI%C3%80U%20SANG%20PH%C3%9A%20QU%C3%9D/gemini-pro-crm-fullsource/nginx.conf.example) để cấu hình rewrite `/api/` mượt mà nhất.
+
+#### 🐧 Lựa chọn C: VPS Linux (Ubuntu / Debian / CentOS / Docker)
 Chạy lệnh khởi động máy chủ Python hiệu năng cao tích hợp sẵn:
 ```bash
 python3 server.py
@@ -71,7 +76,7 @@ python3 server.py
 pm2 start server.py --name "gemini-crm" --interpreter python3
 ```
 
-#### 💻 Lựa chọn C: Chạy cục bộ trên máy tính Windows
+#### 💻 Lựa chọn D: Chạy cục bộ trên máy tính Windows
 Nhấp đúp chuột vào file `START_SERVER.bat` hoặc mở terminal chạy:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\server.ps1

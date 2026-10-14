@@ -1,11 +1,11 @@
-DirectoryIndex index.html
+DirectoryIndex index.html index.php
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
 
-    # Điều hướng /admin sang admin.html
-    RewriteRule ^admin/?$ admin.html [L,QSA]
+    # Điều hướng /admin sang admin/index.html hoặc admin.html
+    RewriteRule ^admin/?$ admin/index.html [L,QSA]
 
     # Điều hướng toàn bộ /api/* sang api.php
     RewriteRule ^api/(.*)$ api.php [L,QSA]
