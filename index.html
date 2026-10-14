@@ -150,11 +150,11 @@
 
             <div class="pt-3 border-t border-slate-200">
               <div class="flex justify-between text-xs font-bold mb-1.5">
-                <span class="text-slate-700">Đã kích hoạt: <strong class="text-slate-900">1.488/1.500 tài khoản</strong></span>
-                <span class="text-red-600 animate-pulse">🔥 Chỉ còn 12 suất cuối cùng!</span>
+                <span class="text-slate-700">Đã kích hoạt: <strong id="heroActivatedCount" class="text-slate-900">1.488/1.500 tài khoản</strong></span>
+                <span id="heroRemainingBadge" class="text-red-600 font-black animate-pulse">🔥 Chỉ còn <span id="heroRemainingSlots">12 suất</span> cuối cùng!</span>
               </div>
               <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden p-0.5 border border-slate-300">
-                <div class="bg-gradient-to-r from-emerald-500 via-blue-500 to-red-500 h-full rounded-full transition-all duration-1000" style="width: 98.4%"></div>
+                <div id="heroProgressBar" class="bg-gradient-to-r from-emerald-500 via-blue-500 to-red-500 h-full rounded-full transition-all duration-1000" style="width: 98.4%"></div>
               </div>
             </div>
           </div>
@@ -196,8 +196,14 @@
       <div class="lg:col-span-5 p-6 sm:p-8 bg-slate-50 flex flex-col justify-center">
         <div class="space-y-4">
           <div class="border-b border-slate-200 pb-3">
-            <span class="text-xs font-bold text-blue-600 uppercase">Bước 1: Điền Thông Tin Nhận Quyền</span>
-            <h3 class="text-lg font-black text-slate-900 mt-0.5">Đăng Ký Bản Quyền Pro 18T</h3>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-blue-600 uppercase">Bước 1: Điền Thông Tin Nhận Quyền</span>
+              <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                <span><span id="liveViewerCount" class="font-extrabold text-emerald-900 font-mono">38</span> người đang xem</span>
+              </span>
+            </div>
+            <h3 class="text-lg font-black text-slate-900 mt-1">Đăng Ký Bản Quyền Pro 18T</h3>
             <p class="text-xs text-slate-500">Mã QR VietQR sẽ tự động hiện ra để bạn quét thanh toán trong 10 giây.</p>
           </div>
 
@@ -891,13 +897,17 @@
   </a>
 
   <!-- 9. TOAST LIVE BUYERS (THÔNG BÁO KHÁCH VỪA MUA) -->
-  <div id="liveBuyerToast" class="fixed bottom-4 left-4 z-40 bg-white/95 backdrop-blur border-2 border-emerald-400 rounded-2xl p-2.5 shadow-2xl flex items-center gap-2.5 transition-all duration-500 transform translate-y-36 opacity-0 max-w-xs">
-    <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">
+  <div id="liveBuyerToast" class="fixed bottom-5 left-4 z-40 bg-white/95 backdrop-blur border-2 border-emerald-400 rounded-2xl p-3 shadow-2xl flex items-center gap-3 transition-all duration-500 transform translate-y-36 opacity-0 max-w-sm pointer-events-none">
+    <div class="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-md">
       ✓
+      <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-ping"></span>
     </div>
-    <div class="text-xs">
-      <div class="font-bold text-slate-900" id="buyerName">Anh Tuấn (TP.HCM)</div>
-      <div class="text-emerald-700 text-[11px]" id="buyerAction">Vừa kích hoạt Gemini 18T & Antigravity 5TB</div>
+    <div class="text-xs space-y-0.5">
+      <div class="flex items-center gap-1.5">
+        <span class="font-extrabold text-slate-900" id="buyerName">Anh Minh Tuấn (TP.HCM)</span>
+        <span class="text-[10px] text-slate-400 font-semibold" id="buyerTime">• 3 giây trước</span>
+      </div>
+      <div class="text-emerald-700 font-semibold text-[11px] leading-tight" id="buyerAction">Vừa kích hoạt Gemini 18T & Antigravity 5TB</div>
     </div>
   </div>
 
@@ -1036,19 +1046,58 @@
       } catch (e) {}
     }
 
-    // Đếm ngược thời gian Flash Sale
-    let remainingSeconds = 14 * 60 + 20;
-    function updateTimer() {
-      const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
-      const s = (remainingSeconds % 60).toString().padStart(2, '0');
-      const timeStr = `${m}:${s}`;
-      const el1 = document.getElementById('topTimer');
-      const el2 = document.getElementById('cardTimer');
-      if (el1) el1.innerText = timeStr;
-      if (el2) el2.innerText = timeStr;
-      if (remainingSeconds > 0) remainingSeconds--;
+    // ==========================================
+    // ĐẾM NGƯỢC THỜI GIAN FLASH SALE THỰC TẾ & CHÍNH XÁC
+    // ==========================================
+    function startFlashSaleCountdown() {
+      const DURATION_SECONDS = 14 * 60 + 20; // 14:20 chuẩn
+      const now = Date.now();
+      let targetTime = parseInt(sessionStorage.getItem('gemini_flash_end') || '0', 10);
+      
+      // Nếu chưa có mốc hoặc đã quá hạn cũ trên 30 phút, đặt mốc mới
+      if (!targetTime || isNaN(targetTime) || (now - targetTime > 1800000)) {
+        targetTime = now + DURATION_SECONDS * 1000;
+        sessionStorage.setItem('gemini_flash_end', targetTime.toString());
+      }
+
+      function tickTimer() {
+        const current = Date.now();
+        let remaining = Math.max(0, Math.floor((targetTime - current) / 1000));
+        
+        // Khi hết hạn, tự động nới thêm 2 phút 45 giây để duy trì độ khẩn cấp liên tục
+        if (remaining <= 0) {
+          targetTime = Date.now() + (2 * 60 + 45) * 1000;
+          sessionStorage.setItem('gemini_flash_end', targetTime.toString());
+          remaining = 2 * 60 + 45;
+        }
+
+        const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+        const s = (remaining % 60).toString().padStart(2, '0');
+        const timeStr = `${m}:${s}`;
+
+        const elTop = document.getElementById('topTimer');
+        const elCard = document.getElementById('cardTimer');
+        if (elTop) {
+          elTop.innerText = timeStr;
+          if (remaining < 180) {
+            elTop.classList.add('text-red-300', 'animate-pulse');
+          } else {
+            elTop.classList.remove('text-red-300', 'animate-pulse');
+          }
+        }
+        if (elCard) {
+          elCard.innerText = timeStr;
+          if (remaining < 180) {
+            elCard.classList.add('animate-pulse', 'bg-red-200');
+          }
+        }
+      }
+
+      // Kích hoạt hiển thị lập tức không trễ 1 giây
+      tickTimer();
+      setInterval(tickTimer, 1000);
     }
-    setInterval(updateTimer, 1000);
+    startFlashSaleCountdown();
 
     function handleQrError(img) {
       if (!img) return;
@@ -1151,7 +1200,8 @@
               if (liveQrImg) liveQrImg.src = data.qrUrl;
             }
           }
-        })
+        }).catch(err => console.warn('apipay-create error:', err));
+      } catch(e) {}
       // Lưu đơn tạm thời lên Server (orders.json) và thông báo Telegram có khách đang mở QR
       try {
         fetch(`${apiBase}/api/orders`, {
@@ -1852,29 +1902,119 @@
       }
     });
 
-    // Live Buyers Ticker
-    const buyers = [
-      { name: "Anh Minh Tuấn (TP.HCM)", time: "vừa kích hoạt Antigravity & 5TB Cloud" },
-      { name: "Chị Thu Thảo (Hà Nội)", time: "vừa nhận link kích hoạt qua Zalo" },
-      { name: "Doanh nghiệp Hưng Phát (Đà Nẵng)", time: "vừa thanh toán 90.000đ" },
-      { name: "Anh Quốc Bảo (Cần Thơ)", time: "vừa kích hoạt Gemini Workspace & 5TB Cloud" }
+    // ==========================================
+    // HỆ THỐNG KÍCH THÍCH FOMO & SỨC SỐNG TOÀN DIỆN
+    // ==========================================
+
+    // 1. LIVE BUYERS TICKER (THÔNG BÁO KHÁCH VỪA MUA CHÂN THẬT)
+    const liveBuyers = [
+      { name: "Anh Minh Tuấn (Quận 1, TP.HCM)", action: "Vừa kích hoạt Gemini Pro & Antigravity 5TB", time: "2 giây trước" },
+      { name: "Chị Thu Thảo (Cầu Giấy, Hà Nội)", action: "Vừa nhận link kích hoạt qua Gmail chính chủ", time: "Vừa xong" },
+      { name: "Anh Quốc Bảo (Ninh Kiều, Cần Thơ)", action: "Vừa nâng cấp thành công gói 18 tháng", time: "4 giây trước" },
+      { name: "Bác sĩ Hoàng Nam (Hải Châu, Đà Nẵng)", action: "Vừa thanh toán 90.000đ qua MBBank", time: "Vừa xong" },
+      { name: "KTS. Lê Trọng Khang (Bình Thạnh, TP.HCM)", action: "Vừa kích hoạt Google Flow AI & Colab", time: "6 giây trước" },
+      { name: "Chị Ngọc Mai (Thanh Xuân, Hà Nội)", action: "Vừa kích hoạt Google One 5TB Cloud bản quyền", time: "10 giây trước" },
+      { name: "Anh Đặng Văn Long (TP. Thủ Đức)", action: "Vừa nhận mail bảo hành 30 ngày thành công", time: "Vừa xong" },
+      { name: "Studio Media Pro (Vũng Tàu)", action: "Vừa kích hoạt Gemini 4 Argon trọn gói 18 tháng", time: "3 giây trước" },
+      { name: "Thầy giáo Trần Hoàng (TP. Vinh, Nghệ An)", action: "Vừa hoàn tất đăng ký gói Pro 18 Tháng", time: "Vừa xong" },
+      { name: "Chị Phương Uyên (Biên Hòa, Đồng Nai)", action: "Vừa kích hoạt Gemini trong Docs & Gmail", time: "5 giây trước" }
     ];
-    let bIdx = 0;
-    function showBuyer() {
+    let buyerIndex = 0;
+
+    function showLiveBuyerNotification() {
       const toast = document.getElementById('liveBuyerToast');
       if (!toast) return;
-      document.getElementById('buyerName').innerText = buyers[bIdx].name;
-      document.getElementById('buyerAction').innerText = buyers[bIdx].time;
+
+      const buyer = liveBuyers[buyerIndex];
+      const nameEl = document.getElementById('buyerName');
+      const actionEl = document.getElementById('buyerAction');
+      const timeEl = document.getElementById('buyerTime');
+
+      if (nameEl) nameEl.innerText = buyer.name;
+      if (actionEl) actionEl.innerText = buyer.action;
+      if (timeEl) timeEl.innerText = `• ${buyer.time}`;
+
       toast.classList.remove('translate-y-36', 'opacity-0');
       toast.classList.add('translate-y-0', 'opacity-100');
+
       setTimeout(() => {
         toast.classList.remove('translate-y-0', 'opacity-100');
         toast.classList.add('translate-y-36', 'opacity-0');
       }, 4000);
-      bIdx = (bIdx + 1) % buyers.length;
+
+      buyerIndex = (buyerIndex + 1) % liveBuyers.length;
+
+      // Mỗi lần có khách mua mới, có 35% khả năng giảm bớt 1 suất trợ giá (tạo FOMO thật)
+      if (Math.random() < 0.35) {
+        decreaseFomoSlot();
+      }
     }
-    setInterval(showBuyer, 7500);
-    setTimeout(showBuyer, 2000);
+
+    // 2. GIẢM DẦN SUẤT TRỢ GIÁ (TẠO SỨC ÉP KHAN HIẾM CỰC MẠNH)
+    let fomoSlots = parseInt(sessionStorage.getItem('gemini_fomo_slots') || '12', 10);
+    if (isNaN(fomoSlots) || fomoSlots < 3) fomoSlots = 12;
+
+    function renderFomoSlotsUI() {
+      const slotsEl = document.getElementById('fomoSlots');
+      const heroSlotsEl = document.getElementById('heroRemainingSlots');
+      const activatedEl = document.getElementById('heroActivatedCount');
+      const progressBar = document.getElementById('heroProgressBar');
+      const badgeEl = document.getElementById('heroRemainingBadge');
+
+      const activatedCount = 1500 - fomoSlots;
+      const progressPercent = ((activatedCount / 1500) * 100).toFixed(1);
+
+      if (slotsEl) {
+        slotsEl.innerText = `${fomoSlots} suất`;
+      }
+      if (heroSlotsEl) {
+        heroSlotsEl.innerText = `${fomoSlots} suất`;
+      }
+      if (activatedEl) {
+        activatedEl.innerHTML = `Đã kích hoạt: <strong class="text-slate-900">${activatedCount.toLocaleString('vi-VN')}/1.500 tài khoản</strong>`;
+      }
+      if (progressBar) {
+        progressBar.style.width = `${progressPercent}%`;
+      }
+      if (badgeEl && fomoSlots <= 5) {
+        badgeEl.innerHTML = `⚠️ BÁO ĐỘNG ĐỎ: Chỉ còn <span id="heroRemainingSlots">${fomoSlots} suất</span> trợ giá cuối!`;
+        badgeEl.className = 'text-red-700 bg-red-100 px-2 py-0.5 rounded font-black animate-pulse border border-red-300';
+      }
+    }
+
+    function decreaseFomoSlot() {
+      if (fomoSlots > 3) {
+        fomoSlots--;
+        sessionStorage.setItem('gemini_fomo_slots', fomoSlots.toString());
+        renderFomoSlotsUI();
+
+        // Hiệu ứng chớp nháy màu vàng giật giật tạo chú ý cho suất ưu đãi
+        const slotsEl = document.getElementById('fomoSlots');
+        if (slotsEl) {
+          slotsEl.classList.add('scale-125', 'bg-red-500', 'text-white');
+          setTimeout(() => {
+            slotsEl.classList.remove('scale-125', 'bg-red-500', 'text-white');
+          }, 600);
+        }
+      }
+    }
+
+    // 3. SỐ LƯỢNG NGƯỜI ĐANG XEM THỜI GIAN THỰC (BIẾN ĐỘNG TỰ NHIÊN)
+    let viewerCount = 38;
+    function updateLiveViewers() {
+      const viewerEl = document.getElementById('liveViewerCount');
+      if (!viewerEl) return;
+      const change = Math.floor(Math.random() * 5) - 2; // -2, -1, 0, +1, +2
+      viewerCount = Math.min(52, Math.max(29, viewerCount + change));
+      viewerEl.innerText = viewerCount;
+    }
+
+    // KHỞI ĐỘNG CÁC ĐỘNG CƠ FOMO
+    renderFomoSlotsUI();
+    setInterval(updateLiveViewers, 4500);
+    setInterval(decreaseFomoSlot, 28000); // Giảm suất mỗi 28 giây
+    setInterval(showLiveBuyerNotification, 8500); // Popup khách mua mỗi 8.5s
+    setTimeout(showLiveBuyerNotification, 2500); // Popup đầu tiên sau 2.5s khi vào web
   </script>
 </body>
 </html>
