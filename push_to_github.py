@@ -14,6 +14,13 @@ REPO_NAME = "webbantaikhoangemini"
 GITHUB_USER = "anhkhoi2011"
 GIT_EXE = r"C:\Users\Admin\MinGit\cmd\git.exe"
 
+if sys.stdout.encoding != 'utf-8':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except:
+        pass
+
 def ensure_repo_created(token):
     headers = {
         "Authorization": f"token {token}",
@@ -26,7 +33,7 @@ def ensure_repo_created(token):
     req = urllib.request.Request(check_url, headers=headers)
     try:
         with urllib.request.urlopen(req) as resp:
-            print(f"✓ Repository '{REPO_NAME}' đã tồn tại trên GitHub.")
+            print(f"[OK] Repository '{REPO_NAME}' da ton tai tren GitHub.")
             return True
     except urllib.error.HTTPError as e:
         if e.code != 404:
