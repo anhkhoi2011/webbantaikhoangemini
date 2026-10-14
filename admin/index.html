@@ -88,9 +88,9 @@
           <span>Trang Bán Hàng</span>
         </a>
 
-        <button onclick="resetSampleData()" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-3 py-1.5 rounded-lg shadow-sm transition" title="Khôi phục lại bộ dữ liệu chuẩn nếu cần">
-          <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-          <span>Nạp Lại Dữ Liệu</span>
+        <button onclick="cleanAllDemoData()" class="inline-flex items-center gap-1.5 text-xs font-bold text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-300 px-3 py-1.5 rounded-lg shadow-sm transition" title="Xóa toàn bộ các liên kết và dữ liệu demo còn sót lại">
+          <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span>Dọn Sạch Demo</span>
         </button>
 
         <button onclick="renderAllData()" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-1.5 rounded-lg shadow-md transition">
@@ -240,6 +240,10 @@
         </div>
 
         <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <button onclick="clearAllOrders()" class="inline-flex items-center gap-1.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-2.5 rounded-xl shadow-sm transition cursor-pointer" title="Xóa toàn bộ lịch sử đơn hàng">
+            <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span>Xóa Hết Đơn</span>
+          </button>
           <button onclick="exportOrdersToCSV()" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 px-3.5 py-2.5 rounded-xl shadow-sm transition">
             <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             <span>Xuất Excel (.csv)</span>
@@ -291,7 +295,7 @@
             <h3 class="text-sm font-bold text-slate-900">Bổ Sung License Vào Kho</h3>
             <p class="text-xs text-slate-500 mt-0.5">Dán mỗi đường link/mã kích hoạt trên 1 dòng để thêm hàng loạt.</p>
           </div>
-          <textarea id="bulkLinkInput" rows="5" placeholder="https://one.google.com/promo/gemini-pro-enterprise/GM-KEY-1&#10;https://one.google.com/promo/gemini-pro-enterprise/GM-KEY-2"
+          <textarea id="bulkLinkInput" rows="5" placeholder="https://geminiactivation.com/subscription/new/...&#10;https://one.google.com/promo/..."
             class="w-full p-3 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"></textarea>
           <button onclick="addBulkLinks()" class="w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center justify-center gap-1.5">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -329,8 +333,14 @@
       <!-- Inventory Table -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-          <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Danh Sách Mã License Trong Hệ Thống</h4>
-          <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-200">Cập nhật tức thì</span>
+          <div class="flex items-center gap-3">
+            <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Danh Sách Mã License Trong Hệ Thống</h4>
+            <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-200">Cập nhật tức thì</span>
+          </div>
+          <button onclick="clearAllInventory()" class="inline-flex items-center gap-1 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-lg shadow-2xs transition cursor-pointer" title="Xóa toàn bộ mã license trong kho">
+            <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <span>Xóa Sạch Kho</span>
+          </button>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
@@ -1145,9 +1155,9 @@
         <div>
           <div class="flex items-center gap-2">
             <h3 class="text-sm font-black text-slate-900">Ghi Chú Quản Trị Đơn Hàng</h3>
-            <span id="noteOrderBadge" class="bg-blue-100 text-blue-800 font-mono text-xs font-bold px-2 py-0.5 rounded border border-blue-200">GM-8942</span>
+            <span id="noteOrderBadge" class="bg-blue-100 text-blue-800 font-mono text-xs font-bold px-2 py-0.5 rounded border border-blue-200">#---</span>
           </div>
-          <p id="noteCustomerName" class="text-xs text-slate-600 mt-0.5 font-bold">Khách hàng: Anh Minh Tuấn</p>
+          <p id="noteCustomerName" class="text-xs text-slate-600 mt-0.5 font-bold">Khách hàng: -</p>
         </div>
         <button onclick="closeEditNoteModal()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-200 transition">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1308,12 +1318,7 @@
     const DEFAULT_VISITS = [];
 
     const DEFAULT_INVENTORY = [
-      { id: 1, link: 'https://geminiactivation.com/subscription/new/v30_nHCb8tEWYRfqJzaFygouXwMRg2LoQUVFxGdCduEh1prZSDdkgTYFdy7i_HcbgFIhz-9bvTe2IpKNOMU_JjKRIuMqr0fUm0yYk0W5VX4FdIkKHcwO61FQxCyCH7PbMCGOX7axMfuCReWgGyhsC9P_Q1ZNZAB1tvRGq3xyaqmYawaOxzxwleAnXdYRZy1Sl9ms3YGUFgYmfDDxVJQw_8eLTjKal7m4YFtZmn7vQFayJrkxpFgzr1ByfhxP4hG6', status: 'Sẵn sàng', assignedTo: '-' },
-      { id: 2, link: 'https://one.google.com/promo/gemini-pro-enterprise/GM-STOCK-A102', status: 'Sẵn sàng', assignedTo: '-' },
-      { id: 3, link: 'https://one.google.com/promo/gemini-pro-enterprise/GM-STOCK-A103', status: 'Sẵn sàng', assignedTo: '-' },
-      { id: 4, link: 'https://one.google.com/promo/gemini-pro-enterprise/GM-STOCK-A104', status: 'Sẵn sàng', assignedTo: '-' },
-      { id: 5, link: 'https://one.google.com/promo/gemini-pro-enterprise/GM-STOCK-A105', status: 'Sẵn sàng', assignedTo: '-' },
-      { id: 6, link: 'https://one.google.com/promo/gemini-pro-enterprise/GM-STOCK-A106', status: 'Sẵn sàng', assignedTo: '-' }
+      { id: 1, link: 'https://geminiactivation.com/subscription/new/v30_nHCb8tEWYRfqJzaFygouXwMRg2LoQUVFxGdCduEh1prZSDdkgTYFdy7i_HcbgFIhz-9bvTe2IpKNOMU_JjKRIuMqr0fUm0yYk0W5VX4FdIkKHcwO61FQxCyCH7PbMCGOX7axMfuCReWgGyhsC9P_Q1ZNZAB1tvRGq3xyaqmYawaOxzxwleAnXdYRZy1Sl9ms3YGUFgYmfDDxVJQw_8eLTjKal7m4YFtZmn7vQFayJrkxpFgzr1ByfhxP4hG6', status: 'Sẵn sàng', assignedTo: '-' }
     ];
 
     // LocalStorage Helper (Lưu trữ và đồng bộ dữ liệu)
@@ -1331,19 +1336,24 @@
     function getInventory() {
       try {
         const data = localStorage.getItem('crm_inventory');
-        if (!data) {
+        if (data === null) {
           localStorage.setItem('crm_inventory', JSON.stringify(DEFAULT_INVENTORY));
           return DEFAULT_INVENTORY;
         }
-        const parsed = JSON.parse(data);
-        if (!Array.isArray(parsed) || parsed.length === 0) {
-          localStorage.setItem('crm_inventory', JSON.stringify(DEFAULT_INVENTORY));
-          return DEFAULT_INVENTORY;
+        let parsed = JSON.parse(data);
+        if (!Array.isArray(parsed)) {
+          localStorage.setItem('crm_inventory', JSON.stringify([]));
+          return [];
+        }
+        // Tự động thanh lọc triệt để các link demo GM-STOCK hoặc demo mẫu còn sót lại trong trình duyệt
+        const cleaned = parsed.filter(item => item && item.link && !item.link.includes('GM-STOCK-') && !item.link.includes('GM-KEY-'));
+        if (cleaned.length !== parsed.length) {
+          localStorage.setItem('crm_inventory', JSON.stringify(cleaned));
+          parsed = cleaned;
         }
         return parsed;
       } catch (e) {
-        localStorage.setItem('crm_inventory', JSON.stringify(DEFAULT_INVENTORY));
-        return DEFAULT_INVENTORY;
+        return [];
       }
     }
 
@@ -1530,11 +1540,31 @@
                 <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>Đổi link mới</span>
               </button>
+              <button onclick="deleteSingleOrder('${ord.orderId}')" class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition border border-transparent hover:border-rose-200 cursor-pointer" title="Xóa đơn hàng này">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
             </div>
           </td>
         `;
         tbody.appendChild(tr);
       });
+    }
+
+    function deleteSingleOrder(orderId) {
+      if (confirm(`Bạn có chắc muốn xóa đơn hàng ${orderId}?`)) {
+        let orders = getOrders().filter(o => o.orderId !== orderId);
+        localStorage.setItem('crm_orders', JSON.stringify(orders));
+        renderOrders();
+        showToast(`Đã xóa đơn hàng ${orderId}!`);
+      }
+    }
+
+    function clearAllOrders() {
+      if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử đơn hàng trong bảng?')) {
+        localStorage.setItem('crm_orders', JSON.stringify([]));
+        renderOrders();
+        showToast('Đã xóa sạch toàn bộ lịch sử đơn hàng!');
+      }
     }
 
     function filterOrders() {
@@ -1677,6 +1707,14 @@
       localStorage.setItem('crm_inventory', JSON.stringify(items));
       renderInventory();
       showToast('Đã xóa license khỏi kho!');
+    }
+
+    function clearAllInventory() {
+      if (confirm('Bạn có chắc chắn muốn xóa TẤT CẢ mã license trong kho? (Kho sẽ trở về trạng thái trống 0 mã)')) {
+        localStorage.setItem('crm_inventory', JSON.stringify([]));
+        renderInventory();
+        showToast('Đã xóa sạch tất cả mã trong kho!');
+      }
     }
 
     // ==========================================
@@ -3180,7 +3218,7 @@
         method: 'Gmail SMTP',
         secret: 'mfam krzt mygf upll',
         isPrimary: true,
-        sentToday: 1,
+        sentToday: 0,
         status: 'Đang gửi chính'
       },
       {
@@ -3619,16 +3657,37 @@
       showToast('Webhook phản hồi: 200 OK (Kết nối Google Sheet thành công!)');
     }
 
-    // Khôi phục dữ liệu mẫu
-    function resetSampleData() {
-      if (confirm('Khôi phục lại toàn bộ dữ liệu mẫu ban đầu (đơn hàng, kho license, nhật ký truy cập)?')) {
-        localStorage.setItem('crm_orders', JSON.stringify(DEFAULT_ORDERS));
-        localStorage.setItem('crm_inventory', JSON.stringify(DEFAULT_INVENTORY));
-        localStorage.setItem('crm_visits', JSON.stringify(DEFAULT_VISITS));
-        localStorage.setItem('crm_gmail_pool', JSON.stringify(DEFAULT_GMAIL_POOL));
+    // Dọn dẹp sạch toàn bộ dữ liệu demo
+    function cleanAllDemoData() {
+      if (confirm('Dọn dẹp triệt để các liên kết GM-STOCK và dữ liệu demo thử nghiệm trong hệ thống?')) {
+        // 1. Dọn kho license: lọc bỏ mọi link có GM-STOCK hoặc GM-KEY
+        let inv = [];
+        try {
+          inv = JSON.parse(localStorage.getItem('crm_inventory') || '[]');
+        } catch(e) {}
+        inv = inv.filter(item => item && item.link && !item.link.includes('GM-STOCK-') && !item.link.includes('GM-KEY-'));
+        localStorage.setItem('crm_inventory', JSON.stringify(inv));
+
+        // 2. Dọn đơn hàng demo nếu có
+        let orders = [];
+        try {
+          orders = JSON.parse(localStorage.getItem('crm_orders') || '[]');
+        } catch(e) {}
+        orders = orders.filter(o => o && o.name && !o.name.includes('Test') && !o.name.includes('Khách Test') && !o.name.includes('Trần Hưng Đạo'));
+        localStorage.setItem('crm_orders', JSON.stringify(orders));
+
+        // 3. Đặt lại sentToday của Gmail pool về 0
+        let pool = getGmailPool();
+        pool.forEach(g => { g.sentToday = 0; });
+        localStorage.setItem('crm_gmail_pool', JSON.stringify(pool));
+
         renderAllData();
-        showToast('Đã khôi phục thành công toàn bộ dữ liệu mẫu!');
+        showToast('✓ Đã dọn sạch 100% các dữ liệu demo!');
       }
+    }
+
+    function resetSampleData() {
+      cleanAllDemoData();
     }
 
     // Render all

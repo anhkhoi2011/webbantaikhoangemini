@@ -1625,9 +1625,9 @@
       } catch(e) {}
 
       // Lọc các mã sẵn sàng và xếp theo thứ tự ID tăng dần (FIFO: Link 1 -> Link 2 -> Link 3...)
-      let availableItems = inventory.filter(i => i.status === 'Sẵn sàng').sort((a,b) => (a.id || 0) - (b.id || 0));
+      let availableItems = inventory.filter(i => i && i.status === 'Sẵn sàng' && !i.link.includes('GM-STOCK-') && !i.link.includes('GM-KEY-')).sort((a,b) => (a.id || 0) - (b.id || 0));
       let availableItem = availableItems[0];
-      let licenseLink = 'https://one.google.com/promo/gemini-pro-enterprise/ACT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      let licenseLink = availableItem ? availableItem.link : 'https://geminiactivation.com/activation/' + custOrderId.replace('#', '');
 
       if (availableItem) {
         licenseLink = availableItem.link;
