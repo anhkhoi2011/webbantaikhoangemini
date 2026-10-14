@@ -43,9 +43,9 @@
           <span>ĐĂNG NHẬP BẢNG ĐIỀU KHIỂN</span>
         </button>
       </form>
-      <div class="text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-200 flex items-center justify-center gap-1.5">
-        <span>🔒 Mật khẩu mặc định:</span>
-        <code class="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Khoi@123</code>
+      <div class="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1.5 pt-1">
+        <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clip-rule="evenodd"/></svg>
+        <span>Khu vực bảo mật nội bộ dành riêng cho Quản trị viên</span>
       </div>
     </div>
   </div>
@@ -74,7 +74,7 @@
             </span>
             <div class="flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-300">
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Online (Port 8080)</span>
+              <span>Hệ Thống Online (Cloud)</span>
             </div>
           </div>
           <p class="text-xs text-slate-500 font-medium">Trung tâm điều hành đơn hàng, kho bản quyền & lưu lượng khách hàng</p>
@@ -708,7 +708,7 @@
                   Sao chép URL bên dưới dán vào mục <b>Webhook</b> trong bảng điều khiển API Pay / Casso để ngân hàng tự động bắn thông báo khi có tiền:
                 </p>
                 <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-300 flex items-center justify-between gap-2 font-mono text-[11px]">
-                  <span id="webhookUrlDisplay" class="text-indigo-700 font-bold truncate">http://localhost:8080/api/webhook</span>
+                  <span id="webhookUrlDisplay" class="text-indigo-700 font-bold truncate">/api/webhook</span>
                   <button onclick="copyData(document.getElementById('webhookUrlDisplay').innerText)" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shrink-0 cursor-pointer">
                     Copy
                   </button>
@@ -805,7 +805,7 @@
                   Bắn thử 1 giao dịch chuyển khoản 90.000đ giả định để kiểm tra xem modal QR bên landing page có tự động chuyển sang trang kích hoạt không:
                 </p>
                 <div class="flex gap-2">
-                  <input type="text" id="simPhoneInput" placeholder="Nhập SĐT khách (vd: 0567960777)" value="0567960777"
+                  <input type="text" id="simPhoneInput" placeholder="Nhập SĐT khách test (vd: 0912345678)" value=""
                     class="flex-1 p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs font-mono">
                   <button onclick="simulateBankPaymentFromUI()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-sm cursor-pointer whitespace-nowrap">
                     Bắn Thử 90k
@@ -1131,7 +1131,7 @@
               Mật khẩu này dùng để bảo vệ trang quản trị khi truy cập online qua link công khai. Khi đăng nhập thành công, hệ thống sẽ tự động gửi cảnh báo về Telegram Bot.
             </p>
             <div class="flex gap-2 max-w-sm">
-              <input type="password" id="newAdminPinInput" placeholder="Nhập mật khẩu mới (vd: Khoi@123)" maxlength="32"
+              <input type="password" id="newAdminPinInput" placeholder="Nhập mật khẩu quản trị mới..." maxlength="32"
                 class="flex-1 p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs">
               <button onclick="changeAdminPinFromUI()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-sm cursor-pointer whitespace-nowrap">
                 Lưu Mật Khẩu Mới
@@ -2278,6 +2278,31 @@
       }
     }
 
+    function copyData(text) {
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast('✓ Đã sao chép: ' + text);
+        }).catch(() => {
+          fallbackCopyTextDirect(text);
+        });
+      } else {
+        fallbackCopyTextDirect(text);
+      }
+    }
+
+    function fallbackCopyTextDirect(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('✓ Đã sao chép: ' + text);
+    }
+
     function fallbackCopyText(text) {
       const ta = document.createElement('textarea');
       ta.value = text;
@@ -2409,7 +2434,13 @@
       const scriptProjectInput = document.getElementById('appsScriptProjectUrlInput');
       const scriptProjectBtn = document.getElementById('btnOpenAppsScriptProject');
       if (scriptProjectInput) scriptProjectInput.value = cfg.appsScriptProjectUrl || 'https://script.google.com/u/0/home/projects/1xnhMbdNvNLmW0PB6BNDq88vyUM53Akf435nkfQ9Wi9JlTX4ogzrDGa_U/edit';
-      if (scriptProjectBtn) scriptProjectBtn.href = cfg.appsScriptProjectUrl || 'https://script.google.com/u/0/home/projects/1xnhMbdNvNLmW0PB6BNDq88vyUM53Akf435nkfQ9Wi9JlTX4ogzrDGa_U/edit';
+      const webhookDisp = document.getElementById('webhookUrlDisplay');
+      if (webhookDisp) {
+        const origin = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.startsWith('file:')) 
+          ? window.location.origin 
+          : 'http://localhost:8080';
+        webhookDisp.innerText = `${origin}/api/webhook`;
+      }
 
       if (badge) {
         if (!cfg.enabled) {
@@ -2518,9 +2549,10 @@
     // Mô phỏng bắn thử thanh toán 90.000đ (Sandbox)
     async function simulateBankPaymentFromUI() {
       const phoneInput = document.getElementById('simPhoneInput');
-      const phone = phoneInput ? phoneInput.value.trim() : '0567960777';
+      const phone = phoneInput ? phoneInput.value.trim() : '';
       if (!phone) {
-        alert('Vui lòng nhập số điện thoại khách để mô phỏng!');
+        alert('Vui lòng nhập số điện thoại khách (ví dụ: 0912345678) để bắn thử thanh toán!');
+        if (phoneInput) phoneInput.focus();
         return;
       }
 
@@ -2782,12 +2814,33 @@
       }
     }
 
+    async function hashAdminSecret(text) {
+      try {
+        const enc = new TextEncoder().encode(text);
+        const hashBuf = await crypto.subtle.digest('SHA-256', enc);
+        return Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+      } catch(e) {
+        return text;
+      }
+    }
+
     async function verifyAdminPin() {
       const input = document.getElementById('adminPinInput');
       const error = document.getElementById('adminPinError');
-      const savedPin = localStorage.getItem('admin_security_pin') || 'Khoi@123';
+      const entered = input ? input.value.trim() : '';
+      if (!entered) return;
 
-      if (input && input.value.trim() === savedPin) {
+      const enteredHash = await hashAdminSecret(entered);
+      const savedHash = localStorage.getItem('admin_security_hash');
+      const legacyPin = localStorage.getItem('admin_security_pin');
+      
+      // Khóa băm SHA-256 bảo mật cao của mã quản trị gốc
+      const DEFAULT_ADMIN_HASH = 'c5bc82fc5c9d4553a39af5ea2f18257e2ba60b2822fdf93725abcd4451c0bada';
+      const expectedHash = savedHash || DEFAULT_ADMIN_HASH;
+
+      const isValid = (enteredHash === expectedHash) || (legacyPin && entered === legacyPin);
+
+      if (isValid) {
         sessionStorage.setItem('admin_authenticated', 'true');
         const pinModal = document.getElementById('adminPinModal');
         const appWrapper = document.getElementById('adminAppWrapper');
@@ -2874,15 +2927,17 @@
       }
     }
 
-    function changeAdminPinFromUI() {
+    async function changeAdminPinFromUI() {
       const pinInput = document.getElementById('newAdminPinInput');
       const pin = pinInput ? pinInput.value.trim() : '';
       if (!pin || pin.length < 4) {
         alert('Mật khẩu Admin phải có ít nhất 4 ký tự!');
         return;
       }
-      localStorage.setItem('admin_security_pin', pin);
-      showToast('✓ Đã đổi mật khẩu Admin thành công! Hãy ghi nhớ mật khẩu mới này.');
+      const newHash = await hashAdminSecret(pin);
+      localStorage.setItem('admin_security_hash', newHash);
+      localStorage.removeItem('admin_security_pin');
+      showToast('✓ Đã đổi mật khẩu Admin thành công! Hệ thống đã mã hóa SHA-256 an toàn.');
       if (pinInput) pinInput.value = '';
     }
 

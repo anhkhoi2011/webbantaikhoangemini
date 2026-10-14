@@ -243,4 +243,39 @@ if (strpos($requestUri, '/api/get-apps-script') !== false) {
     exit();
 }
 
+// 10. API: Nhận Webhook từ APIPay / Casso / SeAPay / Ngân Hàng
+if (strpos($requestUri, '/api/webhook') !== false) {
+    $payload = getPostJson();
+    $items = [];
+    if (isset($payload['data']) && is_array($payload['data'])) {
+        $items = isset($payload['data']['records']) && is_array($payload['data']['records']) ? $payload['data']['records'] : $payload['data'];
+    } elseif (isset($payload['records']) && is_array($payload['records'])) {
+        $items = $payload['records'];
+    } elseif (isset($payload['transactions']) && is_array($payload['transactions'])) {
+        $items = $payload['transactions'];
+    } elseif (!empty($payload)) {
+        $items = isset($payload[0]) ? $payload : [$payload];
+    }
+
+    $currentTxs = readJsonFile('bank_transactions.json', []);
+    foreach ($items as $it) {
+        $amt = isset($it['amount']) ? intval($it['amount']) : 0;
+        $desc = isset($it['description']) ? $it['description'] : ($it['memo'] ?? ($it['content'] ?? ''));
+        if ($amt > 0) {
+            array_unshift($currentTxs, [
+                "id" => isset($it['id']) ? (string)$it['id'] : ("TX_" . rand(100000, 999999)),
+                "amount" => $amt,
+                "description" => $desc,
+                "bank" => isset($it['bank']) ? $it['bank'] : "MBBank",
+                "time" => isset($it['time']) ? $it['time'] : (isset($it['transactionDateTime']) ? $it['transactionDateTime'] : date('Y-m-d H:i:s')),
+                "source" => "Webhook API Pay"
+            ]);
+        }
+    }
+    writeJsonFile('bank_transactions.json', array_slice($currentTxs, 0, 150));
+    echo json_encode(["status" => "success", "message" => "Webhook processed", "count" => count($items)]);
+    exit();
+}
+
 echo json_encode(["status" => "not_found"], 404);
+

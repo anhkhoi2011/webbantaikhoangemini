@@ -319,7 +319,7 @@ while ($listener.IsListening) {
             $body = $reader.ReadToEnd()
             $sim = $body | ConvertFrom-Json
 
-            $phone = if ($sim.phone) { $sim.phone } else { "0567960777" }
+            $phone = if ($sim.phone) { $sim.phone } else { "0901234567" }
             $memo = if ($sim.memo) { $sim.memo } else { "PRO18T $phone" }
             $amount = if ($sim.amount) { [int]$sim.amount } else { 90000 }
 

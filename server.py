@@ -257,6 +257,38 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
 
             return self.send_json({"status": "success", "orderId": order_id})
 
+        # API: Nhận Webhook từ APIPay / Casso / SeAPay / MBBank
+        if path == "/api/webhook":
+            items = []
+            if isinstance(body.get("data"), list):
+                items = body.get("data")
+            elif isinstance(body.get("data", {}).get("records"), list):
+                items = body.get("data", {}).get("records")
+            elif isinstance(body.get("records"), list):
+                items = body.get("records")
+            elif isinstance(body.get("transactions"), list):
+                items = body.get("transactions")
+            elif isinstance(body, list):
+                items = body
+            elif isinstance(body, dict) and body:
+                items = [body]
+
+            current_txs = read_json_file("bank_transactions.json", [])
+            for it in items:
+                amt = int(it.get("amount") or 0)
+                desc = it.get("description") or it.get("memo") or it.get("content") or ""
+                if amt > 0:
+                    current_txs.insert(0, {
+                        "id": str(it.get("id") or f"TX_{int(datetime.now().timestamp()) % 1000000:06d}"),
+                        "amount": amt,
+                        "description": desc,
+                        "bank": it.get("bank") or "MBBank",
+                        "time": it.get("time") or it.get("transactionDateTime") or datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "source": "Webhook API Pay"
+                    })
+            write_json_file("bank_transactions.json", current_txs[:150])
+            return self.send_json({"status": "success", "message": "Webhook processed", "count": len(items)})
+
         # 4. API: Mô phỏng thanh toán (Simulate)
         if path == "/api/simulate-payment":
             phone = body.get("phone", "0901234567")
