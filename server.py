@@ -10,6 +10,7 @@ import os
 import sys
 import json
 import base64
+import asyncio
 import urllib.request
 import urllib.parse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -183,6 +184,15 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             except Exception as e:
                 return self.send_json({"status": "error", "message": str(e)}, 500)
 
+        # 9. API: Kiểm tra trạng thái Userbot Auto Buyer (@shopxoainon_bot)
+        if path == "/api/tele-buyer/status":
+            try:
+                import telegram_buyer
+                is_auth = asyncio.run(telegram_buyer.check_is_authorized())
+                return self.send_json({"status": "success", "is_authorized": is_auth})
+            except Exception as e:
+                return self.send_json({"status": "error", "message": str(e), "is_authorized": False}, 500)
+
         # Mặc định trả về static file
         return super().do_GET()
 
@@ -344,6 +354,36 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             try:
                 import mailer
                 res = mailer.send_activation_email(body)
+                return self.send_json(res)
+            except Exception as e:
+                return self.send_json({"status": "error", "message": str(e)}, 500)
+
+        # 9. API: Yêu cầu gửi mã OTP Telegram Userbot
+        if path == "/api/tele-buyer/request-otp":
+            try:
+                import telegram_buyer
+                phone = body.get("phone", "")
+                res = asyncio.run(telegram_buyer.request_otp(phone))
+                return self.send_json(res)
+            except Exception as e:
+                return self.send_json({"status": "error", "message": str(e)}, 500)
+
+        # 10. API: Xác thực mã OTP & Đăng nhập Telegram Userbot
+        if path == "/api/tele-buyer/submit-otp":
+            try:
+                import telegram_buyer
+                code = body.get("code", "")
+                pwd = body.get("password", None)
+                res = asyncio.run(telegram_buyer.submit_otp(code, pwd))
+                return self.send_json(res)
+            except Exception as e:
+                return self.send_json({"status": "error", "message": str(e)}, 500)
+
+        # 11. API: Mua link tự động từ bot @shopxoainon_bot
+        if path == "/api/tele-buyer/buy":
+            try:
+                import telegram_buyer
+                res = asyncio.run(telegram_buyer.execute_buy_gemini())
                 return self.send_json(res)
             except Exception as e:
                 return self.send_json({"status": "error", "message": str(e)}, 500)

@@ -18,6 +18,11 @@ lh_out.txt
 test_browser_click.py
 debug_mail.ps1
 
+# Telegram Userbot sessions
+*.session
+*.session-journal
+temp_login.json
+
 # OS generated files
 Thumbs.db
 .DS_Store

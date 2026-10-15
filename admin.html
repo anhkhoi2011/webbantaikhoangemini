@@ -345,6 +345,80 @@
         </div>
       </div>
 
+      <!-- TELEGRAM USERBOT AUTO BUYER (@shopxoainon_bot) -->
+      <div class="bg-gradient-to-br from-sky-50 via-white to-blue-50/40 p-5 rounded-2xl border-2 border-sky-300 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-sky-100">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-md shrink-0">
+              🤖
+            </div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="text-sm sm:text-base font-black text-slate-900">Telegram Userbot Tự Động Mua Link (@shopxoainon_bot)</h3>
+                <span id="userbotStatusBadge" class="text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full">Đang kiểm tra kết nối...</span>
+              </div>
+              <p class="text-xs text-slate-600 mt-0.5 font-medium">Tự động gửi /buy vào @shopxoainon_bot ➔ Chọn gói Gemini Pro 18T ➔ Bấm số 1 ➔ Trừ ví 12.800đ ➔ Lấy link cấp liền cho khách.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="checkUserbotStatus(true)" class="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-bold rounded-xl transition shadow-xs cursor-pointer">
+              🔄 Kiểm Tra Lại
+            </button>
+          </div>
+        </div>
+
+        <!-- Khung Đăng Nhập OTP (Khi Chưa Kết Nối) -->
+        <div id="userbotLoginForm" class="p-4 bg-white rounded-xl border border-sky-200 space-y-3 hidden">
+          <div class="flex items-center gap-2 text-xs font-bold text-slate-800">
+            <span>📱 Bước 1: Đăng Nhập Số Điện Thoại Telegram Của Bạn (Nhận mã OTP bảo mật)</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div class="sm:col-span-2">
+              <input type="text" id="userbotPhoneInput" placeholder="Nhập số điện thoại Telegram (vd: 090xxxxxxx hoặc +84...)" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono font-bold">
+            </div>
+            <div>
+              <button onclick="submitUserbotRequestOtp()" id="btnSendOtp" class="w-full py-2 px-3 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer">
+                📩 Gửi Mã OTP Telegram
+              </button>
+            </div>
+          </div>
+          <div id="otpInputRow" class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 hidden">
+            <div>
+              <input type="text" id="userbotCodeInput" placeholder="Nhập mã OTP 5 số..." class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono font-bold text-center">
+            </div>
+            <div>
+              <input type="password" id="userbotPasswordInput" placeholder="Mật khẩu 2FA (nếu có)" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500">
+            </div>
+            <div>
+              <button onclick="submitUserbotConfirmOtp()" id="btnConfirmOtp" class="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer">
+                ✓ Xác Nhận Đăng Nhập
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Khung Điều Khiển Khi Đã Kết Nối Thành Công -->
+        <div id="userbotActivePanel" class="p-4 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-3 hidden">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="text-xs font-bold text-emerald-900">Tài khoản Telegram đã kết nối thành công và sẵn sàng tự động mua!</span>
+            </div>
+            <button onclick="triggerTestBuyUserbot()" id="btnTestBuy" class="px-4 py-2 bg-gradient-to-r from-sky-600 to-blue-700 hover:from-sky-700 hover:to-blue-800 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
+              <span>⚡ Test Mua Thử 1 Link Ngay (@shopxoainon_bot)</span>
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-600">
+            💡 Mỗi lần khách thanh toán mà kho hết link, Userbot sẽ tự chạy mua link từ @shopxoainon_bot với giá 12.800đ (nhớ duy trì số dư ví bot).
+          </p>
+        </div>
+
+        <!-- Khung Nhật Ký Thao Tác Trực Tiếp -->
+        <div id="userbotLogBox" class="p-3 bg-slate-900 text-emerald-400 font-mono text-[11px] rounded-xl overflow-x-auto max-h-36 hidden leading-relaxed">
+          <div id="userbotLogContent">[Hệ thống sẵn sàng lắng nghe...]</div>
+        </div>
+      </div>
+
       <!-- Inventory Table -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
@@ -1357,6 +1431,11 @@
           <p class="text-[11px] text-slate-600 leading-relaxed">
             Vào bot <strong>@shopxoainon_bot</strong> ➔ Mua link gói Gemini Pro 18T ➔ Thanh toán xong bot sẽ trả link kích hoạt ➔ Copy đường link đó và dán vào ô Bước 2 bên dưới:
           </p>
+          <div class="pt-1">
+            <button type="button" id="btnModalAutoBuyTele" onclick="autoBuyFromTelegramModal()" class="w-full py-2.5 px-3 bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 hover:from-sky-700 hover:to-blue-800 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer text-xs">
+              <span>🤖 Bấm Vào Đây Để Bot TỰ ĐỘNG MUA LINK (@shopxoainon_bot)</span>
+            </button>
+          </div>
         </div>
 
         <!-- Ô dán link -->
@@ -1747,7 +1826,7 @@
     async function actionSendLinkViaGmail() {
       const link = (document.getElementById('assignLinkInput').value || '').trim();
       if (!link) {
-        alert('Vui lòng dán link bản quyền vừa mua từ bot trước khi gửi Gmail!');
+        alert('Vui lòng dán hoặc bấm tự mua link trước khi gửi Gmail!');
         return;
       }
       let orders = getOrders();
@@ -1756,25 +1835,366 @@
 
       ord.licenseLink = link;
       ord.status = 'Đã thanh toán (MBBank)';
-      ord.emailStatus = 'Đã gửi Gmail';
       ord.adminNote = 'Đã cấp link và gửi Gmail';
+      
+      showToast('Đang gửi email bản quyền tới ' + ord.email + '...');
+      const ok = await sendCustomerOrderEmail(ord, link);
+      if (ok) {
+        ord.emailStatus = 'Đã gửi Gmail';
+        showToast(`✓ Đã gửi email thành công tới ${ord.email}!`);
+      } else {
+        ord.emailStatus = 'Lỗi gửi Gmail';
+        alert(`⚠️ Gửi Gmail thất bại! Vui lòng kiểm tra lại cấu hình Gmail SMTP hoặc kết nối máy chủ.`);
+      }
+
       localStorage.setItem('crm_orders', JSON.stringify(orders));
       syncOrderToBackend(ord);
       renderOrders();
-
-      showToast('Đang gửi email bản quyền tới ' + ord.email + '...');
-      try {
-        const active = getActiveGmail();
-        active.sentToday = (active.sentToday || 0) + 1;
-        let pool = getGmailPool();
-        const found = pool.find(g => g.id === active.id);
-        if (found) found.sentToday = active.sentToday;
-        saveGmailPool(pool);
-      } catch(e) {}
-      
-      showToast(`Đã gửi email thành công tới ${ord.email}!`);
       closeAssignLinkModal();
     }
+
+    async function autoBuyFromTelegramModal() {
+      const btn = document.getElementById('btnModalAutoBuyTele');
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.innerHTML = `<span class="animate-spin inline-block mr-1">⏳</span> Đang vào bot @shopxoainon_bot mua link... Vui lòng đợi 15-45s`;
+        btn.disabled = true;
+      }
+      showToast('Đang kết nối Userbot tới @shopxoainon_bot để mua link tự động...');
+      try {
+        const res = await fetch('/api/tele-buyer/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+        const data = await res.json();
+        if (data.status === 'success' && data.license_link) {
+          const input = document.getElementById('assignLinkInput');
+          if (input) input.value = data.license_link;
+          showToast('✓ Mua link thành công! Đã tự động điền link vào ô bên dưới.');
+          alert(`🎉 MUA LINK THÀNH CÔNG TỪ BOT @shopxoainon_bot!\n\nLink nhận được:\n${data.license_link}\n\nBạn có thể bấm [Gửi Qua Zalo Cho Khách] hoặc [Gửi Vào Gmail Khách] ngay!`);
+        } else if (data.status === 'insufficient_balance') {
+          alert(`⚠️ VÍ BOT @shopxoainon_bot KHÔNG ĐỦ TIỀN!\n\n${data.message || 'Số dư hiện tại không đủ 12.800đ để thanh toán.'}\n\nVui lòng mở Telegram nạp thêm tiền vào bot @shopxoainon_bot rồi thử lại nhé!`);
+        } else if (data.status === 'out_of_stock_in_bot') {
+          alert('⚠️ Gói Gemini 18T trong bot @shopxoainon_bot hiện đang tạm hết hàng!');
+        } else {
+          alert(`⚠️ Lỗi mua link tự động: ${data.message || 'Vui lòng kiểm tra lại kết nối Telegram Userbot.'}`);
+        }
+      } catch(e) {
+        alert('Lỗi kết nối máy chủ khi gọi bot: ' + e.message);
+      } finally {
+        if (btn) {
+          btn.innerHTML = origText;
+          btn.disabled = false;
+        }
+      }
+    }
+
+    function buildFullCustomerOrderEmailHtml(order, link) {
+      const custName = order.name || 'Quý khách';
+      const orderId = order.orderId || ('#GEM-' + Math.floor(1000 + Math.random() * 9000));
+      const phone = order.phone || 'N/A';
+      const email = order.email || 'N/A';
+      return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Kích Hoạt Google Gemini Pro 18 Tháng</title>
+</head>
+<body style="margin: 0; padding: 20px 10px; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
+  <div style="max-width: 620px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+    <div style="background: linear-gradient(135deg, #1a73e8 0%, #4285f4 50%, #7c3aed 100%); padding: 32px 24px; text-align: center; color: #ffffff;">
+      <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 50px; font-size: 12px; font-weight: 700; margin-bottom: 12px;">
+        ★ XÁC NHẬN KÍCH HOẠT THÀNH CÔNG
+      </div>
+      <h1 style="margin: 0; font-size: 26px; font-weight: 800; line-height: 1.3;">Google Gemini Pro 18 Tháng</h1>
+      <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.95;">Kèm 5TB Dung Lượng Google One & Toàn Bộ Tính Năng AI Cao Cấp</p>
+    </div>
+
+    <div style="padding: 28px 24px;">
+      <div style="font-size: 15px; line-height: 1.6; color: #334155;">
+        Xin chào <strong>${custName}</strong>,<br>
+        Hệ thống gửi tới bạn đường link kích hoạt bản quyền <strong>Google Gemini Pro 18 Tháng (5TB Cloud)</strong> chính thức:
+      </div>
+
+      <div style="margin: 24px 0; background: #f0fdf4; border: 2px solid #22c55e; border-radius: 14px; padding: 22px 18px; text-align: center;">
+        <div style="color: #166534; font-size: 13px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px;">
+          🔑 ĐƯỜNG LINK NHẬN BẢN QUYỀN GEMINI PRO CỦA BẠN
+        </div>
+        <div style="margin: 14px 0;">
+          <a href="${link}" target="_blank" style="display: inline-block; background: #16a34a; color: #ffffff; text-decoration: none; font-weight: 800; font-size: 15px; padding: 14px 28px; border-radius: 10px; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4); text-transform: uppercase;">
+            👉 BẤM VÀO ĐÂY ĐỂ MỞ LINK NHẬN QUYỀN NGAY
+          </a>
+        </div>
+        <div style="margin-top: 14px; text-align: left; background: #ffffff; border: 1px dashed #86efac; border-radius: 8px; padding: 10px 12px;">
+          <span style="font-size: 11px; font-weight: 700; color: #15803d; display: block; margin-bottom: 4px;">Đường link kích hoạt gốc (để sao chép):</span>
+          <a href="${link}" style="font-size: 12px; color: #1d4ed8; word-break: break-all; font-family: monospace; text-decoration: underline;">
+            ${link}
+          </a>
+        </div>
+      </div>
+
+      <div style="margin: 24px 0; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 14px; overflow: hidden;">
+        <div style="background: #f8fafc; padding: 14px 18px; border-bottom: 2px solid #e2e8f0;">
+          <h3 style="margin: 0; font-size: 14px; font-weight: 800; color: #0f172a;">
+            📖 HƯỚNG DẪN KÍCH HOẠT (CHỌN 1 TRONG 2 CÁCH)
+          </h3>
+        </div>
+        <div style="padding: 16px;">
+          <div style="background: #eff6ff; border: 1.5px solid #93c5fd; border-radius: 10px; padding: 12px; margin-bottom: 14px;">
+            <div style="font-size: 13px; font-weight: 800; color: #1e40af; margin-bottom: 4px;">
+              ⚡ CÁCH 1: NÂNG CẤP NHANH (Trình duyệt đang mở Gmail hiện tại)
+            </div>
+            <div style="font-size: 12.5px; color: #334155; line-height: 1.5;">
+              Bấm trực tiếp vào nút màu xanh <strong>"BẤM VÀO ĐÂY ĐỂ MỞ LINK NHẬN QUYỀN NGAY"</strong> ➔ Bấm <strong>"Tham gia / Chấp nhận"</strong> là xong trong 3 giây!
+            </div>
+          </div>
+          <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 12px;">
+            <div style="font-size: 13px; font-weight: 800; color: #0f172a; margin-bottom: 6px;">
+              🎯 CÁCH 2: NÂNG CẤP CHO GMAIL KHÁC
+            </div>
+            <div style="font-size: 12px; color: #475569; line-height: 1.6;">
+              1. Sao chép đường link trong khung màu xanh ở trên.<br>
+              2. Mở tab trình duyệt mới đang đăng nhập tài khoản Gmail cần nâng cấp.<br>
+              3. Dán link vào thanh địa chỉ rồi bấm Enter ➔ Nhấn <strong>"Tham gia" (Join)</strong> để nhận quyền.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12.5px;">
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 8px 0; color: #64748b;">Mã đơn hàng:</td>
+          <td style="padding: 8px 0; font-weight: bold; color: #0f172a; text-align: right;">${orderId}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 8px 0; color: #64748b;">Gmail nhận quyền:</td>
+          <td style="padding: 8px 0; font-weight: bold; color: #0f172a; text-align: right;">${email}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 8px 0; color: #64748b;">SĐT (Zalo):</td>
+          <td style="padding: 8px 0; font-weight: bold; color: #0f172a; text-align: right;">${phone}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 8px 0; color: #64748b;">Gói dịch vụ:</td>
+          <td style="padding: 8px 0; font-weight: bold; color: #0f172a; text-align: right;">Google Gemini Pro 18 Tháng (5TB Cloud)</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 8px 0; color: #64748b;">Bảo hành:</td>
+          <td style="padding: 8px 0; font-weight: bold; color: #16a34a; text-align: right;">30 Ngày (Cam kết 1 đổi 1)</td>
+        </tr>
+      </table>
+
+      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px 14px; font-size: 12.5px; color: #1e40af;">
+        <strong>📞 Hỗ trợ kỹ thuật 24/7:</strong> Zalo hotline: <a href="https://zalo.me/0567960777" target="_blank" style="font-weight: 800; color: #1d4ed8; text-decoration: underline;">0567.960.777</a>
+      </div>
+    </div>
+
+    <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 14px 20px; text-align: center; font-size: 11px; color: #94a3b8;">
+      © 2026 Google Gemini Pro Vietnam • Hotline/Zalo: 0567.960.777
+    </div>
+  </div>
+</body>
+</html>`;
+    }
+
+    async function sendCustomerOrderEmail(order, link) {
+      if (!order || !order.email) return false;
+      const active = getActiveGmail();
+      const senderEmail = active.email || 'nguyenhanocb1@gmail.com';
+      const senderName = active.name || 'Google Gemini Pro Support VN';
+      const senderSecret = (active.secret || 'mfam krzt mygf upll').trim();
+
+      const htmlBody = buildFullCustomerOrderEmailHtml(order, link);
+      try {
+        const res = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            senderEmail: senderEmail,
+            senderName: senderName,
+            senderPassword: senderSecret,
+            recipient: order.email,
+            subject: `[Google Gemini Pro] Link kích hoạt bản quyền 18 Tháng (Đơn #${order.orderId})`,
+            htmlBody: htmlBody
+          })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          active.sentToday = (active.sentToday || 0) + 1;
+          let pool = getGmailPool();
+          const found = pool.find(g => g.id === active.id);
+          if (found) found.sentToday = active.sentToday;
+          saveGmailPool(pool);
+          renderGmailPool();
+          return true;
+        } else {
+          console.error('Email send failed:', data);
+          return false;
+        }
+      } catch(err) {
+        console.error('Email dispatch error:', err);
+        return false;
+      }
+    }
+
+    // ==========================================
+    // QUẢN LÝ TELEGRAM USERBOT TỰ ĐỘNG MUA LINK
+    // ==========================================
+    async function checkUserbotStatus(showToastMsg = false) {
+      const badge = document.getElementById('userbotStatusBadge');
+      const loginForm = document.getElementById('userbotLoginForm');
+      const activePanel = document.getElementById('userbotActivePanel');
+      try {
+        const res = await fetch('/api/tele-buyer/status');
+        const data = await res.json();
+        if (data.is_authorized) {
+          if (badge) {
+            badge.innerText = '🟢 Đã Kết Nối Userbot (Sẵn Sàng Mua)';
+            badge.className = 'text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-full';
+          }
+          if (loginForm) loginForm.classList.add('hidden');
+          if (activePanel) activePanel.classList.remove('hidden');
+          if (showToastMsg) showToast('✓ Tài khoản Telegram Userbot đang hoạt động bình thường!');
+        } else {
+          if (badge) {
+            badge.innerText = '🔴 Chưa Đăng Nhập Telegram';
+            badge.className = 'text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full';
+          }
+          if (loginForm) loginForm.classList.remove('hidden');
+          if (activePanel) activePanel.classList.add('hidden');
+          if (showToastMsg) showToast('Chưa đăng nhập tài khoản Telegram. Vui lòng nhập số điện thoại.');
+        }
+      } catch(e) {
+        if (badge) badge.innerText = '⚠️ Máy chủ chưa khởi động';
+      }
+    }
+
+    async function submitUserbotRequestOtp() {
+      const phoneInput = document.getElementById('userbotPhoneInput');
+      const phone = phoneInput ? phoneInput.value.trim() : '';
+      if (!phone) {
+        alert('Vui lòng nhập số điện thoại Telegram của bạn (vd: 090xxxxxxx hoặc +84...)');
+        return;
+      }
+      const btn = document.getElementById('btnSendOtp');
+      if (btn) {
+        btn.innerText = '⏳ Đang gửi...';
+        btn.disabled = true;
+      }
+      logUserbotAction(`[*] Đang gửi yêu cầu mã xác nhận tới số: ${phone}...`);
+      try {
+        const res = await fetch('/api/tele-buyer/request-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: phone })
+        });
+        const data = await res.json();
+        if (data.status === 'code_sent') {
+          showToast(`✓ Đã gửi mã OTP tới app Telegram của bạn!`);
+          alert(`✓ THÀNH CÔNG!\n\nTelegram đã gửi mã xác nhận OTP vào ứng dụng Telegram trên điện thoại/máy tính của bạn.\n\nVui lòng mở Telegram xem tin nhắn từ 'Telegram Notifications', nhập mã 5 số vào ô bên dưới và bấm 'Xác Nhận Đăng Nhập'!`);
+          const row = document.getElementById('otpInputRow');
+          if (row) row.classList.remove('hidden');
+          logUserbotAction(`[OK] Mã OTP đã được gửi. Vui lòng kiểm tra app Telegram.`);
+        } else if (data.status === 'already_authorized') {
+          alert('Tài khoản này đã đăng nhập từ trước rồi!');
+          checkUserbotStatus();
+        } else {
+          alert('Lỗi gửi OTP: ' + (data.message || 'Không xác định'));
+        }
+      } catch(e) {
+        alert('Lỗi kết nối máy chủ: ' + e.message);
+      } finally {
+        if (btn) {
+          btn.innerText = '📩 Gửi Lại Mã OTP';
+          btn.disabled = false;
+        }
+      }
+    }
+
+    async function submitUserbotConfirmOtp() {
+      const codeInput = document.getElementById('userbotCodeInput');
+      const pwdInput = document.getElementById('userbotPasswordInput');
+      const code = codeInput ? codeInput.value.trim() : '';
+      const pwd = pwdInput ? pwdInput.value.trim() : '';
+      if (!code) {
+        alert('Vui lòng nhập mã OTP nhận được từ Telegram!');
+        return;
+      }
+      const btn = document.getElementById('btnConfirmOtp');
+      if (btn) {
+        btn.innerText = '⏳ Đang xác thực...';
+        btn.disabled = true;
+      }
+      logUserbotAction(`[*] Đang xác thực mã OTP: ${code}...`);
+      try {
+        const res = await fetch('/api/tele-buyer/submit-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: code, password: pwd || null })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert(`🎉 ĐĂNG NHẬP THÀNH CÔNG!\n\nChào mừng: ${data.user || 'Bạn'}\n\nTừ bây giờ hệ thống có thể tự động vào bot @shopxoainon_bot mua link 24/7!`);
+          logUserbotAction(`[SUCCESS] Đăng nhập thành công: ${data.user || ''}`);
+          checkUserbotStatus();
+        } else if (data.status === 'need_password') {
+          alert('Tài khoản của bạn có bật bảo mật 2 lớp (2FA). Vui lòng nhập mật khẩu 2FA vào ô mật khẩu rồi bấm lại nút này nhé!');
+        } else {
+          alert(`Lỗi xác thực: ${data.message || 'Mã OTP không đúng hoặc đã hết hạn.'}`);
+        }
+      } catch(e) {
+        alert('Lỗi kết nối máy chủ: ' + e.message);
+      } finally {
+        if (btn) {
+          btn.innerText = '✓ Xác Nhận Đăng Nhập';
+          btn.disabled = false;
+        }
+      }
+    }
+
+    async function triggerTestBuyUserbot() {
+      const btn = document.getElementById('btnTestBuy');
+      if (btn) {
+        btn.innerHTML = `<span class="animate-spin inline-block mr-1">⏳</span> Đang vào bot @shopxoainon_bot mua thử...`;
+        btn.disabled = true;
+      }
+      logUserbotAction(`[START] Bắt đầu tiến trình test mua qua @shopxoainon_bot...`);
+      logUserbotAction(`[1] Gửi /buy vào @shopxoainon_bot...`);
+      try {
+        const res = await fetch('/api/tele-buyer/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+        const data = await res.json();
+        if (data.status === 'success' && data.license_link) {
+          logUserbotAction(`[SUCCESS] Đã bóc tách thành công link Google Service:`);
+          logUserbotAction(`👉 ${data.license_link}`);
+          alert(`🎉 TEST MUA THÀNH CÔNG RỰC RỠ!\n\nĐường link bóc tách được:\n${data.license_link}\n\nĐã sẵn sàng hoạt động tự động khi khách thanh toán!`);
+        } else if (data.status === 'insufficient_balance') {
+          logUserbotAction(`[WARNING] Số dư ví trong bot @shopxoainon_bot không đủ 12.800đ!`);
+          alert(`⚠️ VÍ BOT HẾT TIỀN!\n\nSố dư trong bot @shopxoainon_bot không đủ 12.800đ để thanh toán.\nVui lòng nạp thêm tiền vào bot nhé!`);
+        } else {
+          logUserbotAction(`[ERROR] ${data.message || 'Không thành công'}`);
+          alert(`Lỗi: ${data.message}`);
+        }
+      } catch(e) {
+        logUserbotAction(`[EXCEPTION] ${e.message}`);
+        alert('Lỗi kết nối: ' + e.message);
+      } finally {
+        if (btn) {
+          btn.innerHTML = `<span>⚡ Test Mua Thử 1 Link Ngay (@shopxoainon_bot)</span>`;
+          btn.disabled = false;
+        }
+      }
+    }
+
+    function logUserbotAction(msg) {
+      const box = document.getElementById('userbotLogBox');
+      const content = document.getElementById('userbotLogContent');
+      if (box) box.classList.remove('hidden');
+      if (content) {
+        const time = new Date().toLocaleTimeString('vi-VN');
+        content.innerHTML += `<br>[${time}] ${msg}`;
+        box.scrollTop = box.scrollHeight;
+      }
+    }
+
+    // Tự động kiểm tra trạng thái Userbot khi vào trang
+    setTimeout(() => { checkUserbotStatus(); }, 1500);
 
     function actionCopyDeliveryMessage() {
       const link = (document.getElementById('assignLinkInput').value || '').trim();
@@ -1838,25 +2258,28 @@
     }
 
     // 1. Gửi lại mail với link hiện tại (không tốn kho)
-    function resendExistingEmail(orderId) {
+    async function resendExistingEmail(orderId) {
       const orders = getOrders();
       const ord = orders.find(o => o.orderId === orderId);
       if (!ord) return;
-      const active = getActiveGmail();
-      active.sentToday = (active.sentToday || 0) + 1;
-      let pool = getGmailPool();
-      const found = pool.find(g => g.id === active.id);
-      if (found) found.sentToday = active.sentToday;
-      saveGmailPool(pool);
-
-      ord.emailStatus = `Đã gửi qua ${active.email}`;
-      localStorage.setItem('crm_orders', JSON.stringify(orders));
-      renderOrders();
-      showToast(`Đang dùng [${active.email}] gửi lại link bản quyền tới ${ord.email}!`);
+      if (!ord.licenseLink) {
+        alert('Đơn này chưa có link bản quyền! Vui lòng cấp link trước khi gửi mail.');
+        return;
+      }
+      showToast(`Đang gửi lại link bản quyền tới ${ord.email}...`);
+      const ok = await sendCustomerOrderEmail(ord, ord.licenseLink);
+      if (ok) {
+        ord.emailStatus = `Đã gửi lại Gmail`;
+        localStorage.setItem('crm_orders', JSON.stringify(orders));
+        renderOrders();
+        showToast(`✓ Đã gửi lại email thành công tới ${ord.email}!`);
+      } else {
+        alert(`Lỗi khi gửi email tới ${ord.email}. Vui lòng kiểm tra lại cấu hình Gmail SMTP.`);
+      }
     }
 
     // 2. Cấp đổi link mới toanh từ kho
-    function reissueNewLicense(orderId) {
+    async function reissueNewLicense(orderId) {
       const orders = getOrders();
       const ord = orders.find(o => o.orderId === orderId);
       if (!ord) return;
@@ -1874,19 +2297,16 @@
         availableItem.status = 'Đã cấp';
         availableItem.assignedTo = `${ord.name} (${orderId})`;
       } else {
-        newLink = 'https://one.google.com/promo/gemini-pro-enterprise/REISSUE-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        alert('Kho hiện tại đã hết mã sẵn sàng! Vui lòng nạp thêm mã hoặc mua qua bot @shopxoainon_bot.');
+        return;
       }
 
-      const active = getActiveGmail();
-      active.sentToday = (active.sentToday || 0) + 1;
-      let pool = getGmailPool();
-      const found = pool.find(g => g.id === active.id);
-      if (found) found.sentToday = active.sentToday;
-      saveGmailPool(pool);
-
       ord.licenseLink = newLink;
-      ord.emailStatus = `Cấp mới qua ${active.email}`;
       ord.time = new Date().toLocaleString('vi-VN');
+
+      showToast(`Đang cấp đổi mã mới và gửi email tới ${ord.email}...`);
+      const ok = await sendCustomerOrderEmail(ord, newLink);
+      ord.emailStatus = ok ? `Cấp mới qua Gmail` : `Lỗi gửi Gmail`;
 
       localStorage.setItem('crm_orders', JSON.stringify(orders));
       localStorage.setItem('crm_inventory', JSON.stringify(inventory));
@@ -1899,7 +2319,7 @@
 
       renderOrders();
       renderInventory();
-      showToast(`Đã bốc mã mới và dùng [${active.email}] gửi tới ${ord.email}!`);
+      showToast(ok ? `✓ Đã bốc mã mới và gửi thành công tới ${ord.email}!` : `⚠️ Đã đổi link nhưng lỗi gửi email tới ${ord.email}.`);
     }
 
     // Render Inventory (Sắp xếp theo thứ tự tăng dần chuẩn FIFO)
