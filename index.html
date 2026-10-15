@@ -13,6 +13,14 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   
   <style>
+    html, body {
+      overflow-x: hidden;
+      max-width: 100vw;
+      box-sizing: border-box;
+    }
+    *, *:before, *:after {
+      box-sizing: inherit;
+    }
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
     
@@ -48,57 +56,57 @@
 <body class="bg-[#f8f9fa] text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
 
   <!-- 1. THANH FLASH SALE ĐẦU TRANG -->
-  <div class="flash-top-bar text-white py-2.5 px-3 text-center text-xs sm:text-sm font-black sticky top-0 z-40 flex items-center justify-center gap-2 border-b border-white/20 tracking-wide">
+  <div class="flash-top-bar text-white py-2 px-2.5 text-center text-[11px] sm:text-xs md:text-sm font-black sticky top-0 z-40 flex items-center justify-center gap-1.5 sm:gap-2 border-b border-white/20 tracking-wide">
     <span class="inline-block animate-ping text-yellow-300">⚡</span>
-    <span>ƯU ĐÃI ĐẶC BIỆT: Còn đúng <span id="fomoSlots" class="bg-yellow-300 text-red-950 px-2 py-0.5 rounded-md font-black text-xs sm:text-sm shadow-sm">12 suất</span> trợ giá 90.000đ trọn gói 18 tháng!</span>
+    <span>ƯU ĐÃI: Còn đúng <span id="fomoSlots" class="bg-yellow-300 text-red-950 px-1.5 py-0.5 rounded font-black shadow-sm">12 suất</span> trợ giá 90.000đ!</span>
     <span class="hidden sm:inline opacity-80">| Tự động hết hạn sau:</span>
-    <span id="topTimer" class="font-mono bg-black/50 px-2 py-0.5 rounded text-yellow-300 font-extrabold tracking-wider border border-yellow-400/30">14:20</span>
+    <span id="topTimer" class="font-mono bg-black/50 px-1.5 py-0.5 rounded text-yellow-300 font-extrabold tracking-wider border border-yellow-400/30">14:20</span>
   </div>
 
   <!-- 2. HEADER TRANG BÁN HÀNG CHUYÊN NGHIỆP -->
-  <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 py-3.5 px-4 sm:px-8 sticky top-10 z-30 shadow-sm">
-    <div class="max-w-6xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-purple-600 to-rose-500 p-0.5 shadow-md flex items-center justify-center text-white">
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+  <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 py-2.5 sm:py-3.5 px-3 sm:px-8 sticky top-7 sm:top-9 z-30 shadow-sm">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-purple-600 to-rose-500 p-0.5 shadow-md flex items-center justify-center text-white shrink-0">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none">
             <path d="M12 2C12 7.523 7.523 12 2 12C7.523 12 12 16.477 12 22C12 16.477 16.477 12 22 12C16.477 12 12 7.523 12 2Z" fill="white"/>
           </svg>
         </div>
         <div>
-          <div class="flex items-center gap-2">
-            <span class="font-black text-lg sm:text-xl text-slate-900 tracking-tight">Google Gemini Pro</span>
-            <span class="text-[11px] bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded-full border border-blue-200">
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <span class="font-black text-sm sm:text-xl text-slate-900 tracking-tight">Google Gemini Pro</span>
+            <span class="hidden md:inline-block text-[11px] bg-blue-100 text-blue-800 font-bold px-2.5 py-0.5 rounded-full border border-blue-200">
               Gói Bản Quyền 18 Tháng
             </span>
           </div>
-          <p class="text-xs text-slate-500 hidden sm:block">Chương trình Trợ giá Bản quyền Google AI • Kích hoạt chính chủ 100%</p>
+          <p class="text-[11px] text-slate-500 hidden sm:block">Chương trình Trợ giá Bản quyền Google AI • Kích hoạt chính chủ 100%</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <a href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer" class="text-xs sm:text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-300 px-3.5 py-2 rounded-xl flex items-center gap-2 transition shadow-sm cursor-pointer group">
-          <span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
-          <span>Zalo hỗ trợ: <strong class="text-blue-900 group-hover:underline">0567.960.777</strong></span>
-          <span class="text-[10px] bg-blue-600 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs">Nhắn Zalo</span>
+      <div class="flex items-center gap-2 shrink-0">
+        <a href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer" class="text-xs sm:text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-300 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl flex items-center gap-1.5 sm:gap-2 transition shadow-sm cursor-pointer group shrink-0">
+          <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-blue-500 animate-pulse shrink-0"></span>
+          <span class="hidden sm:inline">Zalo hỗ trợ: <strong class="text-blue-900 group-hover:underline">0567.960.777</strong></span>
+          <span class="text-[10px] sm:text-xs bg-blue-600 text-white font-extrabold px-2 py-0.5 rounded shadow-2xs whitespace-nowrap">💬 Nhắn Zalo</span>
         </a>
       </div>
     </div>
   </header>
 
   <!-- 3. MAIN HERO & FORM ĐẶT MUA -->
-  <main class="hero-glow-bg max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 w-full flex-1 space-y-12">
+  <main class="hero-glow-bg max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-12 w-full flex-1 space-y-8 sm:space-y-12">
     
     <!-- Hero Title -->
-    <div class="text-center max-w-3xl mx-auto space-y-3">
-      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold shadow-sm">
-        <span>🚀 Kích Hoạt Tự Động Trong 30 Giây</span>
-        <span>•</span>
+    <div class="text-center max-w-3xl mx-auto space-y-2.5 sm:space-y-3 px-1 sm:px-0">
+      <div class="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-[11px] sm:text-xs font-bold shadow-sm max-w-full">
+        <span>🚀 Kích Hoạt Tự Động Trong 30s</span>
+        <span class="hidden xs:inline">•</span>
         <span>🛡️ Bảo Hành 1 Đổi 1 Trong 30 Ngày</span>
       </div>
-      <h1 class="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+      <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
         Nâng Cấp <span class="gemini-gradient-text">Google Gemini Pro 18 Tháng</span> Chính Chủ
       </h1>
-      <p class="text-sm sm:text-base text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
+      <p class="text-xs sm:text-sm md:text-base text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
         Trải nghiệm trọn bộ đặc quyền tối tân: <strong>Gemini 4 Argon</strong>, <strong>Bộ nhớ 5 TB²</strong>, <strong>Google Antigravity</strong>, <strong>Google Flow</strong>, <strong>Colab</strong> và <strong>YouTube Premium Lite</strong>.
       </p>
     </div>
@@ -107,53 +115,53 @@
     <div class="bg-white rounded-3xl shadow-xl border-2 border-slate-200 overflow-hidden grid lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
       
       <!-- CỘT TRÁI: GIÁ GỐC TO & FOMO MẠNH -->
-      <div class="lg:col-span-7 p-6 sm:p-8 flex flex-col justify-between space-y-6 bg-white">
+      <div class="lg:col-span-7 p-4 sm:p-8 flex flex-col justify-between space-y-5 sm:space-y-6 bg-white">
         <div>
-          <div class="flex items-center justify-between mb-3">
-            <span class="bg-red-600 text-white text-xs font-black uppercase px-3 py-1 rounded-lg shadow-sm">
+          <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+            <span class="bg-red-600 text-white text-[11px] sm:text-xs font-black uppercase px-2.5 py-1 rounded-lg shadow-sm">
               Gói Trọn Gói 1.5 Năm (18 Tháng)
             </span>
-            <span class="text-xs text-red-600 font-bold flex items-center gap-1.5">
-              ⏳ Ưu đãi còn: <span id="cardTimer" class="font-mono bg-red-100 border border-red-300 text-red-700 px-2 py-0.5 rounded font-black">14:20</span>
+            <span class="text-[11px] sm:text-xs text-red-600 font-bold flex items-center gap-1.5">
+              ⏳ Ưu đãi còn: <span id="cardTimer" class="font-mono bg-red-100 border border-red-300 text-red-700 px-1.5 py-0.5 rounded font-black">14:20</span>
             </span>
           </div>
 
           <!-- BẢNG GIÁ NIÊM YẾT VÀ GIÁ KHUYẾN MÃI -->
-          <div class="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-blue-50/70 via-slate-50 to-emerald-50/70 border-2 border-blue-200 shadow-sm space-y-4">
-            <div class="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-200">
-              <div class="flex items-center gap-2">
-                <span class="text-xs sm:text-sm font-bold text-slate-500 uppercase">Giá niêm yết chưa giảm:</span>
-                <span class="text-2xl sm:text-3xl font-black text-slate-400 line-through decoration-red-600 decoration-4">
+          <div class="p-3.5 sm:p-6 rounded-2xl bg-gradient-to-br from-blue-50/70 via-slate-50 to-emerald-50/70 border-2 border-blue-200 shadow-sm space-y-3 sm:space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="text-[11px] sm:text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Giá niêm yết:</span>
+                <span class="text-xl sm:text-3xl font-black text-slate-400 line-through decoration-red-600 decoration-2 sm:decoration-4 whitespace-nowrap">
                   4.500.000 VNĐ
                 </span>
               </div>
-              <div class="badge-fomo-pulse bg-red-600 text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-full shadow-md">
+              <div class="badge-fomo-pulse bg-red-600 text-white text-[11px] sm:text-xs font-black px-3 py-1 rounded-full shadow-md w-fit">
                 TIẾT KIỆM 98% (-4.410.000đ)
               </div>
             </div>
 
             <div class="pt-1 flex items-baseline justify-between flex-wrap gap-2">
               <div>
-                <span class="text-xs font-bold text-emerald-800 uppercase block">Thanh toán trọn gói 18 tháng hôm nay:</span>
-                <div class="flex items-baseline gap-2 mt-1">
-                  <span class="text-4xl sm:text-5xl font-black text-emerald-600 tracking-tight">90.000đ</span>
-                  <span class="text-sm font-bold text-slate-700">/ 18 tháng</span>
+                <span class="text-[10px] sm:text-xs font-bold text-emerald-800 uppercase block">Thanh toán trọn gói 18 tháng hôm nay:</span>
+                <div class="flex items-baseline gap-1.5 sm:gap-2 mt-0.5">
+                  <span class="text-3xl sm:text-5xl font-black text-emerald-600 tracking-tight">90.000đ</span>
+                  <span class="text-xs sm:text-sm font-bold text-slate-700">/ 18 tháng</span>
                 </div>
               </div>
               <div class="text-right">
-                <span class="text-xs font-extrabold text-blue-700 bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-lg inline-block">
+                <span class="text-[11px] sm:text-xs font-extrabold text-blue-700 bg-blue-100 border border-blue-200 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg inline-block whitespace-nowrap">
                   Chỉ ~5.000đ / tháng
                 </span>
-                <div class="text-[11px] text-slate-500 mt-1">Rẻ hơn 1 ly trà đá mỗi tháng!</div>
+                <div class="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">Rẻ hơn 1 ly trà đá!</div>
               </div>
             </div>
 
-            <div class="pt-3 border-t border-slate-200">
-              <div class="flex justify-between text-xs font-bold mb-1.5">
+            <div class="pt-2 sm:pt-3 border-t border-slate-200">
+              <div class="flex justify-between items-center text-[11px] sm:text-xs font-bold mb-1.5 flex-wrap gap-1">
                 <span class="text-slate-700">Đã kích hoạt: <strong id="heroActivatedCount" class="text-slate-900">1.488/1.500 tài khoản</strong></span>
-                <span id="heroRemainingBadge" class="text-red-600 font-black animate-pulse">🔥 Chỉ còn <span id="heroRemainingSlots">12 suất</span> cuối cùng!</span>
+                <span id="heroRemainingBadge" class="text-red-600 font-black animate-pulse">🔥 Còn <span id="heroRemainingSlots">12 suất</span>!</span>
               </div>
-              <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden p-0.5 border border-slate-300">
+              <div class="w-full bg-slate-200 rounded-full h-2.5 sm:h-3 overflow-hidden p-0.5 border border-slate-300">
                 <div id="heroProgressBar" class="bg-gradient-to-r from-emerald-500 via-blue-500 to-red-500 h-full rounded-full transition-all duration-1000" style="width: 98.4%"></div>
               </div>
             </div>
@@ -161,31 +169,31 @@
         </div>
 
         <!-- ĐẶC QUYỀN GÓI PRO TÓM TẮT -->
-        <div class="space-y-2.5 text-xs text-slate-700 pt-2">
+        <div class="space-y-2 text-xs text-slate-700 pt-1">
           <div class="font-bold text-slate-900 uppercase text-[11px] tracking-wider">Trọn bộ đặc quyền cao cấp kích hoạt:</div>
-          <div class="grid sm:grid-cols-2 gap-2 font-medium">
-            <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
-              <span class="text-emerald-600 font-bold text-sm">✓</span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 font-medium">
+            <div class="flex items-start gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-emerald-600 font-bold text-sm shrink-0 mt-0.5">✓</span>
               <span><strong>Gemini 4 Argon & Gemini¹:</strong> Hạn mức gấp 4x, Deep Research & tạo video</span>
             </div>
-            <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
-              <span class="text-emerald-600 font-bold text-sm">✓</span>
+            <div class="flex items-start gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-emerald-600 font-bold text-sm shrink-0 mt-0.5">✓</span>
               <span><strong>Bộ nhớ 5 TB²:</strong> Tổng bộ nhớ Photos, Drive & Gmail</span>
             </div>
-            <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
-              <span class="text-emerald-600 font-bold text-sm">✓</span>
+            <div class="flex items-start gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-emerald-600 font-bold text-sm shrink-0 mt-0.5">✓</span>
               <span><strong>Google Flow & Flow Music:</strong> Studio video điện ảnh & nhạc AI</span>
             </div>
-            <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
-              <span class="text-emerald-600 font-bold text-sm">✓</span>
+            <div class="flex items-start gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-emerald-600 font-bold text-sm shrink-0 mt-0.5">✓</span>
               <span><strong>Google Antigravity & AI Studio:</strong> Agent AI & Gemini 3.1 Pro</span>
             </div>
-            <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
-              <span class="text-emerald-600 font-bold text-sm">✓</span>
+            <div class="flex items-start gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-emerald-600 font-bold text-sm shrink-0 mt-0.5">✓</span>
               <span><strong>Gemini trong Workspace:</strong> Nhúng Gmail, Docs, Sheets, Vids</span>
             </div>
-            <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
-              <span class="text-emerald-600 font-bold text-sm">✓</span>
+            <div class="flex items-start gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
+              <span class="text-emerald-600 font-bold text-sm shrink-0 mt-0.5">✓</span>
               <span><strong>Colab & YouTube Premium Lite:</strong> 200 compute units & không quảng cáo</span>
             </div>
           </div>
@@ -193,54 +201,54 @@
       </div>
 
       <!-- CỘT PHẢI: FORM ĐĂNG KÝ MUA -->
-      <div class="lg:col-span-5 p-6 sm:p-8 bg-slate-50 flex flex-col justify-center">
+      <div class="lg:col-span-5 p-4 sm:p-8 bg-slate-50 flex flex-col justify-center">
         <div class="space-y-4">
           <div class="border-b border-slate-200 pb-3">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-blue-600 uppercase">Bước 1: Điền Thông Tin Nhận Quyền</span>
-              <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="text-[11px] sm:text-xs font-bold text-blue-600 uppercase">Bước 1: Điền Thông Tin Nhận Quyền</span>
+              <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
                 <span><span id="liveViewerCount" class="font-extrabold text-emerald-900 font-mono">38</span> người đang xem</span>
               </span>
             </div>
-            <h3 class="text-lg font-black text-slate-900 mt-1">Đăng Ký Bản Quyền Pro 18T</h3>
+            <h3 class="text-base sm:text-lg font-black text-slate-900 mt-1">Đăng Ký Bản Quyền Pro 18T</h3>
             <p class="text-xs text-slate-500">Mã QR VietQR sẽ tự động hiện ra để bạn quét thanh toán trong 10 giây.</p>
           </div>
 
-          <form id="orderForm" autocomplete="off" onsubmit="event.preventDefault(); handleFormSubmit(event); return false;" class="space-y-4">
+          <form id="orderForm" autocomplete="off" onsubmit="event.preventDefault(); handleFormSubmit(event); return false;" class="space-y-3.5 sm:space-y-4">
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">1. Họ và tên của bạn <span class="text-red-500">*</span></label>
               <input type="text" id="custName" value="" autocomplete="off" required placeholder="Ví dụ: Nguyễn Văn An"
-                class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium shadow-sm transition">
+                class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 sm:py-3 text-base sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium shadow-sm transition">
             </div>
 
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">2. Số điện thoại (Để bảo hành 30 ngày) <span class="text-red-500">*</span></label>
               <input type="tel" id="custPhone" value="" autocomplete="off" required placeholder="Ví dụ: 0912345678"
-                class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium shadow-sm transition">
+                class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 sm:py-3 text-base sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium shadow-sm transition">
               <span class="text-[11px] text-slate-500 mt-1 block">Số điện thoại chính chủ để kích hoạt và tra cứu bảo hành (1 đổi 1).</span>
             </div>
 
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">3. Địa chỉ Gmail (Để nhận link kích hoạt đơn hàng) <span class="text-red-500">*</span></label>
               <input type="email" id="custEmail" value="" autocomplete="off" required placeholder="Ví dụ: yourname@gmail.com"
-                class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium shadow-sm transition">
+                class="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 sm:py-3 text-base sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 font-medium shadow-sm transition">
               <span class="text-[11px] text-slate-500 mt-1 block">Hệ thống sẽ gửi link bản quyền Gemini Pro và hướng dẫn kích hoạt vào Gmail này.</span>
             </div>
 
-            <div class="pt-2">
-              <button type="button" id="btnSubmitOrder" onclick="handleFormSubmit(event)" class="cta-glow-pulse w-full py-4 px-4 rounded-xl font-black text-sm sm:text-base text-white bg-gradient-to-r from-red-600 via-rose-600 to-orange-600 hover:from-red-700 transition shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+            <div class="pt-1 sm:pt-2">
+              <button type="button" id="btnSubmitOrder" onclick="handleFormSubmit(event)" class="cta-glow-pulse w-full py-3.5 sm:py-4 px-3 sm:px-4 rounded-xl font-black text-xs sm:text-base text-white bg-gradient-to-r from-red-600 via-rose-600 to-orange-600 hover:from-red-700 transition shadow-lg flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer">
                 <span>MỞ MÃ QR THANH TOÁN (90.000đ)</span>
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
               </button>
             </div>
 
             <!-- Cam kết bảo mật cho khách hàng -->
-            <div class="p-3 bg-white rounded-xl border border-slate-200 text-center space-y-1">
+            <div class="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200 text-center space-y-1">
               <div class="text-xs font-bold text-slate-800 flex items-center justify-center gap-1.5">
                 <span>🔒 Bảo Mật & Kích Hoạt Chính Chủ 100%</span>
               </div>
-              <p class="text-[11px] text-slate-500">
+              <p class="text-[11px] text-slate-500 leading-normal">
                 Nâng cấp trực tiếp trên tài khoản Gmail cá nhân. Tuyệt đối không yêu cầu mật khẩu.
               </p>
             </div>
@@ -557,37 +565,37 @@
     </section>
 
     <!-- 5. BẢNG SO SÁNH GIÁ TRỊ KINH TẾ (ROI) -->
-    <div class="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl border border-white/10">
-      <div class="space-y-2 text-center md:text-left">
-        <span class="text-xs font-black text-yellow-300 tracking-wider uppercase bg-yellow-400/20 px-3 py-1 rounded-full border border-yellow-300/30">SO SÁNH CHI PHÍ THỰC TẾ</span>
-        <h3 class="text-xl sm:text-2xl font-black">Giá niêm yết chưa giảm: 4.500.000 VNĐ</h3>
+    <div class="p-4 sm:p-8 rounded-3xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex flex-col md:flex-row items-center justify-between gap-5 sm:gap-6 shadow-xl border border-white/10">
+      <div class="space-y-1.5 sm:space-y-2 text-center md:text-left">
+        <span class="text-[11px] sm:text-xs font-black text-yellow-300 tracking-wider uppercase bg-yellow-400/20 px-2.5 py-1 rounded-full border border-yellow-300/30">SO SÁNH CHI PHÍ THỰC TẾ</span>
+        <h3 class="text-lg sm:text-2xl font-black">Giá niêm yết: 4.500.000 VNĐ</h3>
         <p class="text-xs text-slate-300">Đăng ký qua chương trình trợ giá hôm nay giúp bạn tiết kiệm trọn vẹn 98% chi phí bản quyền.</p>
       </div>
-      <div class="bg-white/10 backdrop-blur-md p-4 sm:p-5 rounded-2xl text-center shrink-0 border border-white/20">
+      <div class="bg-white/10 backdrop-blur-md p-3.5 sm:p-5 rounded-2xl text-center shrink-0 border border-white/20 w-full sm:w-auto">
         <div class="text-xs font-bold text-yellow-300 uppercase">BẠN TIẾT KIỆM NGAY</div>
-        <div class="text-3xl sm:text-4xl font-black text-emerald-400 mt-1">4.410.000đ</div>
-        <div class="text-xs text-white/80 mt-1">Chỉ trả đúng <strong class="text-white text-sm">90.000đ</strong> một lần duy nhất!</div>
+        <div class="text-2xl sm:text-4xl font-black text-emerald-400 mt-0.5 sm:mt-1">4.410.000đ</div>
+        <div class="text-[11px] sm:text-xs text-white/80 mt-1">Chỉ trả đúng <strong class="text-white text-xs sm:text-sm">90.000đ</strong> một lần duy nhất!</div>
       </div>
     </div>
 
     <!-- 6. ĐÁNH GIÁ CỦA KHÁCH HÀNG (TESTIMONIALS) -->
-    <section class="space-y-6">
+    <section class="space-y-5 sm:space-y-6">
       <div class="text-center max-w-xl mx-auto space-y-1">
         <span class="text-xs font-bold text-emerald-600 uppercase">Khách Hàng Thực Tế</span>
-        <h3 class="text-xl sm:text-2xl font-black text-slate-900">Hơn 1.400+ Khách Hàng Đã Hài Lòng</h3>
+        <h3 class="text-lg sm:text-2xl font-black text-slate-900">Hơn 1.400+ Khách Hàng Đã Hài Lòng</h3>
       </div>
-      <div class="grid sm:grid-cols-3 gap-4 text-xs">
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 text-xs">
+        <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
           <div class="text-amber-400 font-bold text-sm">★★★★★</div>
           <p class="text-slate-600 italic">"Mình làm lập trình viên, dùng Antigravity AI IDE code nhanh hơn hẳn. 5TB lưu trữ Drive thoải mái chứa dataset và source code. Giá 90K quá hời!"</p>
           <div class="font-bold text-slate-900 pt-1 border-t border-slate-100">— Anh Hoàng Nam (Senior Dev, TP.HCM)</div>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+        <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
           <div class="text-amber-400 font-bold text-sm">★★★★★</div>
           <p class="text-slate-600 italic">"Quét QR xong tầm 15 giây là có link kích hoạt gửi về Zalo và Gmail luôn. Gemini 3.1 Pro đọc tài liệu tiếng Anh cực chuẩn. Rất uy tín!"</p>
           <div class="font-bold text-slate-900 pt-1 border-t border-slate-100">— Chị Thu Thảo (Content Lead, Hà Nội)</div>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+        <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
           <div class="text-amber-400 font-bold text-sm">★★★★★</div>
           <p class="text-slate-600 italic">"Tuyệt nhất là chia sẻ được cho cả gia đình 5 người cùng hưởng 5TB và dùng Gemini AI viết email, soạn văn bản trong Docs cực nhanh. Quá tuyệt vời!"</p>
           <div class="font-bold text-slate-900 pt-1 border-t border-slate-100">— Anh Minh Tuấn (Giám đốc kinh doanh, Đà Nẵng)</div>
@@ -596,22 +604,22 @@
     </section>
 
     <!-- 7. CÂU HỎI THƯỜNG GẶP (FAQ) -->
-    <section class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
-      <h3 class="text-lg font-black text-slate-900 text-center">Câu Hỏi Thường Gặp</h3>
-      <div class="grid md:grid-cols-2 gap-4 text-xs">
-        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+    <section class="bg-white rounded-3xl p-4 sm:p-8 border border-slate-200 shadow-sm space-y-4">
+      <h3 class="text-base sm:text-lg font-black text-slate-900 text-center">Câu Hỏi Thường Gặp</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 text-xs">
+        <div class="p-3 sm:p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
           <div class="font-bold text-slate-900">❓ Tôi có cần cung cấp mật khẩu Gmail không?</div>
           <p class="text-slate-600">Tuyệt đối không! Bạn chỉ cần điền đúng địa chỉ Gmail, hệ thống sẽ gửi liên kết kích hoạt chính thức từ Google One để bạn tự bấm chấp nhận.</p>
         </div>
-        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+        <div class="p-3 sm:p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
           <div class="font-bold text-slate-900">❓ Dữ liệu trong 5TB của tôi có bị ai xem không?</div>
           <p class="text-slate-600">100% riêng tư và bảo mật theo chính sách Google. Người khác dù trong nhóm chia sẻ cũng không thể xem file của bạn nếu bạn không chủ động chia sẻ.</p>
         </div>
-        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+        <div class="p-3 sm:p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
           <div class="font-bold text-slate-900">❓ Chính sách bảo hành như thế nào?</div>
-          <p class="text-slate-600">Cam kết bảo hành 30 ngày 1 đổi 1. Nếu có bất kỳ sự cố nào, hotline và Zalo kỹ thuật luôn hỗ trợ cấp lại link ngay tức thì qua Zalo: <a href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-bold underline hover:text-blue-800">0567.960.777 (Bấm mở Zalo)</a>.</p>
+          <p class="text-slate-600">Cam kết bảo hành 30 ngày 1 đổi 1. Nếu có bất kỳ sự cố nào, hotline và Zalo kỹ thuật luôn hỗ trợ cấp lại link ngay tức thì qua Zalo: <a href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-bold underline hover:text-blue-800">0567.960.777</a>.</p>
         </div>
-        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+        <div class="p-3 sm:p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
           <div class="font-bold text-slate-900">❓ Quét tiền xong thì nhận link như thế nào?</div>
           <p class="text-slate-600">Hệ thống ngân hàng nhận diện tự động trong 10-20 giây, mã bản quyền và hướng dẫn sẽ được gửi đồng thời vào hòm thư Gmail và tin nhắn Zalo của bạn.</p>
         </div>
@@ -629,7 +637,7 @@
       </button>
 
       <!-- KHUNG BƯỚC QUÉT QR BỰ TO -->
-      <div id="modalStepQR" class="p-6 sm:p-8 text-center space-y-4">
+      <div id="modalStepQR" class="p-4 sm:p-7 text-center space-y-3.5 max-h-[92vh] overflow-y-auto">
         
         <div class="space-y-1">
           <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
@@ -868,10 +876,10 @@
 
   <!-- 8. FOOTER TRANG WEB -->
   <footer class="bg-white border-t border-slate-200 py-6 px-4 text-center text-xs text-slate-500">
-    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+    <div class="max-w-5xl mx-auto flex flex-col items-center justify-center gap-2">
       <div>© 2026 Bản Quyền Google Gemini Pro 18 Tháng (Google Partner Services).</div>
-      <div class="flex items-center gap-3">
-        <a href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 transition flex items-center gap-1.5 font-medium">
+      <div class="flex items-center justify-center flex-wrap gap-2 sm:gap-3 text-center">
+        <a href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 transition inline-flex items-center gap-1 font-medium">
           <span>💬 Zalo hỗ trợ:</span> <strong class="text-blue-700 underline font-bold">0567.960.777</strong>
         </a>
         <span>•</span>
@@ -884,30 +892,31 @@
 
   <!-- NÚT ZALO NỔI TIỆN LỢI (BẤM VÀO NHẢY QUA ZALO LUÔN) -->
   <a href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer" 
-     class="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 hover:from-blue-700 hover:to-sky-700 text-white px-4 py-3 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 border-2 border-white cursor-pointer group"
+     class="fixed bottom-4 right-3 sm:bottom-6 sm:right-6 z-50 flex items-center gap-1.5 sm:gap-2.5 bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 hover:from-blue-700 hover:to-sky-700 text-white px-3 py-2 sm:px-4 sm:py-3 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 border-2 border-white cursor-pointer group"
      title="Nhắn tin Zalo với bộ phận hỗ trợ 0567.960.777">
-    <div class="w-8 h-8 rounded-full bg-white text-blue-600 flex items-center justify-center font-black text-sm shadow-sm shrink-0">
+    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white text-blue-600 flex items-center justify-center font-black text-xs sm:text-sm shadow-sm shrink-0">
       Z
     </div>
-    <div class="text-left pr-1">
+    <div class="text-left pr-1 hidden sm:block">
       <div class="text-[10px] uppercase font-bold text-sky-200 leading-tight">Hỗ Trợ Kỹ Thuật 24/7</div>
       <div class="text-xs sm:text-sm font-black tracking-tight leading-tight">Zalo: 0567.960.777</div>
     </div>
-    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping ml-0.5"></span>
+    <span class="text-xs font-black sm:hidden pr-0.5">Zalo 24/7</span>
+    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping ml-0.5 shrink-0"></span>
   </a>
 
   <!-- 9. TOAST LIVE BUYERS (THÔNG BÁO KHÁCH VỪA MUA) -->
-  <div id="liveBuyerToast" class="fixed bottom-5 left-4 z-40 bg-white/95 backdrop-blur border-2 border-emerald-400 rounded-2xl p-3 shadow-2xl flex items-center gap-3 transition-all duration-500 transform translate-y-36 opacity-0 max-w-sm pointer-events-none">
-    <div class="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-md">
+  <div id="liveBuyerToast" class="fixed bottom-16 left-3 right-3 sm:bottom-5 sm:left-4 sm:right-auto z-40 bg-white/95 backdrop-blur border-2 border-emerald-400 rounded-2xl p-2.5 sm:p-3 shadow-2xl flex items-center gap-2.5 sm:gap-3 transition-all duration-500 transform translate-y-36 opacity-0 max-w-sm pointer-events-none">
+    <div class="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white flex items-center justify-center font-black text-xs sm:text-sm shrink-0 shadow-md">
       ✓
-      <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-ping"></span>
+      <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-ping"></span>
     </div>
-    <div class="text-xs space-y-0.5">
+    <div class="text-[11px] sm:text-xs space-y-0.5">
       <div class="flex items-center gap-1.5">
         <span class="font-extrabold text-slate-900" id="buyerName">Anh Minh Tuấn (TP.HCM)</span>
         <span class="text-[10px] text-slate-400 font-semibold" id="buyerTime">• 3 giây trước</span>
       </div>
-      <div class="text-emerald-700 font-semibold text-[11px] leading-tight" id="buyerAction">Vừa kích hoạt Gemini 18T & Antigravity 5TB</div>
+      <div class="text-emerald-700 font-semibold text-[10px] sm:text-[11px] leading-tight" id="buyerAction">Vừa kích hoạt Gemini 18T & Antigravity 5TB</div>
     </div>
   </div>
 
@@ -2012,7 +2021,7 @@
         heroSlotsEl.innerText = `${fomoSlots} suất`;
       }
       if (activatedEl) {
-        activatedEl.innerHTML = `Đã kích hoạt: <strong class="text-slate-900">${activatedCount.toLocaleString('vi-VN')}/1.500 tài khoản</strong>`;
+        activatedEl.innerText = `${activatedCount.toLocaleString('vi-VN')}/1.500 tài khoản`;
       }
       if (progressBar) {
         progressBar.style.width = `${progressPercent}%`;
