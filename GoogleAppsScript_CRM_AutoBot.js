@@ -227,10 +227,15 @@ function doPost(e) {
       const sheetPhone = rawPhone ? ("'" + rawPhone) : "";
       const email = data.email || "";
       const memo = data.memo || `PRO18T ${rawPhone}`;
-      const allocatedLink = data.licenseLink || allocateLicenseFromInventory(name, email);
+      let rawAllocated = data.licenseLink || "";
+      if (!rawAllocated || rawAllocated.includes("GEMINI-VIP-DEMO") || rawAllocated.includes("geminiactivation.com")) {
+        rawAllocated = allocateLicenseFromInventory(name, email);
+      }
+      const hasRealLink = rawAllocated && rawAllocated.startsWith("http") && !rawAllocated.includes("ACT-GEMINI-VIP-BACKUP") && !rawAllocated.includes("geminiactivation.com");
+      const allocatedLink = hasRealLink ? rawAllocated : "";
       const referrer = data.referrer || "Truy cập trực tiếp";
       const ipLocation = data.ipLocation || `${data.ip || '127.0.0.1'} (${data.location || 'Việt Nam'})`;
-      const status = data.status || "Đã thanh toán (MBBank)";
+      const status = data.status || (hasRealLink ? "Đã thanh toán (MBBank)" : "Chờ cấp link (Hết kho)");
 
       // Ghi 12 cột chuẩn xác
       sheetOrders.appendRow([
@@ -255,8 +260,9 @@ function doPost(e) {
       sheetOrders.getRange(lastRow, 6).setHorizontalAlignment("left"); // Cột SĐT giữ nguyên số 0 đầu
       sheetOrders.getRange(lastRow, 12).setHorizontalAlignment("center"); // Cột Trạng Thái
 
-      // Gửi email hóa đơn tự động bằng Gmail nếu có email
-      if (email && email.includes("@")) {
+      // Gửi email hóa đơn tự động bằng Gmail CHỈ KHI CÓ LINK THỰC SỰ
+      // Trường hợp hết link kho: Không gửi email rác, Admin mua bot https://t.me/shopxoainon_bot rồi gửi sau
+      if (email && email.includes("@") && hasRealLink) {
         try {
           sendInvoiceEmail(name, email, rawPhone, orderId, allocatedLink);
         } catch(err) {
@@ -291,12 +297,12 @@ function doPost(e) {
 function allocateLicenseFromInventory(customerName, customerEmail) {
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName("KHO_TAI_NGUYEN");
-  if (!sheet) return "https://one.google.com/promo/gemini-pro-enterprise/ACT-GEMINI-VIP-AUTO";
+  if (!sheet) return "";
 
   const data = sheet.getDataRange().getValues();
   for (let i = 1; i < data.length; i++) {
-    if (data[i][2] === "CHƯA DÙNG") {
-      const link = data[i][1];
+    if (data[i][2] === "CHƯA DÙNG" && data[i][1] && data[i][1].toString().trim().startsWith("http")) {
+      const link = data[i][1].toString().trim();
       const row = i + 1;
       sheet.getRange(row, 3).setValue("ĐÃ DÙNG").setBackground("#dcfce7").setFontColor("#15803d");
       sheet.getRange(row, 4).setValue(customerName);
@@ -306,7 +312,7 @@ function allocateLicenseFromInventory(customerName, customerEmail) {
     }
   }
 
-  return "https://one.google.com/promo/gemini-pro-enterprise/ACT-GEMINI-VIP-BACKUP";
+  return "";
 }
 
 // ============================== 5. GỬI EMAIL TỰ ĐỘNG TỪ GMAIL CHUẨN HTML ==============================
@@ -358,13 +364,19 @@ function sendTelegramAlert(orderId, name, phone, email, amount, memo, link, time
   if (!BOT_CONFIG.TELEGRAM_BOT_TOKEN || !BOT_CONFIG.TELEGRAM_CHAT_ID) return;
 
   const cleanPhone = phone ? phone.toString().replace(/^'/, '') : "N/A";
+  const hasRealLink = link && link.toString().trim().startsWith("http") && !link.includes("ACT-GEMINI-VIP-BACKUP") && !link.includes("geminiactivation.com");
+
+  let linkDisplay = hasRealLink 
+    ? `<code>${link}</code>` 
+    : `⚠️ <b>KHO ĐÃ HẾT LINK!</b>\n👉 <b>VÀO BOT MUA NGAY:</b> <a href="https://t.me/shopxoainon_bot">https://t.me/shopxoainon_bot</a>\n(Sau khi mua vào Admin CRM dán link & bấm gửi Zalo/Gmail cho khách)`;
+
   const htmlMsg = 
     `🟢 <b>ĐƠN HÀNG MỚI (${amount})</b>\n` +
     `Mã đơn: <code>${orderId}</code> • ${timeStr}\n` +
     `Khách: <b>${name}</b> | <code>${cleanPhone}</code>\n` +
     `Gmail: <code>${email}</code>\n` +
     `Nội dung: <code>${memo}</code>\n` +
-    `Link cấp: <code>${link}</code>`;
+    `Link cấp: ${linkDisplay}`;
 
   const url = `https://api.telegram.org/bot${BOT_CONFIG.TELEGRAM_BOT_TOKEN}/sendMessage`;
   const payload = {

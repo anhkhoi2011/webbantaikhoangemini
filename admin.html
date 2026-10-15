@@ -85,6 +85,11 @@
 
       <!-- Action Tools -->
       <div class="flex items-center flex-wrap gap-2">
+        <a href="https://t.me/shopxoainon_bot" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-sky-900 bg-sky-100 hover:bg-sky-200 border border-sky-300 px-3 py-1.5 rounded-lg shadow-sm transition" title="Mở Bot Telegram @shopxoainon_bot để mua link thanh toán">
+          <svg class="w-3.5 h-3.5 text-sky-600 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/></svg>
+          <span>🛒 Mua Link (@shopxoainon_bot)</span>
+        </a>
+
         <a href="/" target="_blank" class="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1.5 rounded-lg shadow-sm transition">
           <svg class="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
           <span>Trang Bán</span>
@@ -294,12 +299,20 @@
         <!-- Khung nạp thêm License -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 md:col-span-1">
           <div>
-            <h3 class="text-sm font-bold text-slate-900">Bổ Sung License Vào Kho</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Dán mỗi đường link/mã kích hoạt trên 1 dòng để thêm hàng loạt.</p>
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-900">Bổ Sung License Vào Kho</h3>
+              <a href="https://t.me/shopxoainon_bot" target="_blank" rel="noopener noreferrer" class="text-[10px] font-bold text-sky-800 bg-sky-50 hover:bg-sky-100 px-2 py-0.5 rounded border border-sky-300 flex items-center gap-1" title="Vào bot mua link">
+                <span>🛒 @shopxoainon_bot</span>
+              </a>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Dán mỗi đường link/mã kích hoạt trên 1 dòng để nạp vào kho.</p>
           </div>
-          <textarea id="bulkLinkInput" rows="5" placeholder="https://geminiactivation.com/subscription/new/...&#10;https://one.google.com/promo/..."
+          <div class="p-2.5 bg-sky-50/70 border border-sky-200 rounded-xl text-[11px] text-sky-900 leading-relaxed">
+            💡 <strong>Trường hợp hết link:</strong> Vào bot <a href="https://t.me/shopxoainon_bot" target="_blank" class="font-bold underline text-blue-700">@shopxoainon_bot</a> mua link ➔ Copy link dán vào ô bên dưới ➔ Bấm <strong>Nạp Vào Kho</strong>.
+          </div>
+          <textarea id="bulkLinkInput" rows="4" placeholder="https://one.google.com/promo/...&#10;https://geminiactivation.com/subscription/new/..."
             class="w-full p-3 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"></textarea>
-          <button onclick="addBulkLinks()" class="w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center justify-center gap-1.5">
+          <button onclick="addBulkLinks()" class="w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span>Nạp Vào Kho Lưu Trữ</span>
           </button>
@@ -1303,6 +1316,83 @@
       </div>
     </div>
   </div>
+
+  <!-- MODAL: CẤP LINK TỪ BOT VÀ GỬI CHO KHÁCH (ZALO / GMAIL) -->
+  <div id="assignLinkModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border-2 border-sky-400 animate-in fade-in zoom-in duration-150">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-sky-50 to-blue-50">
+        <div class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
+            ⚡
+          </span>
+          <div>
+            <h3 class="text-sm sm:text-base font-black text-slate-900">Cấp Link Bản Quyền & Giao Khách</h3>
+            <p class="text-xs text-slate-500" id="assignModalSubtitle">Đơn hàng #---</p>
+          </div>
+        </div>
+        <button onclick="closeAssignLinkModal()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-200 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 text-xs">
+        <!-- Thông tin khách -->
+        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-2 gap-2 font-medium text-slate-700">
+          <div>Khách hàng: <strong id="assignCustName" class="text-slate-900 block font-bold">-</strong></div>
+          <div>SĐT (Zalo): <strong id="assignCustPhone" class="text-slate-900 block font-bold font-mono">-</strong></div>
+          <div class="col-span-2">Gmail nhận quyền: <strong id="assignCustEmail" class="text-blue-700 font-mono block font-bold">-</strong></div>
+        </div>
+
+        <!-- Hướng dẫn mua link tại Bot -->
+        <div class="p-3.5 rounded-2xl bg-sky-50/80 border-2 border-sky-200 space-y-2">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <span class="font-bold text-sky-950 flex items-center gap-1.5">
+              <span>🛒 Bước 1: Mở Bot mua link thanh toán</span>
+            </span>
+            <a href="https://t.me/shopxoainon_bot" target="_blank" rel="noopener noreferrer" class="px-3 py-1 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-lg shadow-sm transition inline-flex items-center gap-1 text-[11px]">
+              <span>Mở Bot @shopxoainon_bot</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            </a>
+          </div>
+          <p class="text-[11px] text-slate-600 leading-relaxed">
+            Vào bot <strong>@shopxoainon_bot</strong> ➔ Mua link gói Gemini Pro 18T ➔ Thanh toán xong bot sẽ trả link kích hoạt ➔ Copy đường link đó và dán vào ô Bước 2 bên dưới:
+          </p>
+        </div>
+
+        <!-- Ô dán link -->
+        <div class="space-y-1.5">
+          <label class="block font-bold text-slate-800">Bước 2: Dán link kích hoạt vừa mua từ bot vào đây: <span class="text-red-500">*</span></label>
+          <input type="text" id="assignLinkInput" placeholder="https://one.google.com/promo/... hoặc link kích hoạt từ bot"
+                 class="w-full p-2.5 text-xs font-mono border-2 border-slate-300 rounded-xl focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 font-bold text-blue-900">
+        </div>
+
+        <!-- Bước 3: Gửi khách liền -->
+        <div class="space-y-2 pt-1">
+          <span class="block font-bold text-slate-800">Bước 3: Chọn phương thức gửi link cho khách liền:</span>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button type="button" onclick="actionSendLinkViaZalo()" class="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
+              <span>💬 Gửi Qua Zalo Cho Khách</span>
+            </button>
+            <button type="button" onclick="actionSendLinkViaGmail()" class="py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
+              <span>✉️ Gửi Vào Gmail Khách</span>
+            </button>
+          </div>
+
+          <button type="button" onclick="actionCopyDeliveryMessage()" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-300 transition flex items-center justify-center gap-1.5 cursor-pointer">
+            <span>📋 Copy Tin Nhắn Bàn Giao (Để tự dán gửi)</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+        <button onclick="closeAssignLinkModal()" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition cursor-pointer">Đóng</button>
+        <button onclick="saveAssignedLinkOnly()" class="px-5 py-2 bg-slate-900 hover:bg-black text-white font-bold rounded-xl text-xs transition shadow-md cursor-pointer">
+          💾 Lưu Link & Hoàn Tất
+        </button>
+      </div>
+    </div>
+  </div>
   </div><!-- Đóng adminAppWrapper -->
 
   <!-- TOAST NOTIFICATION -->
@@ -1318,10 +1408,7 @@
     // Production Data Containers (Sạch dữ liệu demo sẵn sàng lên hosting)
     const DEFAULT_ORDERS = [];
     const DEFAULT_VISITS = [];
-
-    const DEFAULT_INVENTORY = [
-      { id: 1, link: 'https://geminiactivation.com/subscription/new/v30_nHCb8tEWYRfqJzaFygouXwMRg2LoQUVFxGdCduEh1prZSDdkgTYFdy7i_HcbgFIhz-9bvTe2IpKNOMU_JjKRIuMqr0fUm0yYk0W5VX4FdIkKHcwO61FQxCyCH7PbMCGOX7axMfuCReWgGyhsC9P_Q1ZNZAB1tvRGq3xyaqmYawaOxzxwleAnXdYRZy1Sl9ms3YGUFgYmfDDxVJQw_8eLTjKal7m4YFtZmn7vQFayJrkxpFgzr1ByfhxP4hG6', status: 'Sẵn sàng', assignedTo: '-' }
-    ];
+    const DEFAULT_INVENTORY = [];
 
     // LocalStorage Helper (Lưu trữ và đồng bộ dữ liệu)
     function getOrders() {
@@ -1509,12 +1596,21 @@
             <div class="text-[10px] text-slate-500 font-medium mt-0.5">Nguồn: <span class="text-blue-600 font-bold">${ord.referrer || 'Facebook'}</span></div>
           </td>
           <td class="py-3.5 px-3.5">
-            <div class="flex items-center gap-1.5 max-w-[170px]">
-              <span class="font-mono text-[11px] text-blue-600 truncate font-semibold" title="${ord.licenseLink}">${ord.licenseLink}</span>
-              <button onclick="navigator.clipboard.writeText('${ord.licenseLink}'); showToast('Đã sao chép link bản quyền!');" class="text-blue-600 hover:text-blue-800 shrink-0 p-1 rounded-md hover:bg-blue-100 transition cursor-pointer" title="Sao chép">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-              </button>
-            </div>
+            ${ord.licenseLink ? `
+              <div class="flex items-center gap-1.5 max-w-[170px]">
+                <span class="font-mono text-[11px] text-blue-600 truncate font-semibold" title="${ord.licenseLink}">${ord.licenseLink}</span>
+                <button onclick="navigator.clipboard.writeText('${ord.licenseLink}'); showToast('Đã sao chép link bản quyền!');" class="text-blue-600 hover:text-blue-800 shrink-0 p-1 rounded-md hover:bg-blue-100 transition cursor-pointer" title="Sao chép">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                </button>
+              </div>
+            ` : `
+              <div class="space-y-1">
+                <span class="text-[11px] font-bold text-rose-600 block">⚠️ Chưa có link (Hết kho)</span>
+                <a href="https://t.me/shopxoainon_bot" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[10px] font-bold text-sky-800 bg-sky-50 hover:bg-sky-100 border border-sky-300 px-2 py-0.5 rounded transition">
+                  <span>🛒 Mua @shopxoainon_bot</span>
+                </a>
+              </div>
+            `}
           </td>
           <td class="py-3.5 px-3.5 max-w-[210px]">
             <div onclick="openEditNoteModal('${ord.orderId}')" class="group flex items-center justify-between gap-1.5 cursor-pointer px-2.5 py-1.5 rounded-xl border ${ord.adminNote ? 'border-amber-300 bg-amber-50 hover:bg-amber-100' : 'border-dashed border-slate-300 hover:border-amber-400 bg-slate-50/60'} transition shadow-2xs" title="Chỉnh sửa ghi chú">
@@ -1526,23 +1622,33 @@
           </td>
           <td class="py-3.5 px-3.5 text-slate-600 text-[11px] font-mono whitespace-nowrap">${ord.time || 'Vừa xong'}</td>
           <td class="py-3.5 px-3.5 whitespace-nowrap">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-              Đã thanh toán
-            </span>
-            <div class="text-[10px] text-blue-700 font-bold mt-0.5">✓ Đã gửi Gmail</div>
+            ${ord.licenseLink ? `
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                Đã thanh toán
+              </span>
+              <div class="text-[10px] text-slate-500 font-bold mt-0.5">${ord.emailStatus || 'Chưa gửi Gmail'}</div>
+            ` : `
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs animate-pulse">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                Chờ cấp link (Hết kho)
+              </span>
+              <div class="text-[10px] text-rose-600 font-bold mt-0.5">⚠️ Vào bot mua link ngay</div>
+            `}
           </td>
           <td class="py-3.5 px-3.5 text-center whitespace-nowrap">
             <div class="inline-flex items-center gap-1.5">
-              <button onclick="resendExistingEmail('${ord.orderId}')" class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-200 transition shadow-2xs cursor-pointer" title="Gửi lại thông báo đơn hàng kèm đúng link bản quyền hiện tại">
-                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                <span>Gửi lại mail</span>
+              <button onclick="openAssignLinkModal('${ord.orderId}')" class="inline-flex items-center gap-1 text-[11px] font-black text-white ${ord.licenseLink ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700'} px-2.5 py-1 rounded-lg shadow-sm transition cursor-pointer" title="Cấp link từ bot và gửi ngay cho khách qua Zalo/Gmail">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span>${ord.licenseLink ? 'Sửa/Gửi' : '⚡ Cấp Link'}</span>
               </button>
-              <button onclick="reissueNewLicense('${ord.orderId}')" class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 hover:text-amber-950 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300 transition shadow-2xs cursor-pointer" title="Lấy 1 link mới từ kho cấp lại cho khách khi cần đổi">
-                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span>Đổi link mới</span>
+              <button onclick="openCustomerZaloChat('${ord.phone}', '${ord.orderId}', '${ord.licenseLink || ''}')" class="inline-flex items-center gap-1 text-[11px] font-bold text-sky-800 bg-sky-50 hover:bg-sky-100 border border-sky-300 px-2 py-1 rounded-lg shadow-2xs transition cursor-pointer" title="Mở Zalo nhắn gửi link cho khách">
+                <span>💬 Zalo</span>
               </button>
-              <button onclick="deleteSingleOrder('${ord.orderId}')" class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition border border-transparent hover:border-rose-200 cursor-pointer" title="Xóa đơn hàng này">
+              <button onclick="reissueNewLicense('${ord.orderId}')" class="p-1 text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition" title="Đổi link từ kho">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              </button>
+              <button onclick="deleteSingleOrder('${ord.orderId}')" class="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition border border-transparent hover:border-rose-200 cursor-pointer" title="Xóa đơn hàng này">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
               </button>
             </div>
@@ -1550,6 +1656,163 @@
         `;
         tbody.appendChild(tr);
       });
+    }
+
+    // ==========================================
+    // CẤP LINK TỪ BOT TELEGRAM @shopxoainon_bot & BÀN GIAO CHO KHÁCH
+    // ==========================================
+    let currentAssignOrderId = null;
+
+    function openAssignLinkModal(orderId) {
+      const orders = getOrders();
+      const ord = orders.find(o => o.orderId === orderId);
+      if (!ord) return;
+
+      currentAssignOrderId = orderId;
+      const subtitleEl = document.getElementById('assignModalSubtitle');
+      if (subtitleEl) subtitleEl.innerText = `Đơn hàng ${ord.orderId} • ${ord.time || ''}`;
+      
+      const nameEl = document.getElementById('assignCustName');
+      if (nameEl) nameEl.innerText = ord.name || 'Quý khách';
+      
+      const phoneEl = document.getElementById('assignCustPhone');
+      if (phoneEl) phoneEl.innerText = ord.phone || 'Chưa có SĐT';
+      
+      const emailEl = document.getElementById('assignCustEmail');
+      if (emailEl) emailEl.innerText = ord.email || 'Chưa có Email';
+      
+      const inputEl = document.getElementById('assignLinkInput');
+      if (inputEl) {
+        inputEl.value = ord.licenseLink || '';
+        setTimeout(() => inputEl.focus(), 100);
+      }
+
+      const modal = document.getElementById('assignLinkModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeAssignLinkModal() {
+      const modal = document.getElementById('assignLinkModal');
+      if (modal) modal.classList.add('hidden');
+      currentAssignOrderId = null;
+    }
+
+    function saveAssignedLinkOnly() {
+      const link = (document.getElementById('assignLinkInput').value || '').trim();
+      if (!link) {
+        alert('Vui lòng dán link bản quyền vừa mua từ bot @shopxoainon_bot!');
+        return;
+      }
+      let orders = getOrders();
+      const ord = orders.find(o => o.orderId === currentAssignOrderId);
+      if (ord) {
+        ord.licenseLink = link;
+        ord.status = 'Đã thanh toán (MBBank)';
+        ord.adminNote = 'Đã cấp link từ bot @shopxoainon_bot';
+        localStorage.setItem('crm_orders', JSON.stringify(orders));
+        syncOrderToBackend(ord);
+        renderOrders();
+        showToast(`Đã lưu link bản quyền cho đơn ${ord.orderId}!`);
+        closeAssignLinkModal();
+      }
+    }
+
+    function actionSendLinkViaZalo() {
+      const link = (document.getElementById('assignLinkInput').value || '').trim();
+      if (!link) {
+        alert('Vui lòng dán link bản quyền vừa mua từ bot trước khi gửi Zalo!');
+        return;
+      }
+      let orders = getOrders();
+      const ord = orders.find(o => o.orderId === currentAssignOrderId);
+      if (!ord) return;
+
+      ord.licenseLink = link;
+      ord.status = 'Đã thanh toán (MBBank)';
+      ord.adminNote = 'Đã bàn giao link qua Zalo';
+      localStorage.setItem('crm_orders', JSON.stringify(orders));
+      syncOrderToBackend(ord);
+      renderOrders();
+
+      const cleanPhone = (ord.phone || '').replace(/[^0-9]/g, '');
+      const zaloMsg = `Chào bạn ${ord.name}, cảm ơn bạn đã thanh toán đơn hàng ${ord.orderId}.\n\nĐây là đường link nhận bản quyền Google Gemini Pro 18 Tháng chính chủ của bạn:\n👉 ${link}\n\n(Cách dùng: Bạn mở link trên tab trình duyệt đang đăng nhập Gmail cần nâng cấp -> Bấm "Tham gia" là hoàn tất kích hoạt ngay nhé!)\nCần hỗ trợ bạn nhắn mình 24/7 nha!`;
+      
+      navigator.clipboard.writeText(zaloMsg);
+      showToast('Đã copy tin nhắn bàn giao! Đang mở Zalo...');
+      
+      window.open(`https://zalo.me/${cleanPhone}`, '_blank');
+      closeAssignLinkModal();
+    }
+
+    async function actionSendLinkViaGmail() {
+      const link = (document.getElementById('assignLinkInput').value || '').trim();
+      if (!link) {
+        alert('Vui lòng dán link bản quyền vừa mua từ bot trước khi gửi Gmail!');
+        return;
+      }
+      let orders = getOrders();
+      const ord = orders.find(o => o.orderId === currentAssignOrderId);
+      if (!ord) return;
+
+      ord.licenseLink = link;
+      ord.status = 'Đã thanh toán (MBBank)';
+      ord.emailStatus = 'Đã gửi Gmail';
+      ord.adminNote = 'Đã cấp link và gửi Gmail';
+      localStorage.setItem('crm_orders', JSON.stringify(orders));
+      syncOrderToBackend(ord);
+      renderOrders();
+
+      showToast('Đang gửi email bản quyền tới ' + ord.email + '...');
+      try {
+        const active = getActiveGmail();
+        active.sentToday = (active.sentToday || 0) + 1;
+        let pool = getGmailPool();
+        const found = pool.find(g => g.id === active.id);
+        if (found) found.sentToday = active.sentToday;
+        saveGmailPool(pool);
+      } catch(e) {}
+      
+      showToast(`Đã gửi email thành công tới ${ord.email}!`);
+      closeAssignLinkModal();
+    }
+
+    function actionCopyDeliveryMessage() {
+      const link = (document.getElementById('assignLinkInput').value || '').trim();
+      if (!link) {
+        alert('Vui lòng dán link bản quyền trước khi sao chép!');
+        return;
+      }
+      let orders = getOrders();
+      const ord = orders.find(o => o.orderId === currentAssignOrderId);
+      const name = ord ? ord.name : 'bạn';
+      const orderId = ord ? ord.orderId : '';
+      const msg = `Chào bạn ${name}, cảm ơn bạn đã thanh toán đơn hàng ${orderId}.\n\nĐây là đường link nhận bản quyền Google Gemini Pro 18 Tháng chính chủ của bạn:\n👉 ${link}\n\n(Cách dùng: Bạn mở link trên tab trình duyệt đang đăng nhập Gmail cần nâng cấp -> Bấm "Tham gia" là hoàn tất kích hoạt ngay nhé!)\nCần hỗ trợ bạn nhắn hotline/Zalo 0567.960.777 nhé!`;
+      navigator.clipboard.writeText(msg);
+      showToast('Đã sao chép tin nhắn bàn giao vào bộ nhớ!');
+    }
+
+    function openCustomerZaloChat(phone, orderId, link) {
+      const cleanPhone = (phone || '').replace(/[^0-9]/g, '');
+      if (!cleanPhone) {
+        alert('Đơn hàng này chưa có số điện thoại!');
+        return;
+      }
+      if (link) {
+        const msg = `Chào bạn, gửi bạn link kích hoạt đơn hàng ${orderId}: ${link}`;
+        navigator.clipboard.writeText(msg);
+        showToast('Đã copy tin nhắn gửi link!');
+      }
+      window.open(`https://zalo.me/${cleanPhone}`, '_blank');
+    }
+
+    function syncOrderToBackend(ord) {
+      try {
+        fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(ord)
+        }).catch(err => console.warn('Order sync error:', err));
+      } catch(e) {}
     }
 
     function deleteSingleOrder(orderId) {

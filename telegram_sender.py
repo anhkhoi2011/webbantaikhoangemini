@@ -87,6 +87,17 @@ def get_payment_success_template(order):
     license_link = order.get("licenseLink", "")
     time_str = order.get("time", datetime.now().strftime("%H:%M %d/%m/%Y"))
 
+    if not license_link:
+        return f"""🚨 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN ({amount})</b>
+Mã đơn: <code>{order_id}</code> • {time_str}
+Khách: <b>{name}</b> | <code>{phone}</code>
+Gmail: <code>{email}</code>
+Nội dung CK: <code>{memo}</code>
+
+⚠️ <b>KHO ĐÃ HẾT LINK! VUI LÒNG MUA LINK GẤP:</b>
+👉 <b>VÀO BOT MUA NGAY:</b> https://t.me/shopxoainon_bot
+<i>(Mua xong vào /admin hoặc gửi Zalo cho khách liền!)</i>"""
+
     return f"""🟢 <b>ĐƠN HÀNG MỚI ({amount})</b>
 Mã đơn: <code>{order_id}</code> • {time_str}
 Khách: <b>{name}</b> | <code>{phone}</code>
@@ -94,10 +105,11 @@ Gmail: <code>{email}</code>
 Nội dung: <code>{memo}</code>
 Link cấp: <code>{license_link}</code>"""
 
-def get_low_stock_template(current_stock=3, threshold=5):
+def get_low_stock_template(current_stock=0, threshold=5):
     return f"""⚠️ <b>CẢNH BÁO: KHO SẮP HẾT</b>
 Kho License còn: <b>{current_stock} mã</b> (Ngưỡng: &lt;= {threshold})
-Vui lòng nạp thêm tại: /admin"""
+👉 Mua thêm tại bot: https://t.me/shopxoainon_bot
+Nạp vào kho tại: /admin"""
 
 def get_daily_report_template(stats=None):
     if not stats:

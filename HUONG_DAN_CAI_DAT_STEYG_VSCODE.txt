@@ -1,0 +1,50 @@
+========================================================================
+HƯỚNG DẪN SỬ DỤNG VISUAL STUDIO CODE & CÁC TIỆN ÍCH CODEX & CLAUDE
+========================================================================
+
+1. CÁC TIỆN ÍCH (EXTENSIONS) ĐÃ CÀI ĐẶT THÀNH CÔNG VÀO VS CODE:
+- Claude Code (`anthropic.claude-code` v2.1.300):
+    + Tiện ích CHÍNH THỨC từ Anthropic dành cho Claude Code.
+    + Chạy trực tiếp trong giao diện sidebar của VS Code, hỗ trợ MCP và agentic coding.
+- OpenAI Codex & ChatGPT (`openai.chatgpt` v26.1007.21434 & `openai.codex-audio`):
+    + Tiện ích CHÍNH THỨC từ OpenAI cho Codex Coding Agent.
+    + Tự động tích hợp thanh công cụ Codex bên cạnh code editor.
+- Continue (`continue.continue` v2.0.0):
+    + Tiện ích đa model đã được nạp sẵn TOÀN BỘ 9 model từ nhà cung cấp STEYG One.
+    + Cho phép chọn linh hoạt giữa các model GPT và Claude trong dropdown.
+- Cline (`saoudrizwan.claude-dev` v4.1.24):
+    + Trợ lý tự động hóa phát triển code chuyên sâu cho Claude & OpenAI.
+- Roo Code (`rooveterinaryinc.roo-cline` v3.54.0):
+    + Coding Agent đa tác vụ thế hệ mới.
+
+2. CÁC MODEL TÍCH HỢP TỪ STEYG ONE (sk-steyg-Fv497g099GOqaSaQFOb7qPiRy1wFJGZD):
+- gpt-6.1-sol : Model Flagship tư duy chuyên sâu cao cấp nhất.
+- gpt-5.6-sol : Dòng GPT-5.6 Sol theo yêu cầu.
+- claude-opus-5-5 : Model Claude siêu tư duy lập trình và kiến trúc hệ thống.
+- claude-haiku-4-5 : Model Claude tốc độ cao, phản hồi tức thì.
+- gpt-6-luna : Dòng model tốc độ cao (gợi ý code tự động khi bấm Tab).
+- gpt-6-astra : Dòng model cân bằng.
+- deepseek-v4.1-flash : DeepSeek thế hệ 4.1.
+- glm-5.3 & glm-5.3-flash : Dòng GLM 5.3.
+- qwen3.8-flash : Dòng Qwen Flash.
+
+3. VỊ TRÍ CÁC FILE CẤU HÌNH TRÊN MÁY:
+- Continue (VS Code): C:\Users\Admin\.continue\config.json
+- Codex CLI / Desktop: C:\Users\Admin\.codex\config.toml
+- Cài đặt VS Code: C:\Users\Admin\AppData\Roaming\Code\User\settings.json
+- Biến môi trường hệ thống (User Environment Variables):
+    + ANTHROPIC_BASE_URL = https://steyg.one/api
+    + ANTHROPIC_AUTH_TOKEN = sk-steyg-Fv497g099GOqaSaQFOb7qPiRy1wFJGZD
+    + ANTHROPIC_MODEL = claude-haiku-4-5
+    + ANTHROPIC_SMALL_FAST_MODEL = claude-haiku-4-5
+    + STEYG_CODE_API_KEY = sk-steyg-Fv497g099GOqaSaQFOb7qPiRy1wFJGZD
+    + OPENAI_API_BASE = https://steyg.one/api/v1
+    + OPENAI_API_KEY = sk-steyg-Fv497g099GOqaSaQFOb7qPiRy1wFJGZD
+
+4. HƯỚNG DẪN MỞ VÀ SỬ DỤNG TRONG VS CODE:
+- Mở Visual Studio Code từ icon trên Desktop.
+- Nhìn cột thanh công cụ bên trái (Activity Bar):
+    1. Bấm biểu tượng "Claude Code" hoặc "Codex" để sử dụng các tác vụ Agent chính thức.
+    2. Bấm biểu tượng "Continue" (phím tắt Ctrl + L) để chat trực tiếp và tự do đổi giữa các model Codex & Claude trong menu thả xuống.
+    3. Gõ mã nguồn bình thường trong file, AI sẽ tự động gợi ý code (Tab autocomplete).
+========================================================================

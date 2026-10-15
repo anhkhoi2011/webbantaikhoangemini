@@ -725,145 +725,168 @@
             <span>Mã Đơn Hàng:</span>
             <span id="finalOrderId" class="font-mono font-black text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-300">#8291</span>
           </div>
-          <h3 class="text-xl sm:text-2xl font-black text-slate-900">Kích Hoạt Hoàn Tất 90.000đ!</h3>
-          <p class="text-xs font-bold text-emerald-700">Gói Google Gemini Pro 18 Tháng + 5TB Cloud đã sẵn sàng.</p>
+          <h3 id="successTitleText" class="text-xl sm:text-2xl font-black text-slate-900">Xác Nhận Thanh Toán 90.000đ Thành Công!</h3>
+          <p id="successSubText" class="text-xs font-bold text-emerald-700">Gói Google Gemini Pro 18 Tháng + 5TB Cloud chính chủ.</p>
         </div>
 
-        <!-- KHUNG LINK BẢN QUYỀN VÀ NÚT SAO CHÉP -->
-        <div class="p-4 rounded-2xl bg-gradient-to-br from-amber-50 via-white to-emerald-50 border-2 border-emerald-400 shadow-sm text-left space-y-3">
-          <div class="flex items-start gap-2.5">
-            <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-2xs mt-0.5">🔑</span>
-            <div>
-              <div class="text-xs sm:text-sm font-black text-slate-900 leading-snug">
-                Đường Link Nhận Bản Quyền Của Bạn:
+        <!-- TRƯỜNG HỢP 1: CÓ SẴN LINK TRONG KHO (HIỂN THỊ LINK & HƯỚNG DẪN) -->
+        <div id="successHasLinkView" class="space-y-4">
+          <!-- KHUNG LINK BẢN QUYỀN VÀ NÚT SAO CHÉP -->
+          <div class="p-4 rounded-2xl bg-gradient-to-br from-amber-50 via-white to-emerald-50 border-2 border-emerald-400 shadow-sm text-left space-y-3">
+            <div class="flex items-start gap-2.5">
+              <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-2xs mt-0.5">🔑</span>
+              <div>
+                <div class="text-xs sm:text-sm font-black text-slate-900 leading-snug">
+                  Đường Link Nhận Bản Quyền Của Bạn:
+                </div>
+                <div class="text-[11px] text-slate-600 mt-0.5">
+                  Bản quyền Google Gemini Pro 18 Tháng độc quyền - Kích hoạt 1 chạm.
+                </div>
               </div>
-              <div class="text-[11px] text-slate-600 mt-0.5">
-                Bản quyền Google Gemini Pro 18 Tháng độc quyền - Kích hoạt 1 chạm.
+            </div>
+
+            <!-- Ô HIỂN THỊ LINK BẢN QUYỀN & NÚT COPY -->
+            <div class="bg-white p-2.5 rounded-xl border border-slate-300 flex items-center justify-between gap-2 shadow-inner">
+              <div class="font-mono text-xs text-blue-700 font-bold truncate flex-1 select-all" id="finalLicenseLink">
+                -
               </div>
+              <button type="button" onclick="copyData(document.getElementById('finalLicenseLink').innerText)" 
+                class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-lg text-xs transition shadow-sm flex items-center gap-1.5 shrink-0 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <span>Sao Chép Link</span>
+              </button>
             </div>
           </div>
 
-          <!-- Ô HIỂN THỊ LINK BẢN QUYỀN & NÚT COPY -->
-          <div class="bg-white p-2.5 rounded-xl border border-slate-300 flex items-center justify-between gap-2 shadow-inner">
-            <div class="font-mono text-xs text-blue-700 font-bold truncate flex-1 select-all" id="finalLicenseLink">
-              https://geminiactivation.com/subscription/new/...
+          <!-- BẢNG HƯỚNG DẪN 2 LỰA CHỌN KÍCH HOẠT THÔNG MINH -->
+          <div class="space-y-3 text-left">
+            <!-- LỰA CHỌN 1: NÂNG NHANH CHO MAIL HIỆN TẠI -->
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-400 rounded-2xl p-4 shadow-sm space-y-2.5">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0">⚡</span>
+                <h4 class="text-xs sm:text-sm font-black text-blue-950 uppercase tracking-wide">
+                  Cách 1: Nâng cấp nhanh (Bằng Gmail đang mở trên trình duyệt này)
+                </h4>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                Nếu bạn muốn kích hoạt luôn vào tài khoản Google bạn đang dùng ở trình duyệt này, chỉ cần <strong>1 thao tác bấm nút</strong> bên dưới:
+              </p>
+              <a id="directOpenLinkBtn" href="#" target="_blank" rel="noopener noreferrer" 
+                class="w-full text-center py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-98 text-white text-xs sm:text-sm font-black transition shadow-md flex items-center justify-center gap-2 cursor-pointer uppercase">
+                <span>👉 Bấm Vào Đây Để Mở Link Nhận Quyền Ngay</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              </a>
+              <p class="text-[11px] text-blue-800 italic text-center font-medium">
+                *Trang Google One sẽ mở ra -> Nhấn "Tham gia" là hoàn tất chỉ trong 3 giây!
+              </p>
             </div>
-            <button type="button" onclick="copyData(document.getElementById('finalLicenseLink').innerText)" 
-              class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black rounded-lg text-xs transition shadow-sm flex items-center gap-1.5 shrink-0 cursor-pointer">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-              <span>Sao Chép Link</span>
-            </button>
+
+            <!-- LỰA CHỌN 2: NÂNG CẤP CHO GMAIL KHÁC (4 BƯỚC CHUẨN) -->
+            <div class="bg-white border-2 border-slate-300 rounded-2xl p-4 shadow-sm space-y-3">
+              <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">🎯</span>
+                <h4 class="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-wide">
+                  Cách 2: Nâng cấp cho Gmail khác (Hoặc tặng người thân / tài khoản phụ)
+                </h4>
+              </div>
+              <p class="text-xs text-slate-600">
+                Quy trình 4 bước chuẩn chỉ, bảo mật và chính xác 100%:
+              </p>
+              
+              <div class="grid gap-2 text-xs">
+                <div class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
+                  <span class="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                  <div>
+                    <strong class="text-slate-900">Bước 1 (Copy link):</strong> Bấm nút <strong>"Sao Chép Link"</strong> ở khung màu xanh phía trên.
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
+                  <span class="w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                  <div>
+                    <strong class="text-slate-900">Bước 2 (Chuyển Tab Gmail đích):</strong> Mở một tab trình duyệt Google mới đang đăng nhập đúng tài khoản Gmail mà bạn cần nâng cấp.
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
+                  <span class="w-5 h-5 rounded-full bg-purple-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
+                  <div>
+                    <strong class="text-slate-900">Bước 3 (Dán link & Kích hoạt gói):</strong> Dán (Paste) link vừa sao chép vào thanh địa chỉ rồi nhấn Enter. Trang kích hoạt Google One hiện ra -> Bấm nút <strong>"Tham gia / Chấp nhận" (Accept / Join)</strong>.
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-2.5 p-2 rounded-xl bg-emerald-50 border border-emerald-300">
+                  <span class="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">✓</span>
+                  <div>
+                    <strong class="text-emerald-900">Bước 4 (Thành công mỹ mãn):</strong> Màn hình xác nhận xuất hiện: <em class="font-bold text-blue-700">"Bạn là thành viên gói Google AI Pro"</em>. Bấm nút <strong>"Chuyển đến Gemini"</strong> để tận hưởng ngay 5TB bộ nhớ và sức mạnh AI đỉnh cao!
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- BẢNG HƯỚNG DẪN 2 LỰA CHỌN KÍCH HOẠT THÔNG MINH -->
-        <div class="space-y-3 text-left">
-          
-          <!-- LỰA CHỌN 1: NÂNG NHANH CHO MAIL HIỆN TẠI -->
-          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-400 rounded-2xl p-4 shadow-sm space-y-2.5">
-            <div class="flex items-center gap-2">
-              <span class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0">⚡</span>
-              <h4 class="text-xs sm:text-sm font-black text-blue-950 uppercase tracking-wide">
-                Cách 1: Nâng cấp nhanh (Bằng Gmail đang mở trên trình duyệt này)
-              </h4>
+        <!-- TRƯỜNG HỢP 2: KHO ĐANG HẾT LINK (CẦN MUA TỪ BOT HOẶC GỬI QUA ZALO) -->
+        <div id="successPendingLinkView" class="space-y-3.5 text-left hidden">
+          <div class="p-5 rounded-2xl bg-gradient-to-br from-blue-50 via-sky-50 to-emerald-50 border-2 border-blue-400 text-left space-y-3.5 shadow-sm">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-md shrink-0">
+                💬
+              </span>
+              <div>
+                <h4 class="text-sm sm:text-base font-black text-slate-900">Bấm Nhận Link Bản Quyền Qua Zalo Ngay</h4>
+                <p class="text-xs text-slate-600 font-medium">Chuyên viên hỗ trợ trực tuyến 24/7 đang online</p>
+              </div>
             </div>
-            <p class="text-xs text-slate-600 leading-relaxed">
-              Nếu bạn muốn kích hoạt luôn vào tài khoản Google bạn đang dùng ở trình duyệt này, chỉ cần <strong>1 thao tác bấm nút</strong> bên dưới:
-            </p>
-            <a id="directOpenLinkBtn" href="#" target="_blank" rel="noopener noreferrer" 
-              class="w-full text-center py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-98 text-white text-xs sm:text-sm font-black transition shadow-md flex items-center justify-center gap-2 cursor-pointer uppercase">
-              <span>👉 Bấm Vào Đây Để Mở Link Nhận Quyền Ngay</span>
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-            </a>
-            <p class="text-[11px] text-blue-800 italic text-center font-medium">
-              *Trang Google One sẽ mở ra -> Nhấn "Tham gia" là hoàn tất chỉ trong 3 giây!
-            </p>
-          </div>
-
-          <!-- LỰA CHỌN 2: NÂNG CẤP CHO GMAIL KHÁC (4 BƯỚC CHUẨN) -->
-          <div class="bg-white border-2 border-slate-300 rounded-2xl p-4 shadow-sm space-y-3">
-            <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
-              <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shrink-0">🎯</span>
-              <h4 class="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-wide">
-                Cách 2: Nâng cấp cho Gmail khác (Hoặc tặng người thân / tài khoản phụ)
-              </h4>
-            </div>
-            <p class="text-xs text-slate-600">
-              Quy trình 4 bước chuẩn chỉ, bảo mật và chính xác 100%:
-            </p>
             
-            <div class="grid gap-2 text-xs">
-              <div class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
-                <span class="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
-                <div>
-                  <strong class="text-slate-900">Bước 1 (Copy link):</strong> Bấm nút <strong>"Sao Chép Link"</strong> ở khung màu xanh phía trên.
-                </div>
-              </div>
+            <p class="text-xs text-slate-700 leading-relaxed">
+              Hệ thống đã xác nhận bạn chuyển khoản thành công <strong>90.000 VNĐ</strong>. Để nhận đường link kích hoạt riêng biệt cho Gmail của bạn ngay lập tức, vui lòng <strong>bấm nút Zalo bên dưới</strong>:
+            </p>
 
-              <div class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
-                <span class="w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
-                <div>
-                  <strong class="text-slate-900">Bước 2 (Chuyển Tab Gmail đích):</strong> Mở một tab trình duyệt Google mới đang đăng nhập đúng tài khoản Gmail mà bạn cần nâng cấp.
-                </div>
-              </div>
+            <a id="btnClaimViaZalo" href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer"
+               class="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 hover:from-blue-700 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
+              <span>💬 BẤM VÀO ĐÂY NHẬN LINK QUA ZALO (0567.960.777)</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
 
-              <div class="flex items-start gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
-                <span class="w-5 h-5 rounded-full bg-purple-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
-                <div>
-                  <strong class="text-slate-900">Bước 3 (Dán link & Kích hoạt gói):</strong> Dán (Paste) link vừa sao chép vào thanh địa chỉ rồi nhấn Enter. Trang kích hoạt Google One hiện ra -> Bấm nút <strong>"Tham gia / Chấp nhận" (Accept / Join)</strong>.
-                </div>
+            <div class="p-3 bg-white/90 rounded-xl border border-blue-200 text-xs text-slate-600 space-y-1">
+              <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Thông tin xác nhận đơn hàng:</span>
               </div>
-
-              <div class="flex items-start gap-2.5 p-2 rounded-xl bg-emerald-50 border border-emerald-300">
-                <span class="w-5 h-5 rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0 mt-0.5">✓</span>
-                <div>
-                  <strong class="text-emerald-900">Bước 4 (Thành công mỹ mãn):</strong> Màn hình pháo hoa xuất hiện thông báo: <em class="font-bold text-blue-700">"Bạn là thành viên gói Google AI Pro"</em>. Bấm nút <strong>"Chuyển đến Gemini"</strong> để tận hưởng ngay 5TB bộ nhớ và sức mạnh AI đỉnh cao!
-                </div>
+              <div class="grid grid-cols-2 gap-1 text-[11px] pt-1 border-t border-slate-100 font-mono">
+                <div>• SĐT: <strong id="pendingCustomerPhone" class="text-slate-900">09...</strong></div>
+                <div>• Gói: <strong class="text-blue-700 font-sans">Gemini Pro 18T</strong></div>
+              </div>
+              <div class="text-[11px] text-slate-500 italic pt-1">
+                *Nếu bạn không dùng Zalo, chuyên viên kỹ thuật sẽ chủ động liên hệ SĐT trên để gửi link cho bạn trong 1 - 3 phút!
               </div>
             </div>
           </div>
-
         </div>
 
-        <!-- KHUNG LƯU Ý ĐẶC BIỆT: KIỂM TRA THƯ RÁC / SPAM GMAIL -->
-        <div class="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-400 rounded-2xl p-4 text-left space-y-2 shadow-sm">
-          <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center font-black text-xs shrink-0 animate-pulse">⚠️</span>
-            <h4 class="text-xs sm:text-sm font-black text-amber-950 uppercase tracking-wide">
-              LƯU Ý QUAN TRỌNG KHI KIỂM TRA GMAIL:
-            </h4>
-          </div>
-          <p class="text-xs text-amber-950 font-bold leading-relaxed">
-            Nếu bạn không thấy email trong <span class="text-blue-700 underline">Hộp thư chính (Inbox)</span>, xin vui lòng kiểm tra ngay mục <span class="text-red-700 bg-red-100 px-1.5 py-0.5 rounded font-black border border-red-300">"Thư rác" (Spam)</span> hoặc mục <span class="text-amber-800 font-bold">"Quảng cáo"</span> nhé!
-          </p>
-          <div class="text-[11px] text-slate-700 bg-white/90 p-2.5 rounded-xl border border-amber-200 leading-normal space-y-1">
-            <div>💡 <strong>Mẹo nhỏ:</strong> Khi thấy email trong mục <strong>Thư rác</strong>, bạn chỉ cần bấm nút <strong>"Báo cáo không phải thư rác" (Not Spam)</strong>.</div>
-            <div class="text-emerald-700 font-medium">➡️ Ngay lập tức thư sẽ tự chuyển về Hộp thư chính và hiển thị đầy đủ tên hỗ trợ <span class="font-bold">Google Gemini Pro Support VN</span>!</div>
-          </div>
-        </div>
-
-        <!-- THÔNG TIN HỖ TRỢ VÀ EMAIL ĐÃ GỬI -->
-        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-left space-y-2 text-xs shadow-2xs">
+        <!-- THÔNG TIN HỖ TRỢ VÀ EMAIL NHẬN QUYỀN -->
+        <div id="finalEmailNoticeBox" class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-left space-y-2 text-xs shadow-2xs">
           <div class="flex items-start gap-2.5">
-            <div class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center font-bold text-xs shrink-0">✉️</div>
+            <div class="w-6 h-6 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shrink-0">✉️</div>
             <div>
-              <span class="text-slate-500 font-medium">Đã gửi toàn bộ link & hướng dẫn chi tiết vào Gmail:</span>
+              <span class="text-slate-500 font-medium">Tài khoản Gmail đăng ký nhận bản quyền:</span>
               <div id="finalEmail" class="font-bold text-slate-900 font-mono text-xs mt-0.5">user@gmail.com</div>
-              <span class="text-[11px] text-amber-700 font-bold block mt-0.5">⚠️ Nhớ kiểm tra cả mục Thư rác (Spam) & Quảng cáo!</span>
+              <span class="text-[11px] text-slate-500 block mt-0.5">Hỗ trợ CSKH 24/7 trực tiếp qua Zalo: <strong>0567.960.777</strong></span>
             </div>
           </div>
 
           <div class="border-t border-slate-200 pt-2 flex items-center justify-between text-xs">
-            <span class="text-slate-600">💬 Cần hỗ trợ kích hoạt qua Ultraviewer?</span>
+            <span class="text-slate-600">💬 Cần hỗ trợ kích hoạt Ultraviewer / Zalo?</span>
             <a href="https://zalo.me/0567960777" target="_blank" class="text-blue-700 font-bold hover:underline">
               Zalo: 0567.960.777
             </a>
           </div>
         </div>
 
-        <div class="space-y-2 pt-1">
-          <a href="https://mail.google.com" target="_blank" class="block w-full py-3.5 rounded-xl font-black text-xs sm:text-sm text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 transition shadow-md text-center uppercase tracking-wide">
-            📩 MỞ GMAIL (KIỂM TRA HỘP THƯ CHÍNH &amp; THƯ RÁC)
+        <div class="space-y-2 pt-1" id="successBottomActions">
+          <a id="btnBottomZaloSupport" href="https://zalo.me/0567960777" target="_blank" class="block w-full py-3.5 rounded-xl font-black text-xs sm:text-sm text-white bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 hover:from-blue-700 transition shadow-md text-center uppercase tracking-wide">
+            💬 Nhắn Zalo Hỗ Trợ Kích Hoạt 24/7 (0567.960.777)
           </a>
           <button onclick="closePaymentModal()" class="block w-full py-2 rounded-xl font-bold text-xs text-slate-500 hover:bg-slate-100 transition cursor-pointer">
             Đóng cửa sổ này
@@ -1568,15 +1591,30 @@
       }
     }
 
-    function notifyTelegramCustomerOrder(order, remainingStock) {
+    function notifyTelegramCustomerOrder(order, remainingStock, isOutOfStock) {
       const cleanPhone = order.phone ? order.phone.toString().replace(/^'/, '') : "N/A";
       const timeStr = order.time || new Date().toLocaleString('vi-VN');
+
+      if (isOutOfStock || !order.licenseLink) {
+        const alertMsg = `🚨 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN 90.000 VNĐ</b>\n` +
+          `Mã đơn: <code>${order.orderId}</code> • ${timeStr}\n` +
+          `Khách: <b>${order.name}</b> | <code>${cleanPhone}</code>\n` +
+          `Gmail: <code>${order.email}</code>\n` +
+          `Nội dung CK: <code>${order.memo || ('PRO18T ' + cleanPhone)}</code>\n\n` +
+          `⚠️ <b>KHO ĐÃ HẾT LINK! VUI LÒNG MUA LINK GẤP:</b>\n` +
+          `👉 <b>VÀO BOT MUA NGAY:</b> https://t.me/shopxoainon_bot\n` +
+          `<i>(Mua xong vào /admin hoặc gửi Zalo cho khách liền!)</i>`;
+        sendTelegramMessage(alertMsg);
+        return;
+      }
+
       const msg = `🟢 <b>ĐƠN HÀNG MỚI (${order.amount || '90.000 VNĐ'})</b>\n` +
         `Mã đơn: <code>${order.orderId}</code> • ${timeStr}\n` +
         `Khách: <b>${order.name}</b> | <code>${cleanPhone}</code>\n` +
         `Gmail: <code>${order.email}</code>\n` +
         `Nội dung: <code>${order.memo || ('PRO18T ' + cleanPhone)}</code>\n` +
-        `Link cấp: <code>${order.licenseLink}</code>`;
+        `Link cấp: <code>${order.licenseLink}</code>\n` +
+        `Kho còn: <b>${remainingStock} mã</b>`;
 
       sendTelegramMessage(msg);
 
@@ -1590,7 +1628,8 @@
     function notifyTelegramLowStock(currentStock, threshold) {
       const msg = `⚠️ <b>CẢNH BÁO: KHO SẮP HẾT</b>\n` +
         `Kho License còn: <b>${currentStock} mã</b> (Ngưỡng: &lt;= ${threshold})\n` +
-        `Vui lòng nạp thêm tại: /admin`;
+        `👉 Mua thêm tại bot: https://t.me/shopxoainon_bot\n` +
+        `Nạp vào kho tại: /admin`;
 
       sendTelegramMessage(msg);
     }
@@ -1636,10 +1675,10 @@
       // Lọc các mã sẵn sàng và xếp theo thứ tự ID tăng dần (FIFO: Link 1 -> Link 2 -> Link 3...)
       let availableItems = inventory.filter(i => i && i.status === 'Sẵn sàng' && !i.link.includes('GM-STOCK-') && !i.link.includes('GM-KEY-')).sort((a,b) => (a.id || 0) - (b.id || 0));
       let availableItem = availableItems[0];
-      let licenseLink = availableItem ? availableItem.link : 'https://geminiactivation.com/activation/' + custOrderId.replace('#', '');
+      let hasRealLink = !!availableItem;
+      let licenseLink = hasRealLink ? availableItem.link : '';
 
-      if (availableItem) {
-        licenseLink = availableItem.link;
+      if (hasRealLink) {
         const targetInInventory = inventory.find(i => i.id === availableItem.id);
         if (targetInInventory) {
           targetInInventory.status = 'Đã cấp';
@@ -1650,14 +1689,33 @@
         } catch(e) {}
       }
 
+      // 3.1 Cập nhật hiển thị màn hình Thành công: CÓ LINK hay HẾT LINK
+      const hasLinkView = document.getElementById('successHasLinkView');
+      const pendingLinkView = document.getElementById('successPendingLinkView');
+      const finalEmailNotice = document.getElementById('finalEmailNoticeBox');
       const finalLicenseEl = document.getElementById('finalLicenseLink');
-      if (finalLicenseEl) finalLicenseEl.innerText = licenseLink;
-
       const directBtn = document.getElementById('directOpenLinkBtn');
-      if (directBtn) directBtn.href = licenseLink;
 
-      const successEmailEl = document.getElementById('successTargetEmail');
-      if (successEmailEl) successEmailEl.innerText = custEmail;
+      if (hasRealLink) {
+        if (hasLinkView) hasLinkView.classList.remove('hidden');
+        if (pendingLinkView) pendingLinkView.classList.add('hidden');
+        if (finalEmailNotice) finalEmailNotice.classList.remove('hidden');
+        if (finalLicenseEl) finalLicenseEl.innerText = licenseLink;
+        if (directBtn) directBtn.href = licenseLink;
+      } else {
+        // Trường hợp hết link: Hiện hướng dẫn nhận link qua Zalo ngay
+        if (hasLinkView) hasLinkView.classList.add('hidden');
+        if (pendingLinkView) pendingLinkView.classList.remove('hidden');
+        if (finalEmailNotice) finalEmailNotice.classList.remove('hidden');
+        
+        const pendingPhoneEl = document.getElementById('pendingCustomerPhone');
+        if (pendingPhoneEl) pendingPhoneEl.innerText = custPhone;
+        const pendingZaloBtn = document.getElementById('btnClaimViaZalo');
+        if (pendingZaloBtn) {
+          const zaloMsg = encodeURIComponent(`Chào shop, mình vừa thanh toán 90.000đ đơn hàng ${custOrderId} (SĐT: ${custPhone}). Gửi giúp mình link kích hoạt Gemini Pro 18 Tháng nhé!`);
+          pendingZaloBtn.href = `https://zalo.me/0567960777?text=${zaloMsg}`;
+        }
+      }
 
       const newOrder = {
         orderId: custOrderId,
@@ -1673,11 +1731,11 @@
         device: visitorData.device,
         referrer: visitorData.referrer,
         licenseLink: licenseLink,
-        status: 'Đã thanh toán (API Pay - MBBank)',
+        status: hasRealLink ? 'Đã thanh toán (MBBank)' : 'Đã thanh toán (Chờ cấp link)',
         paymentTxId: (txData && txData.id) ? txData.id : ('APIPAY-' + Math.floor(100000 + Math.random() * 900000)),
         paymentSource: (txData && txData.source) ? txData.source : 'API Pay VietQR MBBank',
-        emailStatus: 'Đã gửi Gmail',
-        adminNote: ''
+        emailStatus: 'Chưa gửi Gmail (Chờ gửi thủ công)',
+        adminNote: hasRealLink ? '' : '⚠️ Kho hết link - Cần vào bot mua: https://t.me/shopxoainon_bot'
       };
 
       // 4. Lưu đơn hàng vào localStorage và Backend Server Database (orders.json)
@@ -1699,14 +1757,14 @@
       // 5. Tự động bắn thông báo Telegram
       try {
         const remainingStock = inventory.filter(i => i.status === 'Sẵn sàng').length;
-        notifyTelegramCustomerOrder(newOrder, remainingStock);
+        notifyTelegramCustomerOrder(newOrder, remainingStock, !hasRealLink);
       } catch(e) {}
 
       // 6. Đồng bộ Webhook nếu có
       postOrderToWebhook(newOrder);
 
-      // 7. Gửi email kích hoạt THẬT tới Gmail khách hàng qua Gmail SMTP
-      sendCustomerActivationEmail(newOrder, licenseLink);
+      // 7. Theo yêu cầu thiết kế mới: ĐẦU TIÊN CHƯA GỬI LINK VÀO GMAIL TỰ ĐỘNG
+      // sendCustomerActivationEmail(newOrder, licenseLink);
 
       if (typeof confetti === 'function') {
         try { confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } }); } catch(e) {}
