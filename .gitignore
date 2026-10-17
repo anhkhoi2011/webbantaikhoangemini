@@ -22,6 +22,9 @@ debug_mail.ps1
 *.session
 *.session-journal
 temp_login.json
+*.bak
+*.backup*
+
 
 # OS generated files
 Thumbs.db
