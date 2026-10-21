@@ -1832,7 +1832,37 @@
       }
     }
 
-    const LICENSE_API_BASE = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
+    const CLOUD_BACKEND_URL = 'https://guarantees-lexmark-lcd-counsel.trycloudflare.com';
+
+    function getAdminApiBase() {
+      if (window.location.protocol === 'file:') return 'http://localhost:8080';
+      const host = (window.location.hostname || '').toLowerCase();
+      if (host.includes('geminigiare') || host.includes('github.io') || host.includes('vercel.app')) {
+        return CLOUD_BACKEND_URL;
+      }
+      return '';
+    }
+
+    const LICENSE_API_BASE = getAdminApiBase();
+
+    async function adminApiFetch(endpoint, options = {}) {
+      const base = getAdminApiBase();
+      try {
+        const res = await window.fetch(`${base}${endpoint}`, options);
+        if (res.ok) return res;
+        if ((res.status === 404 || res.status === 502) && base !== CLOUD_BACKEND_URL) {
+          return await window.fetch(`${CLOUD_BACKEND_URL}${endpoint}`, options);
+        }
+        return res;
+      } catch (err) {
+        if (base !== CLOUD_BACKEND_URL) {
+          try {
+            return await window.fetch(`${CLOUD_BACKEND_URL}${endpoint}`, options);
+          } catch(e) {}
+        }
+        throw err;
+      }
+    }
     async function syncInventoryFromServer() {
       try {
         const response = await fetch(`${LICENSE_API_BASE}/api/licenses`);
@@ -2476,7 +2506,7 @@
       }
       showToast('Đang kết nối Userbot tới @shopxoainon_bot để mua link tự động...');
       try {
-        const res = await fetch('/api/tele-buyer/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+        const res = await adminApiFetch('/api/tele-buyer/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
         const data = await res.json();
         if (data.status === 'success' && data.license_link) {
           const input = document.getElementById('assignLinkInput');
@@ -2617,7 +2647,7 @@
 
       const htmlBody = buildFullCustomerOrderEmailHtml(order, link);
       try {
-        const res = await fetch('/api/send-email', {
+        const res = await adminApiFetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -2656,7 +2686,7 @@
       const loginForm = document.getElementById('userbotLoginForm');
       const activePanel = document.getElementById('userbotActivePanel');
       try {
-        const res = await fetch('/api/tele-buyer/status');
+        const res = await adminApiFetch('/api/tele-buyer/status');
         const data = await res.json();
         if (data.is_authorized) {
           if (badge) {
@@ -2694,7 +2724,7 @@
       }
       logUserbotAction(`[*] Đang gửi yêu cầu mã xác nhận tới số: ${phone}...`);
       try {
-        const res = await fetch('/api/tele-buyer/request-otp', {
+        const res = await adminApiFetch('/api/tele-buyer/request-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone: phone })
@@ -2738,7 +2768,7 @@
       }
       logUserbotAction(`[*] Đang xác thực mã OTP: ${code}...`);
       try {
-        const res = await fetch('/api/tele-buyer/submit-otp', {
+        const res = await adminApiFetch('/api/tele-buyer/submit-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code: code, password: pwd || null })
@@ -2772,7 +2802,7 @@
       logUserbotAction(`[START] Bắt đầu tiến trình test mua qua @shopxoainon_bot...`);
       logUserbotAction(`[1] Gửi /buy vào @shopxoainon_bot...`);
       try {
-        const res = await fetch('/api/tele-buyer/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+        const res = await adminApiFetch('/api/tele-buyer/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
         const data = await res.json();
         if (data.status === 'success' && data.license_link) {
           logUserbotAction(`[SUCCESS] Đã bóc tách thành công link Google Service:`);
@@ -2841,7 +2871,7 @@
 
     function syncOrderToBackend(ord) {
       try {
-        fetch('/api/orders', {
+        adminApiFetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(ord)
@@ -2855,7 +2885,7 @@
         localStorage.setItem('crm_orders', JSON.stringify(orders));
         renderOrders();
         try {
-          await fetch('/api/orders', {
+          await adminApiFetch('/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'delete', orderId: orderId })
@@ -2870,7 +2900,7 @@
         localStorage.setItem('crm_orders', JSON.stringify([]));
         renderOrders();
         try {
-          await fetch('/api/orders', {
+          await adminApiFetch('/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'clear' })
@@ -3835,7 +3865,7 @@
       localStorage.setItem('crm_payment_api_config', JSON.stringify(cfg));
       // Đồng bộ về backend server nếu có
       try {
-        fetch('/api/payment-config', {
+        adminApiFetch('/api/payment-config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(cfg)
@@ -3948,7 +3978,7 @@
     async function copyAppsScriptCode() {
       showToast('⏳ Đang lấy toàn bộ mã code Google Apps Script...');
       try {
-        const res = await fetch('/api/get-apps-script');
+        const res = await adminApiFetch('/api/get-apps-script');
         if (res.ok) {
           const data = await res.json();
           if (data && data.code) {
@@ -3968,7 +3998,7 @@
     async function testPaymentApiConnection() {
       showToast('⚡ Đang kiểm tra kết nối API Pay Cloud...');
       try {
-        const res = await fetch('/api/apipay-test');
+        const res = await adminApiFetch('/api/apipay-test');
         const data = await res.json();
         if (data && data.status === 'success') {
           showToast(`✓ ${data.message} (${data.accountName} - MBBank: ${data.accountNumber})`);
@@ -4035,7 +4065,7 @@
 
       // 2. Bắn sang Backend API Server (/api/simulate-payment) nếu có backend
       try {
-        await fetch('/api/simulate-payment', {
+        await adminApiFetch('/api/simulate-payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -4057,8 +4087,8 @@
 
       let transactions = [];
       try {
-        const res = await fetch('/api/bank-transactions');
-        if (res.ok) {
+        const res = await adminApiFetch('/api/bank-transactions');
+        if (res && res.ok) {
           transactions = await res.json();
         }
       } catch(e) {}
@@ -4104,7 +4134,7 @@
       if (!confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử biến động số dư ngân hàng?')) return;
       try {
         localStorage.removeItem('crm_bank_transactions');
-        await fetch('/api/bank-transactions', { method: 'POST' });
+        await adminApiFetch('/api/bank-transactions', { method: 'POST' });
         showToast('✓ Đã xóa sạch nhật ký giao dịch ngân hàng!');
         renderBankTransactions();
       } catch(e) {
@@ -4140,7 +4170,7 @@
       localStorage.setItem('crm_tele_config', JSON.stringify(cfg));
       // Đồng bộ về backend server
       try {
-        fetch('/api/telegram-config', {
+        adminApiFetch('/api/telegram-config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(cfg)
@@ -4151,8 +4181,8 @@
 
     async function loadTelegramConfigFromServer() {
       try {
-        const res = await fetch('/api/telegram-config');
-        if (res.ok) {
+        const res = await adminApiFetch('/api/telegram-config');
+        if (res && res.ok) {
           const cfg = await res.json();
           if (cfg && cfg.botToken) {
             localStorage.setItem('crm_tele_config', JSON.stringify(cfg));
@@ -4228,12 +4258,12 @@
 
       // Gửi qua Server Backend trước (100% không bị chặn bởi mạng / CORS)
       try {
-        const srvRes = await fetch('/api/telegram-notify', {
+        const srvRes = await adminApiFetch('/api/telegram-notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message: htmlText })
         });
-        if (srvRes.ok) {
+        if (srvRes && srvRes.ok) {
           showToast('🚀 Tin nhắn đã bắn về Telegram nhóm thành công!');
           return true;
         }
@@ -4394,7 +4424,7 @@
 
         // Ghi nhận log phía backend
         try {
-          await fetch('/api/admin-login-notify', {
+          await adminApiFetch('/api/admin-login-notify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -4431,9 +4461,9 @@
 
     async function loadPixelStatsFromBackend() {
       try {
-        const res = await fetch('/api/pixel-stats');
+        const res = await adminApiFetch('/api/pixel-stats');
         let data = {};
-        if (res.ok) {
+        if (res && res.ok) {
           data = await res.json();
         } else {
           data = JSON.parse(localStorage.getItem('crm_pixel_stats') || '{}');
@@ -4521,12 +4551,12 @@
       const enabled = toggle ? toggle.checked : true;
 
       try {
-        const res = await fetch('/api/pixel-config', {
+        const res = await adminApiFetch('/api/pixel-config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pixelId: pixelId, enabled: enabled })
         });
-        if (res.ok) {
+        if (res && res.ok) {
           showToast(`✓ Đã lưu cấu hình Meta Pixel ID: ${pixelId}!`);
         } else {
           showToast(`✓ Đã lưu Meta Pixel ID: ${pixelId}`);
@@ -4548,7 +4578,7 @@
       const testUrl = `${origin}/?utm_source=facebook&utm_medium=cpc&utm_campaign=gemini_pro_90k&fbclid=fb_test_click_${Date.now()}`;
 
       try {
-        await fetch('/api/pixel-event', {
+        await adminApiFetch('/api/pixel-event', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -4599,8 +4629,8 @@
 
     async function syncOrdersFromBackend() {
       try {
-        const res = await fetch('/api/orders');
-        if (res.ok) {
+        const res = await adminApiFetch('/api/orders');
+        if (res && res.ok) {
           const serverOrders = await res.json();
           if (Array.isArray(serverOrders)) {
             if (serverOrders.length > 0) {
@@ -5129,7 +5159,7 @@
 </html>`;
 
       try {
-        const res = await fetch('/api/send-email', {
+        const res = await adminApiFetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

@@ -748,9 +748,15 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
 
         # API: Nhận Webhook từ APIPay / Casso / SeAPay / MBBank
         if path == "/api/webhook":
+            import re
+            sys.stdout.write(f"[WEBHOOK INCOMING] Payload: {json.dumps(body, ensure_ascii=False)[:300]}\n")
+            sys.stdout.flush()
+
             items = []
             if isinstance(body.get("data"), list):
                 items = body.get("data")
+            elif isinstance(body.get("data"), dict) and body.get("data"):
+                items = [body.get("data")]
             elif isinstance(body.get("data", {}).get("records"), list):
                 items = body.get("data", {}).get("records")
             elif isinstance(body.get("records"), list):
@@ -767,52 +773,74 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             orders_updated = False
 
             for it in items:
-                amt = int(it.get("amount") or 0)
-                desc = it.get("description") or it.get("memo") or it.get("content") or ""
-                if amt > 0:
+                # Trích xuất số tiền an toàn (hỗ trợ cả int, float, string "90000", "90.000đ")
+                raw_amt = it.get("amount") or it.get("transferAmount") or it.get("creditAmount") or 0
+                try:
+                    if isinstance(raw_amt, str):
+                        clean_amt_str = re.sub(r"[^\d]", "", raw_amt)
+                        amt = int(clean_amt_str) if clean_amt_str else 0
+                    else:
+                        amt = int(raw_amt)
+                except Exception:
+                    amt = 0
+
+                desc = str(it.get("content") or it.get("description") or it.get("memo") or it.get("comment") or "").strip()
+                status_raw = str(it.get("status") or "").upper()
+                public_id = str(it.get("publicId") or "").strip()
+
+                # Kiểm tra giao dịch hợp lệ
+                is_valid_tx = (amt > 0) or (status_raw in ["PAID", "COMPLETED", "SUCCESS"]) or ("PRO18T" in desc.upper())
+
+                if is_valid_tx:
+                    actual_amt = amt if amt > 0 else 90000
                     tx_record = {
-                        "id": str(it.get("id") or f"TX_{int(datetime.now().timestamp()) % 1000000:06d}"),
-                        "amount": amt,
-                        "description": desc,
-                        "bank": it.get("bank") or "MBBank",
-                        "time": it.get("time") or it.get("transactionDateTime") or datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "source": "Webhook API Pay"
+                        "id": str(it.get("id") or it.get("publicId") or f"TX_{int(datetime.now().timestamp()) % 1000000:06d}"),
+                        "amount": actual_amt,
+                        "description": desc or f"PRO18T (APIPay {public_id})",
+                        "bank": it.get("bank") or it.get("bankCode") or "MBBank",
+                        "time": it.get("time") or it.get("transactionDateTime") or it.get("createdAt") or datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "source": "APIPay Webhook"
                     }
                     current_txs.insert(0, tx_record)
 
                     # Tự động khớp với đơn hàng đang chờ thanh toán
-                    clean_desc = desc.upper().replace(" ", "")
+                    clean_desc = (desc or "").upper().replace(" ", "")
+                    matched_order = None
                     for order in orders:
                         st = (order.get("status") or "").lower()
                         if "chờ thanh toán" in st and not order.get("paidNotified"):
                             phone = (order.get("phone") or "").replace("+84", "0").replace(" ", "")
                             memo = (order.get("memo") or f"PRO18T {phone}").upper().replace(" ", "")
-                            if (phone and phone in clean_desc) or (memo and memo in clean_desc):
-                                order["paymentTxId"] = tx_record["id"]
-                                order["paymentSource"] = "APIPay Webhook"
-                                # Cấp license
-                                with LICENSE_LOCK:
-                                    lics = read_licenses()
-                                    free_lic = next((l for l in lics if l.get("status") == "Sẵn sàng"), None)
-                                    if free_lic:
-                                        free_lic["status"] = "Đã cấp"
-                                        free_lic["assignedTo"] = f"{order.get('name')} ({order.get('orderId')})"
-                                        write_json_file(LICENSES_FILE, lics)
-                                        order["licenseLink"] = free_lic.get("link", "")
-                                        order["status"] = "Đã thanh toán (MBBank)"
-                                    else:
-                                        order["licenseLink"] = ""
-                                        order["status"] = "Đã thanh toán (Chờ cấp link)"
-
-                                # Bắn Telegram báo đơn hàng đã thanh toán thành công
-                                try:
-                                    import telegram_sender
-                                    order["paidNotified"] = True
-                                    telegram_sender.send_telegram_raw(telegram_sender.get_payment_success_template(order))
-                                except:
-                                    pass
-                                orders_updated = True
+                            o_pub = (order.get("apipayPublicId") or "").strip()
+                            if (public_id and public_id == o_pub) or (phone and phone in clean_desc) or (memo and memo in clean_desc):
+                                matched_order = order
                                 break
+
+                    if matched_order:
+                        matched_order["paymentTxId"] = tx_record["id"]
+                        matched_order["paymentSource"] = "APIPay Webhook"
+                        # Cấp license
+                        with LICENSE_LOCK:
+                            lics = read_licenses()
+                            free_lic = next((l for l in lics if l.get("status") == "Sẵn sàng"), None)
+                            if free_lic:
+                                free_lic["status"] = "Đã cấp"
+                                free_lic["assignedTo"] = f"{matched_order.get('name')} ({matched_order.get('orderId')})"
+                                write_json_file(LICENSES_FILE, lics)
+                                matched_order["licenseLink"] = free_lic.get("link", "")
+                                matched_order["status"] = "Đã thanh toán (MBBank)"
+                            else:
+                                matched_order["licenseLink"] = ""
+                                matched_order["status"] = "Đã thanh toán (Chờ cấp link)"
+
+                        # Bắn Telegram báo đơn hàng đã thanh toán thành công
+                        try:
+                            import telegram_sender
+                            matched_order["paidNotified"] = True
+                            telegram_sender.send_telegram_raw(telegram_sender.get_payment_success_template(matched_order))
+                        except Exception as e:
+                            sys.stderr.write(f"Telegram webhook notify error: {e}\n")
+                        orders_updated = True
 
             write_json_file("bank_transactions.json", current_txs[:150])
             if orders_updated:

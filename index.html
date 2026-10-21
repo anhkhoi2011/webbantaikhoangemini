@@ -1359,7 +1359,37 @@
 
   <!-- 10. JAVASCRIPT XỬ LÝ ĐẶT HÀNG & BẮT IP NGẦM CHO ADMIN CRM -->
   <script>
-    const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : (window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://localhost:8080');
+    const CLOUD_BACKEND_URL = 'https://guarantees-lexmark-lcd-counsel.trycloudflare.com';
+
+    function getApiBase() {
+      if (window.location.protocol === 'file:') return 'http://localhost:8080';
+      const host = (window.location.hostname || '').toLowerCase();
+      if (host.includes('geminigiare') || host.includes('github.io') || host.includes('vercel.app')) {
+        return CLOUD_BACKEND_URL;
+      }
+      return '';
+    }
+
+    const apiBase = getApiBase();
+
+    async function smartApiFetch(endpoint, options = {}) {
+      const base = getApiBase();
+      try {
+        const res = await window.fetch(`${base}${endpoint}`, options);
+        if (res.ok) return res;
+        if ((res.status === 404 || res.status === 502) && base !== CLOUD_BACKEND_URL) {
+          return await window.fetch(`${CLOUD_BACKEND_URL}${endpoint}`, options);
+        }
+        return res;
+      } catch (err) {
+        if (base !== CLOUD_BACKEND_URL) {
+          try {
+            return await window.fetch(`${CLOUD_BACKEND_URL}${endpoint}`, options);
+          } catch(e) {}
+        }
+        throw err;
+      }
+    }
 
     function showToast(msg, duration = 2600) {
       const toast = document.getElementById('toastAlert');
@@ -1466,8 +1496,7 @@
         localStorage.setItem(key, JSON.stringify(stats));
 
         // Đồng bộ ngầm về backend server
-        const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
-        window.fetch(`${apiBase}/api/pixel-event`, {
+        smartApiFetch('/api/pixel-event', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1822,7 +1851,7 @@
 
       // Tự động kết nối trực tiếp với APIPay Cloud để tạo phiên thanh toán thật
       try {
-        window.fetch(`${apiBase}/api/apipay-create`, {
+        smartApiFetch('/api/apipay-create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone: phone, amount: CONFIG.amount, memo: memo })
@@ -1848,7 +1877,7 @@
 
       // Lưu đơn tạm thời lên Server (orders.json) và thông báo Telegram có khách đang mở QR
       try {
-        window.fetch(`${apiBase}/api/orders`, {
+        smartApiFetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -2026,12 +2055,11 @@
           orderId: (currentOrder && currentOrder.orderId) ? currentOrder.orderId : '',
           publicId: (currentOrder && currentOrder.apipayPublicId) ? currentOrder.apipayPublicId : ''
         });
-        const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
-        const res = await window.fetch(`${apiBase}/api/check-payment?${query.toString()}`);
-        if (res.ok) {
+        const res = await smartApiFetch(`/api/check-payment?${query.toString()}`);
+        if (res && res.ok) {
           const data = await res.json();
           if (data && data.paid) {
-            return { paid: true, transaction: data.transaction, source: 'APIPay Live Cloud' };
+            return { paid: true, transaction: data.transaction, source: data.source || 'APIPay Live Cloud' };
           }
         }
       } catch (err) {
@@ -2142,13 +2170,12 @@
       
       // Gửi qua Server Backend trước (100% không bị chặn bởi mạng / CORS)
       try {
-        const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
-        const srvRes = await window.fetch(`${apiBase}/api/telegram-notify`, {
+        const srvRes = await smartApiFetch('/api/telegram-notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message: htmlText })
         });
-        if (srvRes.ok) return true;
+        if (srvRes && srvRes.ok) return true;
       } catch(e) {}
 
       // Fallback gửi trực tiếp từ trình duyệt
@@ -2317,10 +2344,9 @@
       if (finalOrderIdEl) finalOrderIdEl.innerText = custOrderId;
 
       // 3. Nhận license từ kho server tập trung (FIFO + TỰ MUA từ bot nếu hết kho)
-      const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
       let claimResult = null;
       try {
-        const claimResponse = await fetch(`${apiBase}/api/licenses/auto-claim`, {
+        const claimResponse = await smartApiFetch('/api/licenses/auto-claim', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -2330,7 +2356,9 @@
             email: custEmail
           })
         });
-        claimResult = await claimResponse.json();
+        if (claimResponse && claimResponse.ok) {
+          claimResult = await claimResponse.json();
+        }
       } catch (e) {
         console.warn('License auto-claim warning:', e);
       }
@@ -2429,8 +2457,7 @@
       } catch(e) {}
 
       try {
-        const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
-        window.fetch(`${apiBase}/api/orders`, {
+        smartApiFetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newOrder)
@@ -2628,8 +2655,7 @@
 </html>`;
 
       try {
-        const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
-        window.fetch(`${apiBase}/api/send-email`, {
+        smartApiFetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -2868,7 +2894,7 @@
     // Tự động kết nối server để lấy số lượng thực tế theo IP (tối đa 195 đơn)
     function syncFomoStatsWithServer() {
       try {
-        fetch('/api/fomo-stats')
+        smartApiFetch('/api/fomo-stats')
           .then(r => r.json())
           .then(data => {
             if (data && data.soldCount) {
