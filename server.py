@@ -730,13 +730,28 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                         body["qrNotified"] = True
                     if o.get("paidNotified"):
                         body["paidNotified"] = True
+                    if o.get("couponCounted"):
+                        body["couponCounted"] = True
                     orders[i] = body
                     found = True
                     break
             if not found:
                 orders.insert(0, body)
-                # Tăng số lượt dùng của mã voucher nếu có
-                if body.get("couponCode"):
+            if len(orders) > 500:
+                orders = orders[:500]
+
+            status_str = (body.get("status") or "").lower()
+
+            # Bắn Telegram khi thanh toán thành công (kể cả khi có link hoặc chờ cấp link)
+            is_paid = ("đã thanh toán" in status_str or "thành công" in status_str or "paid" in status_str) and ("chờ thanh toán" not in status_str)
+            send_paid_flag = False
+            if is_paid and not body.get("paidNotified"):
+                body["paidNotified"] = True
+                send_paid_flag = True
+
+                # Tăng số lượt dùng voucher khi KHÁCH ĐÃ THANH TOÁN THÀNH CÔNG
+                if body.get("couponCode") and not body.get("couponCounted"):
+                    body["couponCounted"] = True
                     c_code = (body.get("couponCode") or "").strip().upper()
                     with COUPONS_LOCK:
                         coupons = read_json_file(COUPONS_FILE, [])
@@ -745,29 +760,6 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                                 c["usedCount"] = int(c.get("usedCount") or 0) + 1
                                 break
                         write_json_file(COUPONS_FILE, coupons)
-            if len(orders) > 500:
-                orders = orders[:500]
-
-            status_str = (body.get("status") or "").lower()
-
-            # Bắn Telegram khi khách mở QR chờ thanh toán (Ghi rõ link quảng cáo nếu đến từ Ads)
-            is_qr_opened = ("chờ thanh toán" in status_str or "đang mở qr" in status_str)
-            if is_qr_opened and not body.get("qrNotified"):
-                body["qrNotified"] = True
-                def _bg_qr_notify(order_data):
-                    try:
-                        import telegram_sender
-                        telegram_sender.send_telegram_raw(telegram_sender.get_qr_opened_template(order_data))
-                    except Exception as e:
-                        sys.stderr.write(f"Telegram qr notify error: {e}\n")
-                threading.Thread(target=_bg_qr_notify, args=(dict(body),), daemon=True).start()
-
-            # Bắn Telegram khi thanh toán thành công (kể cả khi có link hoặc chờ cấp link)
-            is_paid = ("đã thanh toán" in status_str or "thành công" in status_str or "paid" in status_str) and ("chờ thanh toán" not in status_str)
-            send_paid_flag = False
-            if is_paid and not body.get("paidNotified"):
-                body["paidNotified"] = True
-                send_paid_flag = True
 
             def _bg_notify(order_data):
                 try:
@@ -896,6 +888,18 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                             else:
                                 matched_order["licenseLink"] = ""
                                 matched_order["status"] = "Đã thanh toán (Chờ cấp link)"
+
+                        # Tăng số lượt dùng voucher khi webhook nhận tiền thành công
+                        if matched_order.get("couponCode") and not matched_order.get("couponCounted"):
+                            matched_order["couponCounted"] = True
+                            c_code = (matched_order.get("couponCode") or "").strip().upper()
+                            with COUPONS_LOCK:
+                                coupons = read_json_file(COUPONS_FILE, [])
+                                for c in coupons:
+                                    if (c.get("code") or "").upper() == c_code:
+                                        c["usedCount"] = int(c.get("usedCount") or 0) + 1
+                                        break
+                                write_json_file(COUPONS_FILE, coupons)
 
                         # Bắn Telegram báo đơn hàng đã thanh toán thành công
                         try:
