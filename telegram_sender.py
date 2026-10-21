@@ -5,9 +5,15 @@ Telegram Notification Engine for Gemini Pro CRM
 """
 import sys
 import json
+import ssl
 import urllib.request
 import urllib.error
 from datetime import datetime
+
+# SSL Context đảm bảo gửi thông báo Telegram thông suốt trong mọi môi trường
+tele_ssl_ctx = ssl.create_default_context()
+tele_ssl_ctx.check_hostname = False
+tele_ssl_ctx.verify_mode = ssl.CERT_NONE
 
 # Đảm bảo console Windows không bị lỗi Unicode
 if sys.stdout.encoding != 'utf-8':
@@ -59,7 +65,7 @@ def send_telegram_raw(html_text, bot_token=None, chat_id=None):
     )
     
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, context=tele_ssl_ctx, timeout=10) as resp:
             res_json = json.loads(resp.read().decode("utf-8"))
             return res_json.get("ok", False)
     except Exception as e:
