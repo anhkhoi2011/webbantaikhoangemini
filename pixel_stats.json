@@ -3,13 +3,53 @@
   "enabled": true,
   "stats": {
     "PageView": 158,
-    "ViewContent": 145,
-    "Lead": 48,
-    "InitiateCheckout": 47,
+    "ViewContent": 146,
+    "Lead": 49,
+    "InitiateCheckout": 48,
     "Purchase": 24,
-    "totalEvents": 422
+    "totalEvents": 425
   },
   "recentEvents": [
+    {
+      "event": "InitiateCheckout",
+      "time": "01:07:18 22/10/2026",
+      "url": "https://geminigiare.io.vn/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Google Gemini Pro 18 Tháng",
+        "value": 90000,
+        "currency": "VND",
+        "num_items": 1
+      }
+    },
+    {
+      "event": "Lead",
+      "time": "01:07:18 22/10/2026",
+      "url": "https://geminigiare.io.vn/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Đăng Ký Gemini Pro 18T",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
+    {
+      "event": "ViewContent",
+      "time": "01:06:48 22/10/2026",
+      "url": "https://geminigiare.io.vn/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Google Gemini Pro 18 Tháng",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
     {
       "event": "Lead",
       "time": "00:24:00 22/10/2026",
@@ -191,5 +231,5 @@
       "params": {}
     }
   ],
-  "updatedAt": "22/10/2026 00:24:01"
+  "updatedAt": "22/10/2026 01:07:19"
 }

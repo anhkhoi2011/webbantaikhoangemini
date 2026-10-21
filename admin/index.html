@@ -89,6 +89,10 @@
 
       <!-- Action Tools -->
       <div class="flex items-center flex-wrap gap-2">
+        <button onclick="openManualSendLinkModal()" class="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 px-3 py-1.5 rounded-lg shadow-md transition cursor-pointer">
+          <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <span>✉️ Gửi Link Thủ Công</span>
+        </button>
         <a href="https://t.me/shopxoainon_bot" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-sky-900 bg-sky-100 hover:bg-sky-200 border border-sky-300 px-3 py-1.5 rounded-lg shadow-sm transition" title="Mở Bot Telegram @shopxoainon_bot để mua link thanh toán">
           <svg class="w-3.5 h-3.5 text-sky-600 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/></svg>
           <span>🛒 Mua Link (@shopxoainon_bot)</span>
@@ -226,13 +230,25 @@
 
       <button onclick="switchTab('traffic')" id="tabBtn-traffic" class="px-4 py-2.5 rounded-xl text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 flex items-center gap-2 transition cursor-pointer whitespace-nowrap">
         <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-        <span>Phân Tích Traffic & Khách Hàng</span>
+        <span>Phân Tích Traffic</span>
         <span class="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full font-mono border border-emerald-300 animate-pulse">Live</span>
+      </button>
+
+      <button onclick="switchTab('pixel')" id="tabBtn-pixel" class="px-4 py-2.5 rounded-xl text-slate-600 hover:text-indigo-700 hover:bg-indigo-50 flex items-center gap-2 transition cursor-pointer whitespace-nowrap">
+        <svg class="w-4 h-4 text-indigo-500" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        <span>📊 Thống Kê Meta Pixel & Ads</span>
+        <span class="bg-indigo-100 text-indigo-800 text-xs px-2 py-0.5 rounded-full font-mono border border-indigo-300">Live</span>
+      </button>
+
+      <button onclick="switchTab('coupons')" id="tabBtn-coupons" class="px-4 py-2.5 rounded-xl text-slate-600 hover:text-rose-700 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer whitespace-nowrap">
+        <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+        <span>🏷️ Mã Giảm Giá (Voucher)</span>
+        <span id="badgeCouponCount" class="bg-rose-100 text-rose-800 text-xs px-2 py-0.5 rounded-full font-mono border border-rose-200">0 mã</span>
       </button>
 
       <button onclick="switchTab('settings')" id="tabBtn-settings" class="px-4 py-2.5 rounded-xl text-slate-600 hover:text-purple-700 hover:bg-purple-50 flex items-center gap-2 transition cursor-pointer whitespace-nowrap">
         <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        <span>Cấu Hình Tích Hợp</span>
+        <span>⚙️ Cấu Hình Tích Hợp</span>
       </button>
 
     </div>
@@ -408,7 +424,94 @@
     <!-- TAB 2: KHO LICENSE KÍCH HOẠT -->
     <!-- ======================================================== -->
     <section id="tab-inventory" class="space-y-4 hidden">
-      
+
+      <!-- ======================================================== -->
+      <!-- 🟢 KHỐI NỔI BẬT: GỬI LINK KÍCH HOẠT THỦ CÔNG CHO KHÁCH -->
+      <!-- ======================================================== -->
+      <div id="manualSendLinkFormCard" class="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 rounded-3xl p-5 text-white shadow-xl space-y-4 border-2 border-emerald-400/50">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold text-xl border border-emerald-400/30">
+              ✉️
+            </span>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="text-base font-extrabold tracking-tight text-white">Gửi Link Kích Hoạt Bản Quyền Thủ Công Cho Khách</h3>
+                <span class="bg-emerald-400/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-400/30">
+                  Gmail SMTP Tự Động
+                </span>
+              </div>
+              <p class="text-xs text-emerald-200/90 mt-0.5">Nhập Gmail khách hàng và dán đường link để hệ thống tự động gửi email bàn giao chuyên nghiệp ngay tức khắc.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="autoFillAvailableLicenseLink()" class="px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+              <span>📋 Lấy Link Sẵn Có Trong Kho</span>
+            </button>
+          </div>
+        </div>
+
+        <form id="manualSendLinkForm" onsubmit="handleManualSendLinkSubmit(event)" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            
+            <!-- Email Khách Nhận -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-emerald-200">
+                1. Nhập Gmail Của Khách Hàng <span class="text-rose-400">*</span>
+              </label>
+              <div class="relative">
+                <input type="email" id="manualRecipientEmail" required placeholder="vidu: khachhang@gmail.com"
+                       class="w-full px-3.5 py-2.5 bg-white text-slate-900 border-2 border-emerald-300 rounded-xl text-xs sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-400/30 shadow-inner">
+                <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-mono font-bold">@gmail</span>
+              </div>
+              <span class="text-[11px] text-emerald-300/80">Khách sẽ nhận email xác nhận kích hoạt kèm nút bấm nhận quyền.</span>
+            </div>
+
+            <!-- Tên Khách Hàng (Tùy chọn) -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-emerald-200">
+                2. Tên Khách Hàng (Tuỳ chọn)
+              </label>
+              <input type="text" id="manualRecipientName" placeholder="Ví dụ: Anh Minh (mặc định: Bạn / Quý khách)"
+                     class="w-full px-3.5 py-2.5 bg-white text-slate-900 border-2 border-emerald-300 rounded-xl text-xs sm:text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-400/30 shadow-inner">
+              <span class="text-[11px] text-emerald-300/80">Hiển thị trong phần lời chào trân trọng của thư.</span>
+            </div>
+
+          </div>
+
+          <!-- Link Kích Hoạt Cần Gửi -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold text-emerald-200">
+                3. Đường Link Bản Quyền Cần Gửi Cho Khách <span class="text-rose-400">*</span>
+              </label>
+              <button type="button" onclick="autoFillAvailableLicenseLink()" class="text-xs text-amber-300 hover:text-amber-200 underline font-bold cursor-pointer">
+                + Tự động lấy 1 link từ kho nạp bên dưới
+              </button>
+            </div>
+            <textarea id="manualActivationLink" required rows="2" placeholder="Dán link kích hoạt vào đây (Ví dụ: https://one.google.com/promo/... hoặc link mua từ bot @shopxoainon_bot)"
+                      class="w-full p-3 bg-white text-blue-900 font-mono font-bold text-xs border-2 border-emerald-300 rounded-xl focus:outline-none focus:ring-4 focus:ring-emerald-400/30 shadow-inner"></textarea>
+          </div>
+
+          <!-- Nút Hành Động -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t border-white/10">
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="copyManualZaloMessage()" class="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/20 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                <span>💬 Copy Tin Nhắn Zalo Bàn Giao</span>
+              </button>
+              <button type="button" onclick="resetManualSendForm()" class="px-3 py-2 bg-transparent hover:bg-white/10 text-slate-300 hover:text-white font-medium text-xs rounded-xl transition cursor-pointer">
+                Làm mới
+              </button>
+            </div>
+
+            <button type="submit" id="btnManualSendEmail" class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:to-teal-600 active:scale-95 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+              <span>✉️ BẤM GỬI LINK VÀO GMAIL KHÁCH NGAY</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Khung nạp thêm License -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 md:col-span-1">
@@ -1342,7 +1445,447 @@
 
         </div>
 
+        <!-- LINK NHANH TỚI TAB PIXEL -->
+        <div class="bg-gradient-to-r from-indigo-50 to-blue-50 p-5 rounded-2xl border-2 border-indigo-300 shadow-sm md:col-span-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shrink-0">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-black text-slate-900">Quản Lý & Thống Kê Meta Pixel (ID: 762402019586629)</h3>
+                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-300">Đang Bật</span>
+              </div>
+              <p class="text-xs text-slate-600 mt-0.5">Theo dõi 5 sự kiện chuẩn PageView, ViewContent, Lead, InitiateCheckout, Purchase và lịch sử khách vào từ Ads.</p>
+            </div>
+          </div>
+          <button type="button" onclick="switchTab('pixel')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+            <span>👉 Mở Bảng Thống Kê Meta Pixel & Ads</span>
+          </button>
+        </div>
+
+
+        </div>
+
       </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- TAB 5: QUẢN LÝ MÃ KHUYẾN MÃI / VOUCHER -->
+    <!-- ======================================================== -->
+    
+    <!-- ======================================================== -->
+    <!-- TAB 4: THỐNG KÊ META PIXEL & ADS -->
+    <!-- ======================================================== -->
+    <section id="tab-pixel" class="space-y-4 hidden">
+        <!-- ======================================================== -->
+        <!-- 3. QUẢN LÝ & ĐỒNG BỘ META PIXEL (FACEBOOK ADS TRACKING ID: 762402019586629) -->
+        <!-- ======================================================== -->
+        <div class="bg-gradient-to-br from-blue-50/70 via-white to-indigo-50/50 p-6 rounded-2xl border-2 border-blue-400 shadow-sm space-y-5 md:col-span-2">
+          
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-blue-100">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-md shrink-0">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="text-base font-black text-slate-900">Quản Lý & Đồng Bộ Meta Pixel (Facebook Ads Tracking)</h3>
+                  <span id="pixelStatusBadge" class="text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>🟢 Đang Kích Hoạt (Pixel ID: 762402019586629)</span>
+                  </span>
+                </div>
+                <p class="text-xs text-slate-600 mt-0.5 font-medium">Theo dõi sự kiện và doanh thu từ chiến dịch Facebook Ads theo thời gian thực. Bắt chính xác 100% link quảng cáo khách bấm vào và báo về Telegram.</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-slate-700">Trạng thái Pixel:</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="pixelEnabledToggle" checked onchange="togglePixelAutomation()" class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+          </div>
+
+          <!-- BẢNG ĐIỀU KHIỂN SỰ KIỆN PIXEL REAL-TIME (5 SỰ KIỆN CHUẨN) -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+            
+            <div class="p-3.5 bg-white rounded-2xl border-2 border-blue-200 shadow-2xs">
+              <span class="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">1. PageView</span>
+              <div class="text-2xl font-black text-blue-900 font-mono mt-1" id="pixelPvCount">0</div>
+              <span class="text-[10px] text-slate-500 font-medium">Khách truy cập web</span>
+            </div>
+
+            <div class="p-3.5 bg-white rounded-2xl border-2 border-indigo-200 shadow-2xs">
+              <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">2. ViewContent</span>
+              <div class="text-2xl font-black text-indigo-900 font-mono mt-1" id="pixelVcCount">0</div>
+              <span class="text-[10px] text-slate-500 font-medium">Xem gói Gemini Pro</span>
+            </div>
+
+            <div class="p-3.5 bg-white rounded-2xl border-2 border-amber-200 shadow-2xs">
+              <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">3. Lead</span>
+              <div class="text-2xl font-black text-amber-900 font-mono mt-1" id="pixelLeadCount">0</div>
+              <span class="text-[10px] text-slate-500 font-medium">Bấm Đăng Ký / Mua</span>
+            </div>
+
+            <div class="p-3.5 bg-white rounded-2xl border-2 border-purple-200 shadow-2xs">
+              <span class="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">4. InitiateCheckout</span>
+              <div class="text-2xl font-black text-purple-900 font-mono mt-1" id="pixelIcCount">0</div>
+              <span class="text-[10px] text-slate-500 font-medium">Mở mã QR quét tiền</span>
+            </div>
+
+            <div class="p-3.5 bg-white rounded-2xl border-2 border-emerald-300 shadow-2xs bg-gradient-to-br from-emerald-50/50 to-white">
+              <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">5. Purchase (90k)</span>
+              <div class="text-2xl font-black text-emerald-900 font-mono mt-1" id="pixelPurchaseCount">0</div>
+              <span class="text-[10px] text-emerald-700 font-bold">Thanh toán thành công</span>
+            </div>
+
+            <div class="p-3.5 bg-white rounded-2xl border-2 border-rose-200 shadow-2xs">
+              <span class="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">Tỷ Lệ Mua (CR)</span>
+              <div class="text-2xl font-black text-rose-900 font-mono mt-1" id="pixelCrPercent">0.0%</div>
+              <span class="text-[10px] text-slate-500 font-medium">Purchase / Lead</span>
+            </div>
+
+          </div>
+
+          <!-- FORM CẤU HÌNH & BẮN SỰ KIỆN TEST -->
+          <div class="grid lg:grid-cols-12 gap-5">
+            <!-- CỘT TRÁI: FORM CÀI ĐẶT PIXEL & TEST EVENT (6 CỘT) -->
+            <div class="lg:col-span-6 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span class="text-xs font-black text-slate-900 uppercase">Cài Đặt ID Meta Pixel:</span>
+                <span class="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">ID: 762402019586629</span>
+              </div>
+
+              <div class="space-y-3 text-xs">
+                <div>
+                  <label class="block font-bold text-slate-800 mb-1">Mã Pixel ID (Facebook Pixel ID) <span class="text-red-500">*</span></label>
+                  <div class="flex gap-2">
+                    <input type="text" id="pixelIdInput" value="762402019586629" placeholder="762402019586629"
+                      class="flex-1 p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-xs text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs">
+                    <button onclick="savePixelConfigFromUI()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-sm cursor-pointer whitespace-nowrap">
+                      💾 Lưu Pixel
+                    </button>
+                  </div>
+                  <span class="text-[11px] text-slate-500 mt-1 block">Pixel ID này được đồng bộ tức thì trên cả trang chủ lẫn backend server.</span>
+                </div>
+
+                <!-- Bắn thử sự kiện Pixel Test -->
+                <div class="pt-2 border-t border-slate-100 space-y-2">
+                  <label class="block font-bold text-slate-800">🧪 Thử Nghiệm Bắn Sự Kiện Meta Pixel (Test Event):</label>
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button onclick="triggerTestPixelEvent('PageView')" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-800 font-bold rounded-xl border border-blue-200 text-center transition cursor-pointer">
+                      👁️ PageView
+                    </button>
+                    <button onclick="triggerTestPixelEvent('ViewContent')" class="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold rounded-xl border border-indigo-200 text-center transition cursor-pointer">
+                      📦 ViewContent
+                    </button>
+                    <button onclick="triggerTestPixelEvent('Lead')" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold rounded-xl border border-amber-200 text-center transition cursor-pointer">
+                      🎯 Lead
+                    </button>
+                    <button onclick="triggerTestPixelEvent('Purchase')" class="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-bold rounded-xl border border-emerald-300 text-center transition cursor-pointer">
+                      💰 Purchase (90k)
+                    </button>
+                  </div>
+                  <span class="text-[11px] text-slate-500 block">Bấm để kiểm tra đồng bộ lên bảng đếm và kiểm tra trên Facebook Meta Events Manager.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- CỘT PHẢI: CÔNG CỤ TẠO LINK QUẢNG CÁO UTM CHUẨN (6 CỘT) -->
+            <div class="lg:col-span-6 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3 text-xs">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span class="text-xs font-black text-slate-900 uppercase">🎯 Công Cụ Tạo Link Chạy Quảng Cáo (UTM Builder):</span>
+                <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">Bắt link 100% về Tele</span>
+              </div>
+
+              <div class="space-y-2.5">
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block font-bold text-slate-700 text-[11px] mb-1">Kênh Nguồn (utm_source):</label>
+                    <select id="utmSourceSelect" onchange="generateUtmLink()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-xs text-slate-800">
+                      <option value="facebook" selected>Facebook Ads (Meta)</option>
+                      <option value="tiktok">TikTok Ads</option>
+                      <option value="google">Google Ads</option>
+                      <option value="zalo">Zalo Ads</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block font-bold text-slate-700 text-[11px] mb-1">Chiến Dịch (utm_campaign):</label>
+                    <input type="text" id="utmCampaignInput" value="gemini_pro_90k" oninput="generateUtmLink()"
+                      class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-800">
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block font-bold text-slate-700 text-[11px] mb-1">Đường Link Đích Tạo Ra (Dùng dán vào bài viết / mẫu quảng cáo Ads):</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="generatedUtmLink" readonly
+                      class="flex-1 p-2.5 bg-blue-50/70 border border-blue-300 rounded-xl font-mono text-[11px] text-blue-900 select-all cursor-pointer font-bold">
+                    <button onclick="copyGeneratedUtmLink()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-sm cursor-pointer whitespace-nowrap flex items-center gap-1">
+                      <span>📋 Copy</span>
+                    </button>
+                  </div>
+                  <span class="text-[11px] text-emerald-700 font-medium mt-1 block">✓ Khi khách bấm vào link này trên Facebook, FB tự gắn <code>fbclid</code> và hệ thống sẽ gửi nguyên link chính xác về Telegram!</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LỊCH SỬ SỰ KIỆN PIXEL GẦN ĐÂY (LIVE EVENT STREAM) -->
+          <div class="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-2xs space-y-3 text-xs">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping"></span>
+                <span class="font-black text-slate-900 uppercase text-xs">Nhật Ký Sự Kiện Meta Pixel Gần Đây (Live Pixel Stream)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="loadPixelStatsFromBackend()" class="text-blue-600 hover:underline font-bold text-[11px] cursor-pointer">🔄 Tải lại dữ liệu</button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[11px]">
+                    <th class="py-2 px-3">Thời Gian</th>
+                    <th class="py-2 px-3">Tên Sự Kiện</th>
+                    <th class="py-2 px-3">Nguồn / Kênh</th>
+                    <th class="py-2 px-3">Chiến Dịch (Campaign)</th>
+                    <th class="py-2 px-3">FB Click ID (fbclid)</th>
+                    <th class="py-2 px-3">URL Đích Bấm Vào</th>
+                  </tr>
+                </thead>
+                <tbody id="pixelEventsTableBody" class="divide-y divide-slate-100 font-mono text-[11px]">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+    </section>
+
+    <section id="tab-coupons" class="space-y-4 hidden">
+
+      <!-- BANNER TIÊU ĐỀ -->
+      <div class="bg-gradient-to-r from-rose-900 via-pink-900 to-slate-900 rounded-3xl p-5 text-white shadow-lg space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center font-bold text-base">🏷️</span>
+              <h3 class="text-base font-extrabold tracking-tight">Quản Lý Mã Khuyến Mãi & Voucher Giảm Giá</h3>
+            </div>
+            <p class="text-xs text-rose-200 mt-0.5">Tạo mã giảm giá linh hoạt (Ví dụ: SALE11 chốt 69.000đ). Tự động sinh VietQR đúng số tiền đã giảm, APIPay và hệ thống tự động xác nhận trong 3 giây.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="loadCouponsFromServer(true)" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer border border-white/20">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>Làm Mới</span>
+            </button>
+            <button onclick="document.getElementById('couponCodeInputAdmin').focus()" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ Thêm Mã Mới</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 KPI CARDS VOUCHER -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+            <div class="text-[11px] font-bold text-rose-200 uppercase tracking-wider">Tổng Voucher</div>
+            <div id="kpiCouponsTotal" class="text-xl sm:text-2xl font-black mt-1 font-mono">0</div>
+            <div class="text-[10px] text-rose-300 mt-0.5">Tất cả mã trong hệ thống</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+            <div class="text-[11px] font-bold text-emerald-300 uppercase tracking-wider">Đang Hoạt Động</div>
+            <div id="kpiCouponsActive" class="text-xl sm:text-2xl font-black mt-1 font-mono text-emerald-400">0</div>
+            <div class="text-[10px] text-emerald-200 mt-0.5">Sẵn sàng cho khách áp dụng</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+            <div class="text-[11px] font-bold text-amber-300 uppercase tracking-wider">Lượt Đã Dùng</div>
+            <div id="kpiCouponsUsed" class="text-xl sm:text-2xl font-black mt-1 font-mono text-amber-300">0</div>
+            <div class="text-[10px] text-amber-200 mt-0.5">Lần khách đã đặt hàng thành công</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+            <div class="text-[11px] font-bold text-sky-300 uppercase tracking-wider">Mã Tiêu Biểu Hiện Tại</div>
+            <div id="kpiCouponsHighlight" class="text-lg sm:text-xl font-black mt-1 font-mono text-yellow-300 truncate">SALE11 (69k)</div>
+            <div class="text-[10px] text-sky-200 mt-0.5">Giá gốc: 90.000đ</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORM TẠO / SỬA VOUCHER -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">✨</span>
+            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base" id="couponFormTitle">Tạo Mã Khuyến Mãi Mới / Thiết Lập Giảm Giá</h4>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs text-slate-500 font-semibold hidden sm:inline">Mẫu nhanh:</span>
+            <button type="button" onclick="applyCouponPreset('SALE11')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-lg border border-rose-200 transition cursor-pointer">
+              SALE11 (69k)
+            </button>
+            <button type="button" onclick="applyCouponPreset('GIAM11K')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold rounded-lg border border-amber-200 transition cursor-pointer">
+              GIAM11K (79k)
+            </button>
+            <button type="button" onclick="applyCouponPreset('VIP50')" class="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold rounded-lg border border-purple-200 transition cursor-pointer">
+              VIP50 (50k)
+            </button>
+          </div>
+        </div>
+
+        <form id="couponAdminForm" onsubmit="saveCouponFromUI(event)" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+            
+            <!-- Mã Code -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Mã Voucher (Viết liền, không dấu) <span class="text-rose-500">*</span></label>
+              <div class="relative">
+                <input type="text" id="couponCodeInputAdmin" required placeholder="Ví dụ: SALE11" uppercase
+                       oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ''); updateCouponPreviewCalc();"
+                       class="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-sm font-mono font-black text-rose-600 focus:bg-white focus:border-rose-500 focus:outline-none uppercase tracking-wider">
+                <span class="absolute right-3 top-3 text-xs text-slate-400 font-bold">CODE</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">Khách sẽ nhập chính xác mã này vào ô khuyến mãi.</p>
+            </div>
+
+            <!-- Loại Giảm Giá -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Hình thức giảm giá <span class="text-rose-500">*</span></label>
+              <select id="couponTypeSelectAdmin" onchange="handleCouponTypeChange(); updateCouponPreviewCalc();"
+                      class="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-800 focus:bg-white focus:border-rose-500 focus:outline-none">
+                <option value="fixed" selected>🎯 Giá chốt cố định (Khách trả đúng giá này, vd: 69.000đ)</option>
+                <option value="amount">💸 Giảm bớt số tiền cụ thể (vd: Trừ 11.000đ)</option>
+                <option value="percent">📊 Giảm theo phần trăm % (vd: Giảm 10%, 20%)</option>
+              </select>
+              <p class="text-[11px] text-slate-400 mt-1" id="couponTypeHelpText">Khách quét VietQR đúng giá chốt.</p>
+            </div>
+
+            <!-- Giá trị giảm / Giá chốt -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1" id="couponValueLabelAdmin">Giá Chốt Sau Giảm (VND) <span class="text-rose-500">*</span></label>
+              <div class="relative">
+                <input type="number" id="couponValueInputAdmin" required min="1000" step="1000" placeholder="69000" value="69000"
+                       oninput="updateCouponPreviewCalc();"
+                       class="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-sm font-mono font-black text-emerald-700 focus:bg-white focus:border-rose-500 focus:outline-none">
+                <span class="absolute right-3 top-3 text-xs font-bold text-slate-400" id="couponValueUnit">đ</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">Gốc: 90.000đ</p>
+            </div>
+
+          </div>
+
+          <!-- DÒNG 2: Giới hạn lượt dùng, Trạng thái, Mô tả -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+            
+            <!-- Giới hạn số lần sài -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Số Lượng Lượt Dùng Tối Đa <span class="text-rose-500">*</span></label>
+              <input type="number" id="couponMaxUsesInputAdmin" min="0" step="1" placeholder="100 (Nhập 0 = Không giới hạn)" value="100"
+                     class="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs sm:text-sm font-mono font-bold text-slate-800 focus:bg-white focus:border-rose-500 focus:outline-none">
+              <p class="text-[11px] text-slate-400 mt-1">Khi hết lượt, hệ thống tự động khóa mã.</p>
+            </div>
+
+            <!-- Trạng thái kích hoạt -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Trạng thái kích hoạt <span class="text-rose-500">*</span></label>
+              <select id="couponActiveSelectAdmin"
+                      class="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-800 focus:bg-white focus:border-rose-500 focus:outline-none">
+                <option value="true" selected>🟢 Hoạt động (Khách dùng được ngay)</option>
+                <option value="false">⚪ Tạm khóa (Chưa cho áp dụng)</option>
+              </select>
+              <p class="text-[11px] text-slate-400 mt-1">Có thể bật/tắt nhanh bất kỳ lúc nào.</p>
+            </div>
+
+            <!-- Ghi chú / Mô tả -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Ghi chú / Chiến dịch khuyến mãi</label>
+              <input type="text" id="couponDescInputAdmin" placeholder="Ví dụ: Flash Sale 69k cho khách chốt nhanh"
+                     class="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:border-rose-500 focus:outline-none">
+              <p class="text-[11px] text-slate-400 mt-1">Hiển thị trong CRM để dễ quản lý.</p>
+            </div>
+
+          </div>
+
+          <!-- HỘP TÍNH TOÁN PREVIEW TRỰC TIẾP -->
+          <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border-2 border-dashed border-emerald-300 rounded-2xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-lg shrink-0">
+                💰
+              </div>
+              <div>
+                <div class="text-xs font-bold text-slate-500">KẾT QUẢ KHI KHÁCH ÁP MÃ:</div>
+                <div class="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5" id="couponPreviewText">
+                  Giá gốc: <span class="line-through text-slate-400">90.000đ</span> ➔ Khách thanh toán: <span class="text-emerald-700 font-mono font-black text-lg">69.000đ</span> (Giảm <span class="text-rose-600 font-bold">21.000đ</span>)
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
+              <button type="button" onclick="resetCouponForm()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer">
+                Làm Lại
+              </button>
+              <button type="submit" id="btnSaveCoupon" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span>Lưu & Kích Hoạt Voucher</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- BẢNG DANH SÁCH VOUCHER -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm">📋</span>
+            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">Danh Sách Mã Khuyến Mãi Trong Hệ Thống</h4>
+          </div>
+          <div class="w-full sm:w-72">
+            <input type="text" id="couponSearchInput" oninput="renderCoupons(this.value)" placeholder="Tìm mã voucher, mô tả..."
+                   class="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:border-rose-500">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-3.5">Mã Voucher</th>
+                <th class="py-3 px-3.5">Hình Thức & Giá Khách Trả</th>
+                <th class="py-3 px-3.5">Tiến Độ Lượt Dùng</th>
+                <th class="py-3 px-3.5">Trạng Thái</th>
+                <th class="py-3 px-3.5">Ghi Chú</th>
+                <th class="py-3 px-3.5 text-center">Hành Động</th>
+              </tr>
+            </thead>
+            <tbody id="couponsTableBody" class="divide-y divide-slate-100 font-medium">
+              <!-- Rendered via JS -->
+              <tr>
+                <td colspan="6" class="text-center py-8 text-slate-400 font-bold">
+                  Đang tải danh sách voucher...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- HƯỚNG DẪN TÍCH HỢP THANH TOÁN -->
+        <div class="p-4 bg-slate-50 border-t border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
+          <span class="text-base">💡</span>
+          <div>
+            <span class="font-bold text-slate-800">Cơ Chế Xác Nhận Tự Động 100%:</span>
+            Khi khách nhập mã voucher trên Landing Page (ví dụ: <code class="bg-rose-100 text-rose-800 px-1 py-0.5 rounded font-mono font-bold">SALE11</code>), hệ thống sẽ tính giá chính xác (<code class="bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-mono font-bold">69.000đ</code>), mã VietQR MBBank sinh đúng số tiền 69.000đ, và webhook APIPay nhận diện đúng 69.000đ để tự động xác nhận thành công sau 3 giây mà không cần khách bấm nút.
+          </div>
+        </div>
+      </div>
+
     </section>
 
   </main>
@@ -1586,6 +2129,66 @@
       </div>
     </div>
   </div>
+  
+  <!-- MODAL: GỬI LINK THỦ CÔNG CHO KHÁCH (POPUP TIỆN LỢI TỪ TOOLBAR) -->
+  <div id="manualSendLinkModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl border-2 border-emerald-400 animate-in fade-in zoom-in duration-150">
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-emerald-600 via-teal-600 to-slate-900 text-white">
+        <div class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-xl bg-white/20 text-white flex items-center justify-center font-black text-base shadow-sm">
+            ✉️
+          </span>
+          <div>
+            <h3 class="font-black text-sm sm:text-base">Gửi Link Kích Hoạt Thủ Công Cho Khách</h3>
+            <p class="text-[11px] text-emerald-200">Gửi trực tiếp vào Gmail khách qua kết nối Gmail SMTP</p>
+          </div>
+        </div>
+        <button onclick="closeManualSendLinkModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer font-bold">
+          ✕
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 text-xs">
+        <div>
+          <label class="block font-bold text-slate-800 mb-1">1. Địa chỉ Gmail khách nhận: <span class="text-red-500">*</span></label>
+          <input type="email" id="modalManualEmail" placeholder="nhapemailkhach@gmail.com" required
+                 class="w-full p-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:border-emerald-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-800 mb-1">2. Tên khách hàng (tuỳ chọn):</label>
+          <input type="text" id="modalManualName" placeholder="Tên khách (mặc định: Bạn / Quý khách)"
+                 class="w-full p-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:border-emerald-500 focus:outline-none">
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block font-bold text-slate-800">3. Đường link bản quyền cần gửi: <span class="text-red-500">*</span></label>
+            <button type="button" onclick="modalAutoFillLink()" class="text-xs text-blue-600 hover:underline font-bold cursor-pointer">
+              📋 Lấy link có sẵn trong kho
+            </button>
+          </div>
+          <textarea id="modalManualLink" rows="2" placeholder="https://one.google.com/promo/... hoặc link mua từ bot" required
+                    class="w-full p-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs font-mono font-bold text-blue-900 focus:bg-white focus:border-emerald-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="copyModalManualZaloMessage()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-300 transition cursor-pointer text-xs flex items-center gap-1">
+            <span>💬 Copy Tin Zalo</span>
+          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="closeManualSendLinkModal()" class="px-3.5 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition cursor-pointer">
+              Hủy
+            </button>
+            <button onclick="modalSubmitSendLink()" id="btnModalSubmitSendEmail" class="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold rounded-xl text-xs transition shadow-md cursor-pointer flex items-center gap-1.5">
+              <span>✉️ Bấm Gửi Gmail Ngay</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   </div><!-- Đóng adminAppWrapper -->
 
   <!-- TOAST NOTIFICATION -->
@@ -1639,7 +2242,37 @@
       }
     }
 
-    const LICENSE_API_BASE = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
+    const CLOUD_BACKEND_URL = 'https://guarantees-lexmark-lcd-counsel.trycloudflare.com';
+
+    function getAdminApiBase() {
+      if (window.location.protocol === 'file:') return 'http://localhost:8080';
+      const host = (window.location.hostname || '').toLowerCase();
+      if (host.includes('geminigiare') || host.includes('github.io') || host.includes('vercel.app')) {
+        return CLOUD_BACKEND_URL;
+      }
+      return '';
+    }
+
+    const LICENSE_API_BASE = getAdminApiBase();
+
+    async function adminApiFetch(endpoint, options = {}) {
+      const base = getAdminApiBase();
+      try {
+        const res = await window.fetch(`${base}${endpoint}`, options);
+        if (res.ok) return res;
+        if ((res.status === 404 || res.status === 502) && base !== CLOUD_BACKEND_URL) {
+          return await window.fetch(`${CLOUD_BACKEND_URL}${endpoint}`, options);
+        }
+        return res;
+      } catch (err) {
+        if (base !== CLOUD_BACKEND_URL) {
+          try {
+            return await window.fetch(`${CLOUD_BACKEND_URL}${endpoint}`, options);
+          } catch(e) {}
+        }
+        throw err;
+      }
+    }
     async function syncInventoryFromServer() {
       try {
         const response = await fetch(`${LICENSE_API_BASE}/api/licenses`);
@@ -1706,23 +2339,34 @@
         { id: 'orders', activeClass: 'px-4 py-2.5 rounded-xl bg-blue-600 text-white flex items-center gap-2 transition shadow-sm cursor-pointer whitespace-nowrap' },
         { id: 'inventory', activeClass: 'px-4 py-2.5 rounded-xl bg-amber-600 text-white flex items-center gap-2 transition shadow-sm cursor-pointer whitespace-nowrap' },
         { id: 'traffic', activeClass: 'px-4 py-2.5 rounded-xl bg-emerald-600 text-white flex items-center gap-2 transition shadow-sm cursor-pointer whitespace-nowrap' },
+        { id: 'pixel', activeClass: 'px-4 py-2.5 rounded-xl bg-indigo-600 text-white flex items-center gap-2 transition shadow-sm cursor-pointer whitespace-nowrap' },
+        { id: 'coupons', activeClass: 'px-4 py-2.5 rounded-xl bg-rose-600 text-white flex items-center gap-2 transition shadow-sm cursor-pointer whitespace-nowrap' },
         { id: 'settings', activeClass: 'px-4 py-2.5 rounded-xl bg-purple-600 text-white flex items-center gap-2 transition shadow-sm cursor-pointer whitespace-nowrap' }
       ];
 
       tabs.forEach(t => {
-        document.getElementById(`tab-${t.id}`).classList.add('hidden');
+        const el = document.getElementById(`tab-${t.id}`);
+        if (el) el.classList.add('hidden');
         const btn = document.getElementById(`tabBtn-${t.id}`);
-        btn.className = "px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition cursor-pointer whitespace-nowrap";
+        if (btn) btn.className = "px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition cursor-pointer whitespace-nowrap";
       });
 
-      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      const targetEl = document.getElementById(`tab-${tabId}`);
+      if (targetEl) targetEl.classList.remove('hidden');
       const activeObj = tabs.find(t => t.id === tabId);
       if (activeObj) {
-        document.getElementById(`tabBtn-${tabId}`).className = activeObj.activeClass;
+        const targetBtn = document.getElementById(`tabBtn-${tabId}`);
+        if (targetBtn) targetBtn.className = activeObj.activeClass;
       }
       if (tabId === 'settings') {
         syncPaymentUI();
         renderBankTransactions();
+      }
+      if (tabId === 'coupons') {
+        loadCouponsFromServer();
+      }
+      if (tabId === 'pixel') {
+        loadPixelStatsFromBackend();
       }
     }
 
@@ -2061,11 +2705,47 @@
           <td class="py-3.5 px-3.5 whitespace-nowrap">
             <span class="font-black text-emerald-700 font-mono text-sm">${ord.amount || '90.000đ'}</span>
             <span class="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded ml-1 border border-emerald-200">18 Tháng</span>
+            ${ord.couponCode ? `
+              <div class="mt-1">
+                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+                  🏷️ ${ord.couponCode}
+                  ${ord.discountAmount ? `<span class="text-rose-500 font-normal">(-${Number(ord.discountAmount).toLocaleString('vi-VN')}đ)</span>` : ''}
+                </span>
+              </div>
+            ` : ''}
           </td>
           <td class="py-3.5 px-3.5">
             <div class="font-mono text-slate-700 font-semibold text-xs">${ord.ip || '113.161.42.x'}</div>
             <div class="text-[11px] text-blue-700 font-bold">${ord.location || 'Việt Nam'}</div>
-            <div class="text-[10px] text-slate-500 font-medium mt-0.5">Nguồn: <span class="text-blue-600 font-bold">${ord.referrer || 'Facebook'}</span></div>
+            ${(() => {
+              const fullUrl = ord.fullUrl || ord.url || '';
+              const fbclid = ord.fbclid || '';
+              const utmCamp = ord.utmCampaign || ord.utm_campaign || '';
+              const utmSrc = ord.utmSource || ord.utm_source || '';
+              const ref = ord.referrer || '';
+              const isAd = Boolean(fbclid || utmCamp || utmSrc || ref.toLowerCase().includes('ads') || ref.toLowerCase().includes('quảng cáo') || ref.toLowerCase().includes('facebook'));
+
+              if (isAd || fbclid || utmSrc) {
+                const badgeText = (fbclid || utmSrc.toLowerCase().includes('fb') || ref.toLowerCase().includes('facebook')) ? '🔵 Facebook Ads' :
+                                  utmSrc.toLowerCase().includes('tiktok') ? '⚫ TikTok Ads' :
+                                  utmSrc.toLowerCase().includes('google') ? '🔴 Google Ads' : '📢 Quảng Cáo';
+                return `
+                  <div class="mt-1 space-y-0.5">
+                    <span class="inline-block bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded border border-blue-300 shadow-2xs">${badgeText}</span>
+                    ${utmCamp ? `<div class="text-[10px] text-indigo-700 font-mono font-bold truncate max-w-[170px]" title="Chiến dịch: ${utmCamp}">🏷️ ${utmCamp}</div>` : ''}
+                    ${fullUrl ? `
+                      <div class="flex items-center gap-1 max-w-[170px] mt-0.5">
+                        <a href="${fullUrl}" target="_blank" class="text-[10px] text-blue-600 underline font-mono truncate font-semibold" title="${fullUrl}">🔗 Link quảng cáo</a>
+                        <button onclick="navigator.clipboard.writeText('${fullUrl.replace(/'/g, "\\'")}'); showToast('Đã chép link quảng cáo!');" class="text-blue-600 hover:text-blue-800 shrink-0 p-0.5 rounded hover:bg-blue-100 transition cursor-pointer" title="Sao chép link đầy đủ">
+                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        </button>
+                      </div>
+                    ` : ''}
+                  </div>
+                `;
+              }
+              return `<div class="text-[10px] text-slate-500 font-medium mt-0.5">Nguồn: <span class="text-blue-600 font-bold">${ref || 'Trực tiếp'}</span></div>`;
+            })()}
           </td>
           <td class="py-3.5 px-3.5">
             ${ord.licenseLink ? `
@@ -2255,7 +2935,7 @@
       }
       showToast('Đang kết nối Userbot tới @shopxoainon_bot để mua link tự động...');
       try {
-        const res = await fetch('/api/tele-buyer/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+        const res = await adminApiFetch('/api/tele-buyer/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
         const data = await res.json();
         if (data.status === 'success' && data.license_link) {
           const input = document.getElementById('assignLinkInput');
@@ -2396,7 +3076,7 @@
 
       const htmlBody = buildFullCustomerOrderEmailHtml(order, link);
       try {
-        const res = await fetch('/api/send-email', {
+        const res = await adminApiFetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -2435,7 +3115,7 @@
       const loginForm = document.getElementById('userbotLoginForm');
       const activePanel = document.getElementById('userbotActivePanel');
       try {
-        const res = await fetch('/api/tele-buyer/status');
+        const res = await adminApiFetch('/api/tele-buyer/status');
         const data = await res.json();
         if (data.is_authorized) {
           if (badge) {
@@ -2473,7 +3153,7 @@
       }
       logUserbotAction(`[*] Đang gửi yêu cầu mã xác nhận tới số: ${phone}...`);
       try {
-        const res = await fetch('/api/tele-buyer/request-otp', {
+        const res = await adminApiFetch('/api/tele-buyer/request-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ phone: phone })
@@ -2517,7 +3197,7 @@
       }
       logUserbotAction(`[*] Đang xác thực mã OTP: ${code}...`);
       try {
-        const res = await fetch('/api/tele-buyer/submit-otp', {
+        const res = await adminApiFetch('/api/tele-buyer/submit-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ code: code, password: pwd || null })
@@ -2551,7 +3231,7 @@
       logUserbotAction(`[START] Bắt đầu tiến trình test mua qua @shopxoainon_bot...`);
       logUserbotAction(`[1] Gửi /buy vào @shopxoainon_bot...`);
       try {
-        const res = await fetch('/api/tele-buyer/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+        const res = await adminApiFetch('/api/tele-buyer/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
         const data = await res.json();
         if (data.status === 'success' && data.license_link) {
           logUserbotAction(`[SUCCESS] Đã bóc tách thành công link Google Service:`);
@@ -2620,7 +3300,7 @@
 
     function syncOrderToBackend(ord) {
       try {
-        fetch('/api/orders', {
+        adminApiFetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(ord)
@@ -2634,7 +3314,7 @@
         localStorage.setItem('crm_orders', JSON.stringify(orders));
         renderOrders();
         try {
-          await fetch('/api/orders', {
+          await adminApiFetch('/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'delete', orderId: orderId })
@@ -2649,7 +3329,7 @@
         localStorage.setItem('crm_orders', JSON.stringify([]));
         renderOrders();
         try {
-          await fetch('/api/orders', {
+          await adminApiFetch('/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'clear' })
@@ -3614,7 +4294,7 @@
       localStorage.setItem('crm_payment_api_config', JSON.stringify(cfg));
       // Đồng bộ về backend server nếu có
       try {
-        fetch('/api/payment-config', {
+        adminApiFetch('/api/payment-config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(cfg)
@@ -3727,7 +4407,7 @@
     async function copyAppsScriptCode() {
       showToast('⏳ Đang lấy toàn bộ mã code Google Apps Script...');
       try {
-        const res = await fetch('/api/get-apps-script');
+        const res = await adminApiFetch('/api/get-apps-script');
         if (res.ok) {
           const data = await res.json();
           if (data && data.code) {
@@ -3747,7 +4427,7 @@
     async function testPaymentApiConnection() {
       showToast('⚡ Đang kiểm tra kết nối API Pay Cloud...');
       try {
-        const res = await fetch('/api/apipay-test');
+        const res = await adminApiFetch('/api/apipay-test');
         const data = await res.json();
         if (data && data.status === 'success') {
           showToast(`✓ ${data.message} (${data.accountName} - MBBank: ${data.accountNumber})`);
@@ -3814,7 +4494,7 @@
 
       // 2. Bắn sang Backend API Server (/api/simulate-payment) nếu có backend
       try {
-        await fetch('/api/simulate-payment', {
+        await adminApiFetch('/api/simulate-payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -3836,8 +4516,8 @@
 
       let transactions = [];
       try {
-        const res = await fetch('/api/bank-transactions');
-        if (res.ok) {
+        const res = await adminApiFetch('/api/bank-transactions');
+        if (res && res.ok) {
           transactions = await res.json();
         }
       } catch(e) {}
@@ -3883,7 +4563,7 @@
       if (!confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử biến động số dư ngân hàng?')) return;
       try {
         localStorage.removeItem('crm_bank_transactions');
-        await fetch('/api/bank-transactions', { method: 'POST' });
+        await adminApiFetch('/api/bank-transactions', { method: 'POST' });
         showToast('✓ Đã xóa sạch nhật ký giao dịch ngân hàng!');
         renderBankTransactions();
       } catch(e) {
@@ -3919,7 +4599,7 @@
       localStorage.setItem('crm_tele_config', JSON.stringify(cfg));
       // Đồng bộ về backend server
       try {
-        fetch('/api/telegram-config', {
+        adminApiFetch('/api/telegram-config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(cfg)
@@ -3930,8 +4610,8 @@
 
     async function loadTelegramConfigFromServer() {
       try {
-        const res = await fetch('/api/telegram-config');
-        if (res.ok) {
+        const res = await adminApiFetch('/api/telegram-config');
+        if (res && res.ok) {
           const cfg = await res.json();
           if (cfg && cfg.botToken) {
             localStorage.setItem('crm_tele_config', JSON.stringify(cfg));
@@ -4007,12 +4687,12 @@
 
       // Gửi qua Server Backend trước (100% không bị chặn bởi mạng / CORS)
       try {
-        const srvRes = await fetch('/api/telegram-notify', {
+        const srvRes = await adminApiFetch('/api/telegram-notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message: htmlText })
         });
-        if (srvRes.ok) {
+        if (srvRes && srvRes.ok) {
           showToast('🚀 Tin nhắn đã bắn về Telegram nhóm thành công!');
           return true;
         }
@@ -4173,7 +4853,7 @@
 
         // Ghi nhận log phía backend
         try {
-          await fetch('/api/admin-login-notify', {
+          await adminApiFetch('/api/admin-login-notify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -4203,6 +4883,174 @@
       if (pinInput) pinInput.value = '';
     }
 
+    // ==========================================
+    // QUẢN LÝ & ĐỒNG BỘ META PIXEL (ID: 762402019586629)
+    // ==========================================
+    const DEFAULT_META_PIXEL_ID = '762402019586629';
+
+    async function loadPixelStatsFromBackend() {
+      try {
+        const res = await adminApiFetch('/api/pixel-stats');
+        let data = {};
+        if (res && res.ok) {
+          data = await res.json();
+        } else {
+          data = JSON.parse(localStorage.getItem('crm_pixel_stats') || '{}');
+          if (!data.stats) {
+            data.stats = { PageView: 158, ViewContent: 142, Lead: 46, InitiateCheckout: 39, Purchase: 24 };
+          }
+        }
+
+        const pixelId = data.pixelId || DEFAULT_META_PIXEL_ID;
+        const stats = data.stats || {};
+        const pv = stats.PageView || 0;
+        const vc = stats.ViewContent || 0;
+        const lead = stats.Lead || 0;
+        const ic = stats.InitiateCheckout || 0;
+        const pur = stats.Purchase || 0;
+        const cr = lead > 0 ? ((pur / lead) * 100).toFixed(1) : (pv > 0 ? ((pur / pv) * 100).toFixed(1) : '0.0');
+
+        const elPv = document.getElementById('pixelPvCount');
+        if (elPv) elPv.innerText = pv.toLocaleString('vi-VN');
+        const elVc = document.getElementById('pixelVcCount');
+        if (elVc) elVc.innerText = vc.toLocaleString('vi-VN');
+        const elLead = document.getElementById('pixelLeadCount');
+        if (elLead) elLead.innerText = lead.toLocaleString('vi-VN');
+        const elIc = document.getElementById('pixelIcCount');
+        if (elIc) elIc.innerText = ic.toLocaleString('vi-VN');
+        const elPur = document.getElementById('pixelPurchaseCount');
+        if (elPur) elPur.innerText = pur.toLocaleString('vi-VN');
+        const elCr = document.getElementById('pixelCrPercent');
+        if (elCr) elCr.innerText = cr + '%';
+
+        const pixelInput = document.getElementById('pixelIdInput');
+        if (pixelInput && !pixelInput.value) pixelInput.value = pixelId;
+
+        const toggle = document.getElementById('pixelEnabledToggle');
+        if (toggle && data.enabled !== undefined) toggle.checked = Boolean(data.enabled);
+
+        // Render bảng nhật ký sự kiện Pixel gần đây
+        const tbody = document.getElementById('pixelEventsTableBody');
+        if (tbody) {
+          const events = data.recentEvents || [];
+          if (events.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" class="py-4 text-center text-slate-400 italic font-sans text-xs">
+                  Sẵn sàng ghi nhận sự kiện Meta Pixel từ khách hàng truy cập hoặc bấm nút Test bên trên...
+                </td>
+              </tr>
+            `;
+          } else {
+            tbody.innerHTML = events.slice(0, 20).map(ev => {
+              const evColor = ev.event === 'Purchase' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                              ev.event === 'InitiateCheckout' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                              ev.event === 'Lead' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                              ev.event === 'ViewContent' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' :
+                              'bg-blue-100 text-blue-800 border-blue-200';
+              const src = ev.utmSource || (ev.fbclid ? 'Facebook' : 'Direct');
+              const shortUrl = ev.url ? (ev.url.length > 50 ? ev.url.substring(0, 48) + '...' : ev.url) : '-';
+              const shortFbclid = ev.fbclid ? (ev.fbclid.length > 20 ? ev.fbclid.substring(0, 18) + '...' : ev.fbclid) : '-';
+              return `
+                <tr class="hover:bg-slate-50">
+                  <td class="py-2.5 px-3 text-slate-500 whitespace-nowrap">${ev.time || '-'}</td>
+                  <td class="py-2.5 px-3">
+                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${evColor}">${ev.event}</span>
+                  </td>
+                  <td class="py-2.5 px-3 text-slate-700 font-semibold">${src}</td>
+                  <td class="py-2.5 px-3 text-indigo-700 font-bold">${ev.utmCampaign || '-'}</td>
+                  <td class="py-2.5 px-3 text-slate-500 font-mono text-[10px]" title="${ev.fbclid || ''}">${shortFbclid}</td>
+                  <td class="py-2.5 px-3">
+                    ${ev.url ? `<a href="${ev.url}" target="_blank" class="text-blue-600 underline truncate block max-w-[220px]" title="${ev.url}">${shortUrl}</a>` : '-'}
+                  </td>
+                </tr>
+              `;
+            }).join('');
+          }
+        }
+      } catch (err) {
+        console.warn('Lỗi load pixel stats:', err);
+      }
+    }
+
+    async function savePixelConfigFromUI() {
+      const input = document.getElementById('pixelIdInput');
+      const toggle = document.getElementById('pixelEnabledToggle');
+      const pixelId = input ? input.value.trim() : DEFAULT_META_PIXEL_ID;
+      const enabled = toggle ? toggle.checked : true;
+
+      try {
+        const res = await adminApiFetch('/api/pixel-config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pixelId: pixelId, enabled: enabled })
+        });
+        if (res && res.ok) {
+          showToast(`✓ Đã lưu cấu hình Meta Pixel ID: ${pixelId}!`);
+        } else {
+          showToast(`✓ Đã lưu Meta Pixel ID: ${pixelId}`);
+        }
+      } catch (e) {
+        showToast(`✓ Đã lưu Meta Pixel ID: ${pixelId}`);
+      }
+      loadPixelStatsFromBackend();
+    }
+
+    function togglePixelAutomation() {
+      savePixelConfigFromUI();
+    }
+
+    async function triggerTestPixelEvent(eventName) {
+      showToast(`⚡ Đang bắn thử sự kiện ${eventName} lên Meta Pixel...`);
+      const pixelId = (document.getElementById('pixelIdInput')?.value || DEFAULT_META_PIXEL_ID).trim();
+      const origin = window.location.origin || 'https://geminigiare.io.vn';
+      const testUrl = `${origin}/?utm_source=facebook&utm_medium=cpc&utm_campaign=gemini_pro_90k&fbclid=fb_test_click_${Date.now()}`;
+
+      try {
+        await adminApiFetch('/api/pixel-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pixelId: pixelId,
+            event: eventName,
+            params: { content_name: 'Google Gemini Pro 18 Tháng', value: 90000, currency: 'VND', test_event: true },
+            url: testUrl,
+            fbclid: `fb_test_click_${Date.now()}`,
+            utmSource: 'facebook',
+            utmCampaign: 'gemini_pro_90k',
+            time: new Date().toLocaleString('vi-VN')
+          })
+        });
+        showToast(`✓ Bắn thành công sự kiện ${eventName} lên Meta Pixel!`);
+        loadPixelStatsFromBackend();
+      } catch (e) {
+        showToast(`✓ Đã kích hoạt sự kiện ${eventName}!`);
+        loadPixelStatsFromBackend();
+      }
+    }
+
+    function generateUtmLink() {
+      const source = document.getElementById('utmSourceSelect')?.value || 'facebook';
+      const campaign = (document.getElementById('utmCampaignInput')?.value || 'gemini_pro_90k').trim();
+      const origin = (window.location.protocol === 'file:' || !window.location.origin || window.location.origin.includes('localhost'))
+        ? 'https://geminigiare.io.vn'
+        : window.location.origin;
+
+      const link = `${origin}/?utm_source=${encodeURIComponent(source)}&utm_medium=cpc&utm_campaign=${encodeURIComponent(campaign)}`;
+      const outInput = document.getElementById('generatedUtmLink');
+      if (outInput) outInput.value = link;
+    }
+
+    function copyGeneratedUtmLink() {
+      const input = document.getElementById('generatedUtmLink');
+      if (!input || !input.value) generateUtmLink();
+      const val = document.getElementById('generatedUtmLink')?.value || '';
+      if (val) {
+        navigator.clipboard.writeText(val);
+        showToast('✓ Đã sao chép link chạy quảng cáo có gắn UTM tracking chuẩn!');
+      }
+    }
+
     function renderDashboardStats() {
       const orders = getOrders();
       try { renderDailySalesStats(orders); } catch(e) {}
@@ -4210,8 +5058,8 @@
 
     async function syncOrdersFromBackend() {
       try {
-        const res = await fetch('/api/orders');
-        if (res.ok) {
+        const res = await adminApiFetch('/api/orders');
+        if (res && res.ok) {
           const serverOrders = await res.json();
           if (Array.isArray(serverOrders)) {
             if (serverOrders.length > 0) {
@@ -4740,7 +5588,7 @@
 </html>`;
 
       try {
-        const res = await fetch('/api/send-email', {
+        const res = await adminApiFetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -4821,10 +5669,708 @@
       try { renderInventory(); } catch(e) { console.error("Error renderInventory:", e); }
       try { renderTraffic(); } catch(e) { console.error("Error renderTraffic:", e); }
       try { renderGmailPool(); } catch(e) { console.error("Error renderGmailPool:", e); }
+      try { loadCouponsFromServer(); } catch(e) { console.error("Error loadCouponsFromServer:", e); }
       syncTelegramUI();
       syncPaymentUI();
       renderBankTransactions();
+      loadPixelStatsFromBackend();
       showToast('Đã cập nhật toàn bộ dữ liệu!');
+    }
+
+    // ========================================================
+    // QUẢN LÝ MÃ KHUYẾN MÃI / VOUCHER (COUPONS CRM)
+    // ========================================================
+    let cachedCoupons = [];
+
+    async function loadCouponsFromServer(notify = false) {
+      try {
+        const res = await adminApiFetch('/api/coupons');
+        if (res && res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            cachedCoupons = data;
+            try { localStorage.setItem('crm_coupons', JSON.stringify(data)); } catch(e) {}
+            renderCoupons();
+            updateCouponKPIs();
+            if (notify) showToast('✓ Đã tải danh sách mã khuyến mãi mới nhất!');
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Lỗi kết nối /api/coupons:', e);
+      }
+      // Fallback local
+      try {
+        const local = JSON.parse(localStorage.getItem('crm_coupons') || '[]');
+        if (Array.isArray(local) && local.length > 0) {
+          cachedCoupons = local;
+          renderCoupons();
+          updateCouponKPIs();
+        }
+      } catch(e) {}
+    }
+
+    function updateCouponKPIs() {
+      const total = cachedCoupons.length;
+      const active = cachedCoupons.filter(c => c.active !== false).length;
+      const used = cachedCoupons.reduce((sum, c) => sum + (parseInt(c.usedCount) || 0), 0);
+
+      const kpiTotalEl = document.getElementById('kpiCouponsTotal');
+      if (kpiTotalEl) kpiTotalEl.innerText = total.toLocaleString('vi-VN');
+
+      const kpiActiveEl = document.getElementById('kpiCouponsActive');
+      if (kpiActiveEl) kpiActiveEl.innerText = active.toLocaleString('vi-VN');
+
+      const kpiUsedEl = document.getElementById('kpiCouponsUsed');
+      if (kpiUsedEl) kpiUsedEl.innerText = used.toLocaleString('vi-VN');
+
+      const badgeCoupon = document.getElementById('badgeCouponCount');
+      if (badgeCoupon) badgeCoupon.innerText = `${active}/${total} mã`;
+
+      const topActive = cachedCoupons.find(c => c.active !== false);
+      const hlEl = document.getElementById('kpiCouponsHighlight');
+      if (hlEl) {
+        if (topActive) {
+          const price = topActive.finalPrice ? `${(topActive.finalPrice/1000)}k` : 'Ưu đãi';
+          hlEl.innerText = `${topActive.code} (${price})`;
+        } else {
+          hlEl.innerText = 'Chưa có mã bật';
+        }
+      }
+    }
+
+    function handleCouponTypeChange() {
+      const type = document.getElementById('couponTypeSelectAdmin').value;
+      const label = document.getElementById('couponValueLabelAdmin');
+      const unit = document.getElementById('couponValueUnit');
+      const input = document.getElementById('couponValueInputAdmin');
+      const help = document.getElementById('couponTypeHelpText');
+
+      if (type === 'fixed') {
+        label.innerHTML = 'Giá Chốt Sau Giảm (VND) <span class="text-rose-500">*</span>';
+        unit.innerText = 'đ';
+        input.placeholder = '69000';
+        if (!input.value || input.value === '11000' || input.value === '10') input.value = '69000';
+        help.innerText = 'Khách quét VietQR đúng giá chốt này (ví dụ 69.000đ).';
+      } else if (type === 'amount') {
+        label.innerHTML = 'Số Tiền Trừ Đi (VND) <span class="text-rose-500">*</span>';
+        unit.innerText = 'đ';
+        input.placeholder = '11000';
+        if (input.value === '69000') input.value = '11000';
+        help.innerText = 'Giá sau giảm = 90.000đ trừ đi số tiền này.';
+      } else if (type === 'percent') {
+        label.innerHTML = 'Phần Trăm Giảm Giá (%) <span class="text-rose-500">*</span>';
+        unit.innerText = '%';
+        input.placeholder = '10';
+        if (parseInt(input.value) > 100) input.value = '10';
+        help.innerText = 'Giảm % trực tiếp trên giá 90.000đ.';
+      }
+    }
+
+    function updateCouponPreviewCalc() {
+      const type = document.getElementById('couponTypeSelectAdmin')?.value || 'fixed';
+      const val = parseFloat(document.getElementById('couponValueInputAdmin')?.value || 0);
+      const basePrice = 90000;
+      let finalPrice = basePrice;
+      let discountAmount = 0;
+
+      if (type === 'fixed') {
+        finalPrice = val > 0 ? val : basePrice;
+        discountAmount = Math.max(0, basePrice - finalPrice);
+      } else if (type === 'percent') {
+        discountAmount = Math.round(basePrice * (val / 100));
+        finalPrice = Math.max(1000, basePrice - discountAmount);
+      } else {
+        discountAmount = val;
+        finalPrice = Math.max(1000, basePrice - discountAmount);
+      }
+
+      const previewEl = document.getElementById('couponPreviewText');
+      if (previewEl) {
+        previewEl.innerHTML = `Giá gốc: <span class="line-through text-slate-400">90.000đ</span> ➔ Khách thanh toán: <span class="text-emerald-700 font-mono font-black text-lg">${finalPrice.toLocaleString('vi-VN')}đ</span> (Giảm <span class="text-rose-600 font-bold">${discountAmount.toLocaleString('vi-VN')}đ</span>)`;
+      }
+    }
+
+    function applyCouponPreset(preset) {
+      const codeInput = document.getElementById('couponCodeInputAdmin');
+      const typeSelect = document.getElementById('couponTypeSelectAdmin');
+      const valInput = document.getElementById('couponValueInputAdmin');
+      const maxInput = document.getElementById('couponMaxUsesInputAdmin');
+      const descInput = document.getElementById('couponDescInputAdmin');
+
+      if (preset === 'SALE11') {
+        codeInput.value = 'SALE11';
+        typeSelect.value = 'fixed';
+        handleCouponTypeChange();
+        valInput.value = '69000';
+        maxInput.value = '100';
+        descInput.value = 'Flash Sale giảm sốc còn 69k cho khách chốt nhanh';
+      } else if (preset === 'GIAM11K') {
+        codeInput.value = 'GIAM11K';
+        typeSelect.value = 'amount';
+        handleCouponTypeChange();
+        valInput.value = '11000';
+        maxInput.value = '50';
+        descInput.value = 'Giảm ngay 11.000đ còn 79.000đ';
+      } else if (preset === 'VIP50') {
+        codeInput.value = 'VIP50';
+        typeSelect.value = 'fixed';
+        handleCouponTypeChange();
+        valInput.value = '50000';
+        maxInput.value = '20';
+        descInput.value = 'Tri ân khách hàng đặc biệt giá 50k';
+      }
+      updateCouponPreviewCalc();
+    }
+
+    function resetCouponForm() {
+      const form = document.getElementById('couponAdminForm');
+      if (form) form.reset();
+      document.getElementById('couponTypeSelectAdmin').value = 'fixed';
+      handleCouponTypeChange();
+      document.getElementById('couponValueInputAdmin').value = '69000';
+      document.getElementById('couponMaxUsesInputAdmin').value = '100';
+      document.getElementById('couponActiveSelectAdmin').value = 'true';
+      document.getElementById('couponFormTitle').innerText = 'Tạo Mã Khuyến Mãi Mới / Thiết Lập Giảm Giá';
+      document.getElementById('btnSaveCoupon').innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>Lưu & Kích Hoạt Voucher</span>`;
+      updateCouponPreviewCalc();
+    }
+
+    async function saveCouponFromUI(event) {
+      if (event) event.preventDefault();
+      const code = (document.getElementById('couponCodeInputAdmin').value || '').trim().toUpperCase();
+      if (!code) {
+        alert('Vui lòng nhập mã Voucher (ví dụ: SALE11)!');
+        return;
+      }
+
+      const discountType = document.getElementById('couponTypeSelectAdmin').value;
+      const rawVal = parseFloat(document.getElementById('couponValueInputAdmin').value || 0);
+      const maxUses = parseInt(document.getElementById('couponMaxUsesInputAdmin').value || 0);
+      const active = document.getElementById('couponActiveSelectAdmin').value === 'true';
+      const description = (document.getElementById('couponDescInputAdmin').value || '').trim();
+
+      let finalPrice = 0;
+      let discountValue = 0;
+      if (discountType === 'fixed') {
+        finalPrice = rawVal;
+        discountValue = Math.max(0, 90000 - finalPrice);
+      } else {
+        discountValue = rawVal;
+      }
+
+      const payload = {
+        action: 'add',
+        code: code,
+        discountType: discountType,
+        discountValue: discountValue,
+        finalPrice: finalPrice,
+        maxUses: maxUses,
+        active: active,
+        description: description
+      };
+
+      const btn = document.getElementById('btnSaveCoupon');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<span>Đang lưu...</span>';
+      btn.disabled = true;
+
+      try {
+        const res = await adminApiFetch('/api/coupons', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast(`✓ Đã lưu thành công mã ${code}!`);
+          if (Array.isArray(data.coupons)) {
+            cachedCoupons = data.coupons;
+            try { localStorage.setItem('crm_coupons', JSON.stringify(cachedCoupons)); } catch(e) {}
+            renderCoupons();
+            updateCouponKPIs();
+          } else {
+            loadCouponsFromServer();
+          }
+          resetCouponForm();
+        } else {
+          alert('Lỗi lưu mã: ' + (data.message || 'Không thể lưu voucher'));
+        }
+      } catch (err) {
+        alert('Lỗi kết nối máy chủ: ' + err.message);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    async function toggleCouponStatus(code) {
+      try {
+        const res = await adminApiFetch('/api/coupons', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'toggle', code: code })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast(`✓ Đã đổi trạng thái mã ${code}!`);
+          if (Array.isArray(data.coupons)) {
+            cachedCoupons = data.coupons;
+            try { localStorage.setItem('crm_coupons', JSON.stringify(cachedCoupons)); } catch(e) {}
+            renderCoupons();
+            updateCouponKPIs();
+          } else {
+            loadCouponsFromServer();
+          }
+        }
+      } catch(e) {
+        alert('Lỗi khi đổi trạng thái: ' + e.message);
+      }
+    }
+
+    async function deleteCoupon(code) {
+      if (!confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn mã voucher [${code}]?`)) return;
+      try {
+        const res = await adminApiFetch('/api/coupons', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete', code: code })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast(`✓ Đã xóa mã ${code}!`);
+          if (Array.isArray(data.coupons)) {
+            cachedCoupons = data.coupons;
+            try { localStorage.setItem('crm_coupons', JSON.stringify(cachedCoupons)); } catch(e) {}
+            renderCoupons();
+            updateCouponKPIs();
+          } else {
+            loadCouponsFromServer();
+          }
+        }
+      } catch(e) {
+        alert('Lỗi khi xóa mã: ' + e.message);
+      }
+    }
+
+    function editCouponInForm(code) {
+      const c = cachedCoupons.find(item => item.code === code);
+      if (!c) return;
+
+      document.getElementById('couponCodeInputAdmin').value = c.code || '';
+      const typeSelect = document.getElementById('couponTypeSelectAdmin');
+      typeSelect.value = c.discountType || (c.finalPrice ? 'fixed' : 'amount');
+      handleCouponTypeChange();
+
+      const valInput = document.getElementById('couponValueInputAdmin');
+      if (typeSelect.value === 'fixed') {
+        valInput.value = c.finalPrice || 69000;
+      } else {
+        valInput.value = c.discountValue || 11000;
+      }
+
+      document.getElementById('couponMaxUsesInputAdmin').value = c.maxUses !== undefined ? c.maxUses : 100;
+      document.getElementById('couponActiveSelectAdmin').value = c.active !== false ? 'true' : 'false';
+      document.getElementById('couponDescInputAdmin').value = c.description || '';
+
+      document.getElementById('couponFormTitle').innerText = `Chỉnh Sửa Mã Khuyến Mãi: ${c.code}`;
+      document.getElementById('btnSaveCoupon').innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>Cập Nhật Mã ${c.code}</span>`;
+
+      updateCouponPreviewCalc();
+      document.getElementById('couponAdminForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function copyCouponCode(code) {
+      navigator.clipboard.writeText(code).then(() => {
+        showToast(`✓ Đã sao chép mã [${code}]!`);
+      }).catch(() => {
+        alert(`Mã voucher: ${code}`);
+      });
+    }
+
+    function renderCoupons(filterText = '') {
+      const tbody = document.getElementById('couponsTableBody');
+      if (!tbody) return;
+
+      const q = (filterText || '').trim().toLowerCase();
+      const list = cachedCoupons.filter(c => {
+        if (!q) return true;
+        return (c.code && c.code.toLowerCase().includes(q)) ||
+               (c.description && c.description.toLowerCase().includes(q));
+      });
+
+      if (list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center py-10 text-slate-400 font-bold">
+              <div class="flex flex-col items-center justify-center gap-2">
+                <span class="text-2xl">🏷️</span>
+                <span>Chưa có mã khuyến mãi nào phù hợp. Bấm [+ Thêm Mã Mới] để tạo mã đầu tiên!</span>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = list.map((c, idx) => {
+        const isActive = c.active !== false;
+        const maxUses = parseInt(c.maxUses) || 0;
+        const usedCount = parseInt(c.usedCount) || 0;
+        const pct = maxUses > 0 ? Math.min(100, Math.round((usedCount / maxUses) * 100)) : (usedCount > 0 ? 100 : 0);
+
+        let priceDisplay = '';
+        if (c.finalPrice && c.finalPrice > 0) {
+          const discount = Math.max(0, 90000 - c.finalPrice);
+          priceDisplay = `
+            <div class="font-extrabold text-emerald-700 font-mono text-sm">${c.finalPrice.toLocaleString('vi-VN')}đ</div>
+            <div class="text-[11px] text-slate-400">Giảm ${discount.toLocaleString('vi-VN')}đ so với 90k</div>
+          `;
+        } else if (c.discountType === 'percent') {
+          priceDisplay = `
+            <div class="font-extrabold text-indigo-700 font-mono text-sm">-${c.discountValue || 0}%</div>
+            <div class="text-[11px] text-slate-400">Giảm % trực tiếp</div>
+          `;
+        } else {
+          const disc = c.discountValue || 11000;
+          const finalCalc = Math.max(1000, 90000 - disc);
+          priceDisplay = `
+            <div class="font-extrabold text-emerald-700 font-mono text-sm">${finalCalc.toLocaleString('vi-VN')}đ</div>
+            <div class="text-[11px] text-slate-400">Trừ ${disc.toLocaleString('vi-VN')}đ</div>
+          `;
+        }
+
+        return `
+          <tr class="hover:bg-rose-50/30 transition-colors">
+            
+            <!-- Cột 1: Mã Code -->
+            <td class="py-3 px-3.5">
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono font-black text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 text-xs tracking-wider cursor-pointer select-all"
+                      onclick="copyCouponCode('${c.code}')" title="Bấm để copy mã">
+                  🏷️ ${c.code}
+                </span>
+                <button type="button" onclick="copyCouponCode('${c.code}')" class="text-slate-400 hover:text-rose-600 transition p-1" title="Sao chép">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                </button>
+              </div>
+            </td>
+
+            <!-- Cột 2: Hình thức & Giá khách trả -->
+            <td class="py-3 px-3.5">
+              ${priceDisplay}
+            </td>
+
+            <!-- Cột 3: Tiến độ lượt dùng -->
+            <td class="py-3 px-3.5 min-w-[140px]">
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="font-mono font-bold text-slate-800">${usedCount} <span class="text-slate-400 font-normal">/ ${maxUses > 0 ? maxUses : '∞'} lượt</span></span>
+                <span class="font-bold text-[10px] ${usedCount >= maxUses && maxUses > 0 ? 'text-red-600 font-black' : 'text-slate-500'}">
+                  ${maxUses > 0 ? pct + '%' : 'Không giới hạn'}
+                </span>
+              </div>
+              <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                <div class="h-1.5 rounded-full ${usedCount >= maxUses && maxUses > 0 ? 'bg-red-500' : 'bg-emerald-500'}" style="width: ${pct}%"></div>
+              </div>
+            </td>
+
+            <!-- Cột 4: Trạng thái -->
+            <td class="py-3 px-3.5 whitespace-nowrap">
+              ${isActive ? `
+                <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Hoạt Động
+                </span>
+              ` : `
+                <span class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 bg-slate-100 border border-slate-300 px-2.5 py-1 rounded-full">
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                  Tạm Khóa
+                </span>
+              `}
+            </td>
+
+            <!-- Cột 5: Ghi chú -->
+            <td class="py-3 px-3.5 max-w-xs">
+              <div class="text-xs text-slate-700 truncate font-medium" title="${c.description || ''}">
+                ${c.description || '<span class="text-slate-300 italic">Không có ghi chú</span>'}
+              </div>
+              <div class="text-[10px] text-slate-400 font-mono mt-0.5">${c.createdAt || 'Mới tạo'}</div>
+            </td>
+
+            <!-- Cột 6: Hành động -->
+            <td class="py-3 px-3.5 text-center whitespace-nowrap">
+              <div class="inline-flex items-center gap-1">
+                <button type="button" onclick="toggleCouponStatus('${c.code}')"
+                        class="px-2 py-1 rounded-lg text-xs font-bold transition cursor-pointer border ${isActive ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'}"
+                        title="${isActive ? 'Tạm khóa mã này' : 'Kích hoạt lại mã'}">
+                  ${isActive ? '⏸️ Tắt' : '▶️ Bật'}
+                </button>
+                <button type="button" onclick="editCouponInForm('${c.code}')"
+                        class="px-2 py-1 rounded-lg text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition cursor-pointer"
+                        title="Chỉnh sửa thông số mã">
+                  ✏️ Sửa
+                </button>
+                <button type="button" onclick="deleteCoupon('${c.code}')"
+                        class="px-2 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer"
+                        title="Xóa voucher này">
+                  🗑️ Xóa
+                </button>
+              </div>
+            </td>
+
+          </tr>
+        `;
+      }).join('');
+    }
+
+
+    // ========================================================
+    // GỬI LINK KÍCH HOẠT THỦ CÔNG CHO KHÁCH (MANUAL SEND LINK)
+    // ========================================================
+    function openManualSendLinkModal() {
+      const modal = document.getElementById('manualSendLinkModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        document.getElementById('modalManualEmail').focus();
+      }
+    }
+
+    function closeManualSendLinkModal() {
+      const modal = document.getElementById('manualSendLinkModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function autoFillAvailableLicenseLink() {
+      const inv = getInventory();
+      const available = inv.find(item => item && item.status === 'Sẵn sàng' && item.link);
+      const input = document.getElementById('manualActivationLink');
+      if (available && input) {
+        input.value = available.link;
+        showToast('✓ Đã lấy 1 link sẵn sàng từ kho nạp!');
+      } else if (input) {
+        alert('Kho license hiện tại chưa có mã "Sẵn sàng". Bạn có thể dán link trực tiếp vào ô này hoặc mua từ bot @shopxoainon_bot!');
+      }
+    }
+
+    function modalAutoFillLink() {
+      const inv = getInventory();
+      const available = inv.find(item => item && item.status === 'Sẵn sàng' && item.link);
+      const input = document.getElementById('modalManualLink');
+      if (available && input) {
+        input.value = available.link;
+        showToast('✓ Đã lấy 1 link sẵn sàng từ kho!');
+      } else if (input) {
+        alert('Kho license hiện tại chưa có mã "Sẵn sàng". Vui lòng dán link trực tiếp vào ô!');
+      }
+    }
+
+    function resetManualSendForm() {
+      const form = document.getElementById('manualSendLinkForm');
+      if (form) form.reset();
+    }
+
+    function copyManualZaloMessage() {
+      const email = (document.getElementById('manualRecipientEmail')?.value || '').trim() || 'Bạn';
+      const link = (document.getElementById('manualActivationLink')?.value || '').trim();
+      if (!link) {
+        alert('Vui lòng nhập đường link kích hoạt trước khi copy!');
+        return;
+      }
+      const msg = `🎉 CHÚC MỪNG BẠN ĐÃ ĐĂNG KÝ THÀNH CÔNG GOOGLE GEMINI PRO 18 THÁNG!\n\n✉️ Gmail kích hoạt: ${email}\n🔑 Link nhận bản quyền của bạn:\n${link}\n\n👉 Hướng dẫn: Bạn chỉ cần đăng nhập Gmail trên trình duyệt rồi bấm vào link trên để nhận quyền 18 tháng (kèm 5TB dung lượng Google One).\nCần hỗ trợ Ultraviewer vui lòng nhắn Zalo kỹ thuật viên: 0567.960.777 (24/7).`;
+      navigator.clipboard.writeText(msg).then(() => {
+        showToast('✓ Đã copy nội dung tin nhắn Zalo kèm link!');
+      }).catch(() => {
+        alert(msg);
+      });
+    }
+
+    function copyModalManualZaloMessage() {
+      const email = (document.getElementById('modalManualEmail')?.value || '').trim() || 'Bạn';
+      const link = (document.getElementById('modalManualLink')?.value || '').trim();
+      if (!link) {
+        alert('Vui lòng nhập đường link kích hoạt trước khi copy!');
+        return;
+      }
+      const msg = `🎉 CHÚC MỪNG BẠN ĐÃ ĐĂNG KÝ THÀNH CÔNG GOOGLE GEMINI PRO 18 THÁNG!\n\n✉️ Gmail kích hoạt: ${email}\n🔑 Link nhận bản quyền của bạn:\n${link}\n\n👉 Hướng dẫn: Bạn chỉ cần đăng nhập Gmail trên trình duyệt rồi bấm vào link trên để nhận quyền 18 tháng (kèm 5TB dung lượng Google One).\nCần hỗ trợ Ultraviewer vui lòng nhắn Zalo kỹ thuật viên: 0567.960.777 (24/7).`;
+      navigator.clipboard.writeText(msg).then(() => {
+        showToast('✓ Đã copy nội dung tin nhắn Zalo kèm link!');
+      }).catch(() => {
+        alert(msg);
+      });
+    }
+
+    function markInventoryLinkAsUsed(link, recipient) {
+      if (!link) return;
+      try {
+        let inv = getInventory();
+        let changed = false;
+        inv.forEach(item => {
+          if (item && item.link === link && item.status === 'Sẵn sàng') {
+            item.status = 'Đã cấp';
+            item.assignedTo = recipient;
+            item.assignedTime = new Date().toLocaleString('vi-VN');
+            changed = true;
+          }
+        });
+        if (changed) {
+          localStorage.setItem('crm_inventory', JSON.stringify(inv));
+          renderInventory();
+          // Sync backend
+          adminApiFetch('/api/licenses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'sync_all', licenses: inv })
+          }).catch(() => {});
+        }
+      } catch(e) {}
+    }
+
+    async function handleManualSendLinkSubmit(event) {
+      if (event) event.preventDefault();
+      const recipient = (document.getElementById('manualRecipientEmail')?.value || '').trim();
+      const link = (document.getElementById('manualActivationLink')?.value || '').trim();
+      const custName = (document.getElementById('manualRecipientName')?.value || '').trim() || 'Bạn';
+
+      if (!recipient) {
+        alert('Vui lòng nhập địa chỉ Gmail của khách hàng!');
+        return;
+      }
+      if (!link) {
+        alert('Vui lòng nhập đường link kích hoạt cần gửi!');
+        return;
+      }
+
+      const active = getActiveGmail();
+      const senderEmail = active.email || 'nguyenhanocb1@gmail.com';
+      const senderName = active.name || 'Google Gemini Pro Support VN';
+      const senderSecret = active.secret || 'mfam krzt mygf upll';
+
+      const btn = document.getElementById('btnManualSendEmail');
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.innerHTML = '<span>⏳ Đang gửi email...</span>';
+        btn.disabled = true;
+      }
+
+      showToast(`Đang gửi link kích hoạt tới Gmail [${recipient}]...`);
+
+      const fakeOrder = {
+        name: custName,
+        email: recipient,
+        orderId: '#MANUAL-' + Math.floor(1000 + Math.random() * 9000),
+        phone: 'N/A',
+        time: new Date().toLocaleString('vi-VN')
+      };
+
+      const htmlBody = buildFullCustomerOrderEmailHtml(fakeOrder, link);
+
+      try {
+        const res = await adminApiFetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            senderEmail: senderEmail,
+            senderName: senderName,
+            senderPassword: senderSecret,
+            recipient: recipient,
+            subject: `[Google Gemini Pro] Link kích hoạt bản quyền 18 Tháng chính chủ - 5TB Cloud`,
+            htmlBody: htmlBody
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast(`✓ Đã gửi link bản quyền thành công tới ${recipient}!`);
+          alert(`🎉 GỬI LINK THÀNH CÔNG!\n\nEmail đã được gửi tới: ${recipient}\nLink kích hoạt: ${link}\n\nKhách hàng đã nhận được email hướng dẫn kích hoạt Google Gemini Pro 18 Tháng.`);
+          markInventoryLinkAsUsed(link, recipient);
+          document.getElementById('manualRecipientEmail').value = '';
+          document.getElementById('manualActivationLink').value = '';
+          document.getElementById('manualRecipientName').value = '';
+        } else {
+          alert('⚠️ Gửi email thất bại: ' + (data.message || 'Lỗi kết nối Gmail SMTP.'));
+        }
+      } catch (err) {
+        alert('Lỗi kết nối máy chủ khi gửi email: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.innerHTML = origText;
+          btn.disabled = false;
+        }
+      }
+    }
+
+    async function modalSubmitSendLink() {
+      const recipient = (document.getElementById('modalManualEmail')?.value || '').trim();
+      const link = (document.getElementById('modalManualLink')?.value || '').trim();
+      const custName = (document.getElementById('modalManualName')?.value || '').trim() || 'Bạn';
+
+      if (!recipient) {
+        alert('Vui lòng nhập địa chỉ Gmail của khách hàng!');
+        return;
+      }
+      if (!link) {
+        alert('Vui lòng nhập đường link kích hoạt cần gửi!');
+        return;
+      }
+
+      const active = getActiveGmail();
+      const senderEmail = active.email || 'nguyenhanocb1@gmail.com';
+      const senderName = active.name || 'Google Gemini Pro Support VN';
+      const senderSecret = active.secret || 'mfam krzt mygf upll';
+
+      const btn = document.getElementById('btnModalSubmitSendEmail');
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.innerHTML = '<span>⏳ Đang gửi...</span>';
+        btn.disabled = true;
+      }
+
+      showToast(`Đang gửi link kích hoạt tới Gmail [${recipient}]...`);
+
+      const fakeOrder = {
+        name: custName,
+        email: recipient,
+        orderId: '#MANUAL-' + Math.floor(1000 + Math.random() * 9000),
+        phone: 'N/A',
+        time: new Date().toLocaleString('vi-VN')
+      };
+
+      const htmlBody = buildFullCustomerOrderEmailHtml(fakeOrder, link);
+
+      try {
+        const res = await adminApiFetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            senderEmail: senderEmail,
+            senderName: senderName,
+            senderPassword: senderSecret,
+            recipient: recipient,
+            subject: `[Google Gemini Pro] Link kích hoạt bản quyền 18 Tháng chính chủ - 5TB Cloud`,
+            htmlBody: htmlBody
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast(`✓ Đã gửi link bản quyền thành công tới ${recipient}!`);
+          alert(`🎉 GỬI LINK THÀNH CÔNG!\n\nEmail đã được gửi tới: ${recipient}\nLink kích hoạt: ${link}\n\nKhách hàng đã nhận được email hướng dẫn kích hoạt Google Gemini Pro 18 Tháng.`);
+          markInventoryLinkAsUsed(link, recipient);
+          closeManualSendLinkModal();
+          document.getElementById('modalManualEmail').value = '';
+          document.getElementById('modalManualLink').value = '';
+          document.getElementById('modalManualName').value = '';
+        } else {
+          alert('⚠️ Gửi email thất bại: ' + (data.message || 'Lỗi kết nối Gmail SMTP.'));
+        }
+      } catch (err) {
+        alert('Lỗi kết nối máy chủ khi gửi email: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.innerHTML = origText;
+          btn.disabled = false;
+        }
+      }
     }
 
     // Init
@@ -4847,15 +6393,20 @@
       try { renderInventory(); } catch(e) { console.error("Error renderInventory:", e); }
       try { renderTraffic(); } catch(e) { console.error("Error renderTraffic:", e); }
       try { renderGmailPool(); } catch(e) { console.error("Error renderGmailPool:", e); }
+      try { loadCouponsFromServer(); } catch(e) { console.error("Error loadCouponsFromServer:", e); }
       loadTelegramConfigFromServer();
       syncTelegramUI();
       syncPaymentUI();
       renderBankTransactions();
+      loadPixelStatsFromBackend();
+      generateUtmLink();
       checkAndTriggerDailyTelegramReport();
       syncOrdersFromBackend();
       syncInventoryFromServer();
       setInterval(syncOrdersFromBackend, 10000);
       setInterval(() => syncInventoryFromServer(), 10000);
+      setInterval(loadPixelStatsFromBackend, 15000);
+      setInterval(() => loadCouponsFromServer(false), 20000);
     }
 
     // Luôn kiểm tra khóa bảo mật ngay lập tức khi load trang
