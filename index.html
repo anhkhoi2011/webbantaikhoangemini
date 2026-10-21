@@ -984,10 +984,10 @@
         <!-- CHI TIẾT CHUYỂN KHOẢN -->
         <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-left text-xs space-y-2">
           <div class="flex justify-between items-center text-slate-700 pb-1.5 border-b border-slate-200">
-            <span>Ngân hàng & Số tài khoản:</span>
+            <span>Ngân hàng & STK tự động:</span>
             <div class="flex items-center gap-1.5 font-mono font-bold text-slate-900 text-sm">
-              <span>MB: 517041996</span>
-              <button onclick="copyData('517041996')" class="text-blue-600 text-xs underline font-bold cursor-pointer">Sao chép</button>
+              <span>MB: <strong id="modalStkDisplay" class="text-blue-700">VQRQAMRMQ5816</strong></span>
+              <button onclick="copyData(document.getElementById('modalStkDisplay') ? document.getElementById('modalStkDisplay').innerText.trim() : 'VQRQAMRMQ5816')" class="text-blue-600 text-xs underline font-bold cursor-pointer">Sao chép</button>
             </div>
           </div>
           <div class="flex justify-between items-center text-slate-700 pb-1.5 border-b border-slate-200">
@@ -1428,7 +1428,8 @@
     // Cấu hình ngân hàng thanh toán VietQR
     const CONFIG = {
       bankBin: "970422", // MBBank
-      accountNo: "517041996",
+      accountNo: "VQRQAMRMQ5816", // VietQR PRO MBBank tự động nhận diện 100% trong 03 giây
+      physicalAccountNo: "517041996",
       accountName: "NGUYEN TRAN HAN",
       amount: 90000,
       googleAppsScriptUrl: "https://script.google.com/macros/s/AKfycbxBCAtlOD-v0bqTJSsjjiksBccuJSlBnybznPsxOHj6f8rkT44cUlnF__i6Ms14U2uS/exec"
@@ -1744,7 +1745,7 @@
           const sp = document.getElementById('qrLoadingSpinner');
           if (sp) sp.classList.add('hidden');
         };
-        // URL VietQR chính hãng chuẩn NAPAS: Có tên, STK MBBank 517041996, 90.000đ và Memo PRO18T SĐT
+        // URL VietQR chính hãng chuẩn NAPAS: Có tên, STK MBBank VietQR PRO, 90.000đ và Memo PRO18T SĐT
         const primaryQrUrl = `https://img.vietqr.io/image/${CONFIG.bankBin}-${CONFIG.accountNo}-compact2.png?amount=${CONFIG.amount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(CONFIG.accountName)}`;
         qrImg.src = primaryQrUrl;
       }
@@ -1760,6 +1761,10 @@
         .then(data => {
           if (data && data.status === 'success' && data.publicId) {
             currentOrder.apipayPublicId = data.publicId;
+            if (data.accountNumber) {
+              const stkDisp = document.getElementById('modalStkDisplay');
+              if (stkDisp) stkDisp.innerText = data.accountNumber;
+            }
             if (data.qrUrl) {
               const liveQrImg = document.getElementById('modalQrImage');
               if (liveQrImg) liveQrImg.src = data.qrUrl;
@@ -1939,6 +1944,7 @@
           memo: memo,
           phone: phone,
           amount: amount,
+          orderId: (currentOrder && currentOrder.orderId) ? currentOrder.orderId : '',
           publicId: (currentOrder && currentOrder.apipayPublicId) ? currentOrder.apipayPublicId : ''
         });
         const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
@@ -2022,6 +2028,9 @@
             listeningEl.innerHTML = `<span class="text-amber-700 font-bold">⏳ Chưa ghi nhận GD "${currentOrder.memo}". Nếu vừa chuyển, vui lòng chờ 5-10s để ngân hàng đồng bộ!</span>`;
           }
           showToast(`Chưa nhận diện GD "${currentOrder.memo}". Đang tiếp tục quét tự động 3s/lần!`, 4000);
+          try {
+            sendTelegramMessage(`⚡ <b>KHÁCH BÁO ĐÃ CHUYỂN TIỀN</b>\n• Đơn hàng: <b>${currentOrder.orderId}</b>\n• Họ tên: <b>${currentOrder.name}</b>\n• SĐT (Zalo): <b>${currentOrder.phone}</b>\n• Gmail: <b>${currentOrder.email}</b>\n• Nội dung: <code>${currentOrder.memo}</code>\n• Số tiền: <b>90.000 VNĐ</b>\n<i>👉 Vui lòng kiểm tra app MBBank và duyệt cấp quyền nếu nhận được tiền!</i>`);
+          } catch(err) {}
         }
       } catch(e) {
         showToast("Đang kiểm tra kết nối API Pay, vui lòng thử lại sau vài giây.", 3500);

@@ -173,7 +173,10 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
         if path == "/api/check-payment":
             memo = query.get("memo", [""])[0]
             phone = query.get("phone", [""])[0]
+            order_id = query.get("orderId", [""])[0]
             public_id = query.get("publicId", [""])[0]
+            clean_phone = phone.replace("+84", "0").replace(" ", "") if phone else ""
+            clean_memo = memo.replace(" ", "").upper() if memo else ""
 
             # 4.1 Kiểm tra qua ApiPay bridge nếu có publicId
             if public_id:
@@ -190,11 +193,23 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 except Exception as e:
                     pass
 
-            # 4.2 Kiểm tra đối soát trong nhật ký giao dịch ngân hàng
-            txs = read_json_file("bank_transactions.json", [])
-            clean_phone = phone.replace("+84", "0").replace(" ", "") if phone else ""
-            clean_memo = memo.replace(" ", "").upper() if memo else ""
+            # 4.2 Kiểm tra danh sách Payment Requests gần nhất trên ApiPay Cloud bằng phone / memo
+            if clean_phone or clean_memo:
+                try:
+                    import apipay_bridge
+                    res = apipay_bridge.check_recent_payment_requests(memo, phone)
+                    if res.get("paid"):
+                        return self.send_json({
+                            "paid": True,
+                            "message": "Payment verified via APIPay Cloud Recent",
+                            "transaction": res.get("transaction"),
+                            "source": "APIPay Cloud Recent"
+                        })
+                except Exception as e:
+                    pass
 
+            # 4.3 Kiểm tra đối soát trong nhật ký giao dịch ngân hàng
+            txs = read_json_file("bank_transactions.json", [])
             for tx in txs:
                 desc = (tx.get("description") or tx.get("memo") or "").upper().replace(" ", "")
                 if (clean_phone and clean_phone in desc) or (clean_memo and clean_memo in desc):
@@ -204,6 +219,23 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                         "transaction": tx,
                         "source": tx.get("source", "Live Bank Stream")
                     })
+
+            # 4.4 Kiểm tra trong orders.json (trường hợp Admin duyệt thủ công hoặc đơn đã kích hoạt)
+            orders = read_json_file("orders.json", [])
+            for order in orders:
+                st = (order.get("status") or "").lower()
+                is_paid = "đã thanh toán" in st or "da thanh toan" in st or "thành công" in st or "thanh cong" in st
+                if is_paid:
+                    o_id = (order.get("orderId") or "").strip()
+                    o_phone = (order.get("phone") or "").replace("+84", "0").replace(" ", "")
+                    o_memo = (order.get("memo") or "").replace(" ", "").upper()
+                    if (order_id and order_id == o_id) or (clean_phone and clean_phone == o_phone) or (clean_memo and clean_memo == o_memo):
+                        return self.send_json({
+                            "paid": True,
+                            "message": "Payment verified via Order Database",
+                            "transaction": order,
+                            "source": "Order Database"
+                        })
 
             return self.send_json({"paid": False, "message": "Chờ quét mã thanh toán..."})
 

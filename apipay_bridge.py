@@ -122,10 +122,46 @@ def check_payment_status(public_id):
     except Exception as e:
         return {"status": "error", "paid": False, "message": str(e)}
 
+def check_recent_payment_requests(memo=None, phone=None, amount=90000):
+    """
+    Tra cứu danh sách Payment Requests gần nhất trên ApiPay Cloud.
+    Nếu có bất kỳ Payment Request nào khớp với memo hoặc phone có trạng thái COMPLETED hoặc PAID thì trả về True ngay!
+    """
+    cfg = load_config()
+    headers = get_headers(cfg["accessKey"], cfg["secretKey"])
+    url = "https://app.apipay.vn/v1/client/payment-requests"
+    req = urllib.request.Request(url, headers=headers)
+    clean_phone = phone.replace("+84", "0").replace(" ", "") if phone else ""
+    clean_memo = memo.replace(" ", "").upper() if memo else ""
+
+    try:
+        with urllib.request.urlopen(req, context=ctx, timeout=8) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            prs = data.get("data", {}).get("data", [])
+            for pr in prs:
+                st = (pr.get("status") or "").upper()
+                is_paid = st in ["PAID", "COMPLETED", "SUCCESS"]
+                if is_paid:
+                    content = (pr.get("content") or "").replace(" ", "").upper()
+                    # Khớp theo memo hoặc phone
+                    if (clean_phone and clean_phone in content) or (clean_memo and clean_memo in content):
+                        return {
+                            "status": "success",
+                            "paid": True,
+                            "paymentStatus": st,
+                            "amount": pr.get("amount"),
+                            "content": pr.get("content"),
+                            "transaction": pr,
+                            "source": "APIPay Cloud Recent PR"
+                        }
+            return {"status": "success", "paid": False, "message": "Chưa có giao dịch hoàn tất"}
+    except Exception as e:
+        return {"status": "error", "paid": False, "message": str(e)}
+
 def get_qr_base64(memo="PRO18T", amount=90000):
     cfg = load_config()
     bank_bin = cfg.get("bankBin", "970422")
-    acc_no = cfg.get("accountNo", "517041996")
+    acc_no = cfg.get("vaNumber", cfg.get("accountNo", "VQRQAMRMQ5816"))
     acc_name = cfg.get("accountName", "NGUYEN TRAN HAN")
     import urllib.parse
     url = f"https://img.vietqr.io/image/{bank_bin}-{acc_no}-compact2.png?amount={amount}&addInfo={urllib.parse.quote(memo)}&accountName={urllib.parse.quote(acc_name)}"

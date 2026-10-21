@@ -328,6 +328,26 @@ if (strpos($requestUri, '/api/check-payment') !== false) {
             exit();
         }
     }
+
+    // Kiểm tra trong orders.json nếu Admin duyệt hoặc đơn đã thanh toán
+    $orders = readJsonFile('orders.json', []);
+    foreach ($orders as $order) {
+        $st = strtolower($order['status'] ?? '');
+        $isPaid = (strpos($st, 'đã thanh toán') !== false || strpos($st, 'da thanh toan') !== false || strpos($st, 'thành công') !== false || strpos($st, 'thanh cong') !== false);
+        if ($isPaid) {
+            $oPhone = str_replace(['+84', ' '], ['0', ''], $order['phone'] ?? '');
+            $oMemo = strtoupper(str_replace(' ', '', $order['memo'] ?? ''));
+            if (($phone && $phone === $oPhone) || ($memo && $memo === $oMemo)) {
+                echo json_encode([
+                    "paid" => true,
+                    "message" => "Payment verified via Order Database",
+                    "transaction" => $order,
+                    "source" => "Order Database"
+                ]);
+                exit();
+            }
+        }
+    }
     echo json_encode(["paid" => false, "message" => "Chờ quét mã thanh toán..."]);
     exit();
 }
