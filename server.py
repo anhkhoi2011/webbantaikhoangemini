@@ -572,59 +572,47 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
 
             status_str = (body.get("status") or "").lower()
 
-            # 1. Bắn Telegram thông báo khi khách mở mã QR đặt mua
-            is_qr_opened = ("mở qr" in status_str or "chờ thanh toán" in status_str) and not body.get("qrNotified")
-            if is_qr_opened:
-                body["qrNotified"] = True
-
-            # 2. Bắn Telegram khi thanh toán thành công (kể cả khi có link hoặc chờ cấp link)
+            # Bắn Telegram khi thanh toán thành công (kể cả khi có link hoặc chờ cấp link)
             is_paid = ("đã thanh toán" in status_str or "thành công" in status_str or "paid" in status_str) and ("chờ thanh toán" not in status_str)
             send_paid_flag = False
             if is_paid and not body.get("paidNotified"):
                 body["paidNotified"] = True
                 send_paid_flag = True
 
-            def _bg_notify(order_data, send_qr, send_paid):
-                if send_qr:
-                    try:
-                        import telegram_sender
-                        telegram_sender.send_telegram_raw(telegram_sender.get_qr_opened_template(order_data))
-                    except Exception as e:
-                        sys.stderr.write(f"Telegram QR notify error: {e}\n")
-                if send_paid:
-                    try:
-                        import telegram_sender
-                        telegram_sender.send_telegram_raw(telegram_sender.get_payment_success_template(order_data))
-                    except Exception as e:
-                        sys.stderr.write(f"Telegram paid notify error: {e}\n")
+            def _bg_notify(order_data):
+                try:
+                    import telegram_sender
+                    telegram_sender.send_telegram_raw(telegram_sender.get_payment_success_template(order_data))
+                except Exception as e:
+                    sys.stderr.write(f"Telegram paid notify error: {e}\n")
 
-                    # Đồng bộ Google Sheet qua Webhook
-                    try:
-                        cfg = read_json_file("payment_config.json", {})
-                        webhook = cfg.get("googleSheetWebhookUrl")
-                        if webhook and "SAMPLE" not in webhook:
-                            req_data = json.dumps({
-                                "action": "new_order",
-                                "time": order_data.get("time") or datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-                                "orderId": order_data.get("orderId"),
-                                "product": order_data.get("package") or "Google Gemini Pro 18 Tháng",
-                                "amount": order_data.get("amount") or "90.000 VNĐ",
-                                "name": order_data.get("name") or "Khách hàng",
-                                "phone": order_data.get("phone") or "",
-                                "email": order_data.get("email") or "",
-                                "memo": order_data.get("memo") or f"PRO18T {order_data.get('phone', '')}",
-                                "licenseLink": order_data.get("licenseLink") or "",
-                                "referrer": order_data.get("referrer") or "Trực tiếp",
-                                "ipLocation": f"{order_data.get('ip', '127.0.0.1')} ({order_data.get('location', 'VN')})",
-                                "status": order_data.get("status") or "Đã thanh toán (MBBank)"
-                            }).encode("utf-8")
-                            req = urllib.request.Request(webhook, data=req_data, headers={"Content-Type": "application/json"})
-                            urllib.request.urlopen(req, timeout=8)
-                    except Exception as e:
-                        sys.stderr.write(f"Google Sheet webhook error: {e}\n")
+                # Đồng bộ Google Sheet qua Webhook
+                try:
+                    cfg = read_json_file("payment_config.json", {})
+                    webhook = cfg.get("googleSheetWebhookUrl")
+                    if webhook and "SAMPLE" not in webhook:
+                        req_data = json.dumps({
+                            "action": "new_order",
+                            "time": order_data.get("time") or datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+                            "orderId": order_data.get("orderId"),
+                            "product": order_data.get("package") or "Google Gemini Pro 18 Tháng",
+                            "amount": order_data.get("amount") or "90.000 VNĐ",
+                            "name": order_data.get("name") or "Khách hàng",
+                            "phone": order_data.get("phone") or "",
+                            "email": order_data.get("email") or "",
+                            "memo": order_data.get("memo") or f"PRO18T {order_data.get('phone', '')}",
+                            "licenseLink": order_data.get("licenseLink") or "",
+                            "referrer": order_data.get("referrer") or "Trực tiếp",
+                            "ipLocation": f"{order_data.get('ip', '127.0.0.1')} ({order_data.get('location', 'VN')})",
+                            "status": order_data.get("status") or "Đã thanh toán (MBBank)"
+                        }).encode("utf-8")
+                        req = urllib.request.Request(webhook, data=req_data, headers={"Content-Type": "application/json"})
+                        urllib.request.urlopen(req, timeout=8)
+                except Exception as e:
+                    sys.stderr.write(f"Google Sheet webhook error: {e}\n")
 
-            if is_qr_opened or send_paid_flag:
-                threading.Thread(target=_bg_notify, args=(dict(body), is_qr_opened, send_paid_flag), daemon=True).start()
+            if send_paid_flag:
+                threading.Thread(target=_bg_notify, args=(dict(body),), daemon=True).start()
 
             write_json_file("orders.json", orders)
             return self.send_json({"status": "success", "orderId": order_id})
