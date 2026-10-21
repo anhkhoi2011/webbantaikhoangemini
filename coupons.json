@@ -1,0 +1,24 @@
+[
+  {
+    "code": "SALE11",
+    "discountType": "final_price",
+    "discountValue": 21000,
+    "finalPrice": 69000,
+    "maxUses": 100,
+    "usedCount": 0,
+    "active": true,
+    "description": "Mã SALE11 ưu đãi quét 69.000đ (tiết kiệm 21K)",
+    "createdAt": "2026-10-21 23:59:00"
+  },
+  {
+    "code": "GIAM11K",
+    "discountType": "fixed",
+    "discountValue": 11000,
+    "finalPrice": 79000,
+    "maxUses": 50,
+    "usedCount": 0,
+    "active": true,
+    "description": "Mã giảm 11.000đ còn 79.000đ",
+    "createdAt": "2026-10-21 23:59:00"
+  }
+]

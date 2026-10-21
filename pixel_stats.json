@@ -3,13 +3,144 @@
   "enabled": true,
   "stats": {
     "PageView": 158,
-    "ViewContent": 142,
+    "ViewContent": 144,
     "Lead": 47,
-    "InitiateCheckout": 39,
+    "InitiateCheckout": 46,
     "Purchase": 24,
-    "totalEvents": 410
+    "totalEvents": 419
   },
   "recentEvents": [
+    {
+      "event": "ViewContent",
+      "time": "10:00:53 21/10/2026",
+      "url": "http://guarantees-lexmark-lcd-counsel.trycloudflare.com/?fbclid=IwZXh0bgNhZW0CMTEAcGRvZgRzcnRjBmFwcF9pZAwyNTYyODEwNDA1NTgAAR5BRl_UU9SHKufrHUk2OAPcdA7C26vZeTgATqetRloWZg51ROZY2VKXJQ_6cg_aem_28AOqo4kJzQHwibR2dPJTw",
+      "fbclid": "IwZXh0bgNhZW0CMTEAcGRvZgRzcnRjBmFwcF9pZAwyNTYyODEwNDA1NTgAAR5BRl_UU9SHKufrHUk2OAPcdA7C26vZeTgATqetRloWZg51ROZY2VKXJQ_6cg_aem_28AOqo4kJzQHwibR2dPJTw",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Google Gemini Pro 18 Tháng",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
+    {
+      "event": "InitiateCheckout",
+      "time": "23:55:52 21/10/2026",
+      "url": "https://guarantees-lexmark-lcd-counsel.trycloudflare.com/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Bấm nút Giữ Suất Ngay (Landing Page)",
+        "content_category": "Google Gemini Pro 18 Tháng",
+        "button_source": "pricing_card_main_cta",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
+    {
+      "event": "InitiateCheckout",
+      "time": "23:55:50 21/10/2026",
+      "url": "https://guarantees-lexmark-lcd-counsel.trycloudflare.com/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Bấm nút Giữ Suất Ngay (Landing Page)",
+        "content_category": "Google Gemini Pro 18 Tháng",
+        "button_source": "badge_giam_soc_99",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
+    {
+      "event": "InitiateCheckout",
+      "time": "23:55:48 21/10/2026",
+      "url": "https://guarantees-lexmark-lcd-counsel.trycloudflare.com/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Bấm nút Giữ Suất Ngay (Landing Page)",
+        "content_category": "Google Gemini Pro 18 Tháng",
+        "button_source": "warning_box_cta",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
+    {
+      "event": "InitiateCheckout",
+      "time": "23:55:44 21/10/2026",
+      "url": "https://guarantees-lexmark-lcd-counsel.trycloudflare.com/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Bấm nút Giữ Suất Ngay (Landing Page)",
+        "content_category": "Google Gemini Pro 18 Tháng",
+        "button_source": "badge_giam_soc_99",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
+    {
+      "event": "InitiateCheckout",
+      "time": "23:55:36 21/10/2026",
+      "url": "https://guarantees-lexmark-lcd-counsel.trycloudflare.com/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Bấm nút Giữ Suất Ngay (Landing Page)",
+        "content_category": "Google Gemini Pro 18 Tháng",
+        "button_source": "badge_giam_soc_99",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
+    {
+      "event": "InitiateCheckout",
+      "time": "23:55:34 21/10/2026",
+      "url": "https://guarantees-lexmark-lcd-counsel.trycloudflare.com/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Bấm nút Giữ Suất Ngay (Landing Page)",
+        "content_category": "Google Gemini Pro 18 Tháng",
+        "button_source": "pricing_card_main_cta",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
+    {
+      "event": "InitiateCheckout",
+      "time": "23:55:30 21/10/2026",
+      "url": "https://guarantees-lexmark-lcd-counsel.trycloudflare.com/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Bấm nút Giữ Suất Ngay (Landing Page)",
+        "content_category": "Google Gemini Pro 18 Tháng",
+        "button_source": "warning_box_cta",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
+    {
+      "event": "ViewContent",
+      "time": "23:55:24 21/10/2026",
+      "url": "https://guarantees-lexmark-lcd-counsel.trycloudflare.com/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Google Gemini Pro 18 Tháng",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
     {
       "event": "Lead",
       "time": "21/10/2026 22:47:29",
@@ -20,5 +151,5 @@
       "params": {}
     }
   ],
-  "updatedAt": "21/10/2026 22:47:29"
+  "updatedAt": "22/10/2026 00:00:44"
 }

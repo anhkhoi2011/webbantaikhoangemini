@@ -596,13 +596,37 @@
               <span class="text-[11px] text-slate-500 mt-1 block">Không cần mật khẩu! Hệ thống cấp link Google One chính thức cho Gmail này.</span>
             </div>
 
+            <!-- 4. MÃ KHUYẾN MÃI / VOUCHER (KHÔNG BẮT BUỘC) -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="couponCodeInput" class="block text-xs font-extrabold text-slate-800">
+                  4. Mã khuyến mãi / Voucher <span class="text-slate-400 font-normal text-[11px]">(Không bắt buộc)</span>
+                </label>
+                <span id="couponDiscountTag" class="hidden text-[10px] font-black text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-md"></span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="relative flex-1">
+                  <input type="text" id="couponCodeInput" autocomplete="off" placeholder="Nhập mã voucher (vd: SALE11)"
+                    style="text-transform: uppercase;"
+                    oninput="handleCouponInput()"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault(); applyCoupon();}"
+                    class="w-full bg-white border-2 border-slate-300 hover:border-blue-400 rounded-xl px-3.5 py-2.5 text-base sm:text-sm uppercase text-slate-900 focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-500/15 font-bold tracking-wider transition">
+                  <button type="button" id="btnClearCoupon" onclick="clearCoupon()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 font-bold p-1 text-xs cursor-pointer">✕</button>
+                </div>
+                <button type="button" id="btnApplyCoupon" onclick="applyCoupon()" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-extrabold text-xs transition shadow-sm cursor-pointer whitespace-nowrap">
+                  Áp dụng
+                </button>
+              </div>
+              <div id="couponMessage" class="hidden text-[11px] font-bold mt-1.5"></div>
+            </div>
+
             <div class="pt-1.5">
               <button type="button" id="btnSubmitOrder" onclick="handleFormSubmit(event)" class="cta-glow-pulse w-full py-4 px-4 rounded-2xl font-black text-sm sm:text-base text-white bg-gradient-to-r from-red-600 via-rose-600 to-orange-500 hover:from-red-700 hover:to-orange-600 active:scale-[0.99] transition shadow-xl flex items-center justify-center gap-2 cursor-pointer">
-                <span>MỞ MÃ QR THANH TOÁN (90.000đ)</span>
+                <span id="btnSubmitOrderText">MỞ MÃ QR THANH TOÁN (90.000đ)</span>
                 <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
               </button>
               <div class="text-center mt-2">
-                <span class="text-[11px] font-bold text-rose-600 animate-pulse">⚡ Hệ thống tự động giữ suất 90.000đ trong 10 phút sau khi mở QR!</span>
+                <span id="orderHoldSlotsSubtext" class="text-[11px] font-bold text-rose-600 animate-pulse">⚡ Hệ thống tự động giữ suất 90.000đ trong 10 phút sau khi mở QR!</span>
               </div>
             </div>
 
@@ -1070,7 +1094,10 @@
           </div>
           <div class="flex justify-between items-center text-slate-700 pb-1.5 border-b border-slate-200">
             <span>Số tiền thanh toán:</span>
-            <span class="text-emerald-700 font-black text-base">90.000 VNĐ</span>
+            <div class="text-right">
+              <span id="modalPaymentAmountDisplay" class="text-emerald-700 font-black text-base">90.000 VNĐ</span>
+              <div id="modalCouponSubtext" class="hidden text-[10px] text-rose-600 font-bold"></div>
+            </div>
           </div>
           <div class="flex justify-between items-center text-slate-700">
             <span>Nội dung chuyển khoản (bắt buộc):</span>
@@ -1549,6 +1576,129 @@
       emailEl.focus();
     }
 
+    // ==========================================
+    // QUẢN LÝ MÃ KHUYẾN MÃI / VOUCHER (COUPON)
+    // ==========================================
+    let appliedCoupon = null;
+    let currentOrderAmount = 90000;
+
+    function formatVnd(amt) {
+      return Number(amt || 0).toLocaleString('vi-VN') + 'đ';
+    }
+
+    function handleCouponInput() {
+      const input = document.getElementById('couponCodeInput');
+      const clearBtn = document.getElementById('btnClearCoupon');
+      if (input && clearBtn) {
+        if (input.value.trim().length > 0) {
+          clearBtn.classList.remove('hidden');
+        } else {
+          clearBtn.classList.add('hidden');
+        }
+      }
+    }
+
+    function clearCoupon() {
+      appliedCoupon = null;
+      currentOrderAmount = (typeof CONFIG !== 'undefined' && CONFIG.amount) ? CONFIG.amount : 90000;
+
+      const input = document.getElementById('couponCodeInput');
+      if (input) input.value = '';
+      const clearBtn = document.getElementById('btnClearCoupon');
+      if (clearBtn) clearBtn.classList.add('hidden');
+
+      const tag = document.getElementById('couponDiscountTag');
+      if (tag) tag.classList.add('hidden');
+
+      const msg = document.getElementById('couponMessage');
+      if (msg) {
+        msg.innerText = '';
+        msg.classList.add('hidden');
+      }
+
+      const btnSubmit = document.getElementById('btnSubmitOrderText');
+      if (btnSubmit) btnSubmit.innerText = `MỞ MÃ QR THANH TOÁN (${formatVnd(currentOrderAmount)})`;
+
+      const subtext = document.getElementById('orderHoldSlotsSubtext');
+      if (subtext) subtext.innerText = `⚡ Hệ thống tự động giữ suất 90.000đ trong 10 phút sau khi mở QR!`;
+
+      showToast('Đã hủy mã voucher, quay lại mức giá gốc 90.000đ');
+    }
+
+    async function applyCoupon() {
+      const input = document.getElementById('couponCodeInput');
+      const code = input ? input.value.trim().toUpperCase() : '';
+      const msg = document.getElementById('couponMessage');
+      const tag = document.getElementById('couponDiscountTag');
+      const btnSubmit = document.getElementById('btnSubmitOrderText');
+      const subtext = document.getElementById('orderHoldSlotsSubtext');
+      const btnApply = document.getElementById('btnApplyCoupon');
+
+      if (!code) {
+        showToast('Vui lòng nhập mã voucher trước khi bấm Áp dụng!');
+        if (input) input.focus();
+        return;
+      }
+
+      if (btnApply) {
+        btnApply.innerText = 'Đang kiểm tra...';
+        btnApply.disabled = true;
+      }
+
+      try {
+        const res = await smartApiFetch(`/api/coupons/check?code=${encodeURIComponent(code)}`);
+        if (res && res.ok) {
+          const data = await res.json();
+          if (data && data.valid) {
+            appliedCoupon = data;
+            currentOrderAmount = Number(data.finalPrice) || 90000;
+
+            if (msg) {
+              msg.className = "text-[11px] font-bold text-emerald-700 mt-1.5 flex items-center gap-1";
+              msg.innerHTML = `<span>✓</span> <span>${data.message}</span>`;
+              msg.classList.remove('hidden');
+            }
+
+            if (tag) {
+              tag.innerText = `GIẢM ${formatVnd(data.discountAmount)}`;
+              tag.classList.remove('hidden');
+            }
+
+            if (btnSubmit) {
+              btnSubmit.innerText = `MỞ MÃ QR THANH TOÁN (${formatVnd(currentOrderAmount)})`;
+            }
+
+            if (subtext) {
+              subtext.innerHTML = `🔥 Đã áp mã <strong>${data.code}</strong>: Giảm <strong>${formatVnd(data.discountAmount)}</strong>! Quét thanh toán <strong>${formatVnd(currentOrderAmount)}</strong>.`;
+            }
+
+            showToast(`✓ Áp dụng mã ${data.code} thành công! Giá thanh toán: ${formatVnd(currentOrderAmount)}`, 3500);
+            return;
+          } else {
+            appliedCoupon = null;
+            currentOrderAmount = (typeof CONFIG !== 'undefined' && CONFIG.amount) ? CONFIG.amount : 90000;
+            if (msg) {
+              msg.className = "text-[11px] font-bold text-red-600 mt-1.5 flex items-center gap-1";
+              msg.innerHTML = `<span>⚠️</span> <span>${data.message || 'Mã voucher không hợp lệ!'}</span>`;
+              msg.classList.remove('hidden');
+            }
+            if (tag) tag.classList.add('hidden');
+            if (btnSubmit) btnSubmit.innerText = `MỞ MÃ QR THANH TOÁN (90.000đ)`;
+            showToast(data.message || 'Mã voucher không hợp lệ!', 3500);
+          }
+        } else {
+          showToast('Không thể kết nối máy chủ để kiểm tra mã. Vui lòng thử lại!');
+        }
+      } catch(e) {
+        showToast('Lỗi kiểm tra mã: ' + e.message);
+      } finally {
+        if (btnApply) {
+          btnApply.innerText = 'Áp dụng';
+          btnApply.disabled = false;
+        }
+      }
+    }
+
     function filterPerks(cat, btnEl) {
       const cards = document.querySelectorAll('.perk-item-card');
       cards.forEach(c => {
@@ -1897,15 +2047,43 @@
       }
       hideFormAlert();
 
+      const orderAmount = currentOrderAmount || (typeof CONFIG !== 'undefined' && CONFIG.amount) || 90000;
+      const orderAmountStr = formatVnd(orderAmount);
+      const couponCode = appliedCoupon ? appliedCoupon.code : '';
+      const discountAmount = appliedCoupon ? appliedCoupon.discountAmount : 0;
+
       const memo = `PRO18T ${phone}`;
       const orderId = '#' + Math.floor(1000 + Math.random() * 9000);
-      currentOrder = { name, phone, email, memo, orderId };
+      currentOrder = {
+        name,
+        phone,
+        email,
+        memo,
+        orderId,
+        amount: orderAmountStr,
+        amountRaw: orderAmount,
+        couponCode: couponCode,
+        discountAmount: discountAmount
+      };
       try {
         localStorage.setItem('crm_pending_order', JSON.stringify(currentOrder));
       } catch(e) {}
 
       const memoDisplay = document.getElementById('modalMemoDisplay');
       if (memoDisplay) memoDisplay.innerText = memo;
+
+      const amtDisplay = document.getElementById('modalPaymentAmountDisplay');
+      if (amtDisplay) amtDisplay.innerText = `${orderAmountStr} VNĐ`;
+
+      const couponSub = document.getElementById('modalCouponSubtext');
+      if (couponSub) {
+        if (couponCode) {
+          couponSub.innerText = `Đã áp mã ${couponCode} (-${formatVnd(discountAmount)})`;
+          couponSub.classList.remove('hidden');
+        } else {
+          couponSub.classList.add('hidden');
+        }
+      }
 
       // 1. MỞ MODAL THANH TOÁN BỰ TO NGAY LẬP TỨC (KHÔNG CHỜ BẤT KỲ MẠNG NÀO)
       const modal = document.getElementById('paymentModal');
@@ -1944,8 +2122,8 @@
           const sp = document.getElementById('qrLoadingSpinner');
           if (sp) sp.classList.add('hidden');
         };
-        // URL VietQR chính hãng chuẩn NAPAS: Có tên, STK MBBank VietQR PRO, 90.000đ và Memo PRO18T SĐT
-        const primaryQrUrl = `https://img.vietqr.io/image/${CONFIG.bankBin}-${CONFIG.accountNo}-compact2.png?amount=${CONFIG.amount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(CONFIG.accountName)}`;
+        // URL VietQR chính hãng chuẩn NAPAS: Có tên, STK MBBank VietQR PRO, số tiền đã áp coupon và Memo PRO18T SĐT
+        const primaryQrUrl = `https://img.vietqr.io/image/${CONFIG.bankBin}-${CONFIG.accountNo}-compact2.png?amount=${orderAmount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(CONFIG.accountName)}`;
         qrImg.src = primaryQrUrl;
       }
 
@@ -1954,7 +2132,7 @@
         smartApiFetch('/api/apipay-create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phone: phone, amount: CONFIG.amount, memo: memo })
+          body: JSON.stringify({ phone: phone, amount: orderAmount, memo: memo })
         })
         .then(r => r.json())
         .then(data => {
@@ -1972,8 +2150,8 @@
         }).catch(err => console.warn('apipay-create error:', err));
       } catch(e) {}
       // Bắn sự kiện Meta Pixel: Lead & InitiateCheckout
-      trackPixelEvent('Lead', { content_name: 'Đăng Ký Gemini Pro 18T', value: 90000, currency: 'VND' });
-      trackPixelEvent('InitiateCheckout', { content_name: 'Google Gemini Pro 18 Tháng', value: 90000, currency: 'VND', num_items: 1 });
+      trackPixelEvent('Lead', { content_name: 'Đăng Ký Gemini Pro 18T', value: orderAmount, currency: 'VND' });
+      trackPixelEvent('InitiateCheckout', { content_name: 'Google Gemini Pro 18 Tháng', value: orderAmount, currency: 'VND', num_items: 1 });
 
       // Lưu đơn tạm thời lên Server (orders.json) và thông báo Telegram có khách đang mở QR
       try {
@@ -1986,7 +2164,10 @@
             phone: phone,
             email: email,
             package: 'Gemini Pro 18 Tháng',
-            amount: '90.000đ',
+            amount: orderAmountStr,
+            amountRaw: orderAmount,
+            couponCode: couponCode,
+            discountAmount: discountAmount,
             memo: memo,
             time: new Date().toLocaleString('vi-VN'),
             ip: (visitorData && visitorData.ip) ? visitorData.ip : '127.0.0.1',
@@ -2096,7 +2277,8 @@
 
       const listeningEl = document.getElementById('listeningText');
       if (listeningEl) {
-        listeningEl.innerHTML = `Đang chờ bạn quét mã QR 90.000đ từ App Ngân Hàng...`;
+        const amtStr = (currentOrder && currentOrder.amount) ? currentOrder.amount : '90.000đ';
+        listeningEl.innerHTML = `Đang chờ bạn quét mã QR ${amtStr} từ App Ngân Hàng...`;
       }
 
       // Quét ngay lần đầu sau 1.5s
@@ -2134,7 +2316,7 @@
               paid: true,
               transaction: {
                 id: 'SIM_' + Math.floor(100000 + Math.random() * 900000),
-                amount: sim.amount || 90000,
+                amount: sim.amount || amount || 90000,
                 description: sim.memo || `PRO18T ${phone}`,
                 bank: 'MBBank',
                 time: new Date().toLocaleTimeString('vi-VN'),
@@ -2194,12 +2376,15 @@
         listeningEl.innerHTML = `Đang tra soát biến động số dư MBBank... Hệ thống tự nhận diện trong 03 giây!`;
       }
 
+      const orderAmt = (currentOrder && currentOrder.amountRaw) ? currentOrder.amountRaw : CONFIG.amount;
+      const orderAmtStr = (currentOrder && currentOrder.amount) ? currentOrder.amount : '90.000đ';
+
       try {
-        const result = await queryPaymentApi(currentOrder.memo, currentOrder.phone, CONFIG.amount);
+        const result = await queryPaymentApi(currentOrder.memo, currentOrder.phone, orderAmt);
         if (result && result.paid) {
           stopPaymentPolling();
           if (listeningEl) {
-            listeningEl.innerHTML = `✅ <b>Đã nhận được 90.000đ từ MBBank!</b> Đang mở link kích hoạt...`;
+            listeningEl.innerHTML = `✅ <b>Đã nhận được ${orderAmtStr} từ MBBank!</b> Đang mở link kích hoạt...`;
           }
           setTimeout(() => {
             triggerPaymentSuccess(result.transaction);
@@ -2223,8 +2408,11 @@
       if (btnText) btnText.innerHTML = `<svg class="w-4 h-4 animate-spin inline-block mr-1 text-blue-900" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Đang kết nối API Pay tra soát MBBank...`;
       if (btn) btn.disabled = true;
 
+      const orderAmt = (currentOrder && currentOrder.amountRaw) ? currentOrder.amountRaw : CONFIG.amount;
+      const orderAmtStr = (currentOrder && currentOrder.amount) ? currentOrder.amount : '90.000đ';
+
       try {
-        const result = await queryPaymentApi(currentOrder.memo, currentOrder.phone, CONFIG.amount);
+        const result = await queryPaymentApi(currentOrder.memo, currentOrder.phone, orderAmt);
         if (result && result.paid) {
           stopPaymentPolling();
           triggerPaymentSuccess(result.transaction);
@@ -2232,11 +2420,11 @@
         } else {
           const listeningEl = document.getElementById('listeningText');
           if (listeningEl) {
-            listeningEl.innerHTML = `<span class="text-amber-700 font-bold">⏳ Chưa ghi nhận GD "${currentOrder.memo}". Nếu vừa chuyển, vui lòng chờ 5-10s để ngân hàng đồng bộ!</span>`;
+            listeningEl.innerHTML = `<span class="text-amber-700 font-bold">⏳ Chưa ghi nhận GD "${currentOrder.memo}" (${orderAmtStr}). Nếu vừa chuyển, vui lòng chờ 5-10s để ngân hàng đồng bộ!</span>`;
           }
           showToast(`Chưa nhận diện GD "${currentOrder.memo}". Đang tiếp tục quét tự động 3s/lần!`, 4000);
           try {
-            sendTelegramMessage(`⚡ <b>KHÁCH BÁO ĐÃ CHUYỂN TIỀN</b>\n• Đơn hàng: <b>${currentOrder.orderId}</b>\n• Họ tên: <b>${currentOrder.name}</b>\n• SĐT (Zalo): <b>${currentOrder.phone}</b>\n• Gmail: <b>${currentOrder.email}</b>\n• Nội dung: <code>${currentOrder.memo}</code>\n• Số tiền: <b>90.000 VNĐ</b>\n<i>👉 Vui lòng kiểm tra app MBBank và duyệt cấp quyền nếu nhận được tiền!</i>`);
+            sendTelegramMessage(`⚡ <b>KHÁCH BÁO ĐÃ CHUYỂN TIỀN</b>\n• Đơn hàng: <b>${currentOrder.orderId}</b>\n• Họ tên: <b>${currentOrder.name}</b>\n• SĐT (Zalo): <b>${currentOrder.phone}</b>\n• Gmail: <b>${currentOrder.email}</b>\n• Nội dung: <code>${currentOrder.memo}</code>\n• Số tiền: <b>${orderAmtStr}</b>\n<i>👉 Vui lòng kiểm tra app MBBank và duyệt cấp quyền nếu nhận được tiền!</i>`);
           } catch(err) {}
         }
       } catch(e) {
@@ -2328,7 +2516,7 @@
       }
 
       if (isOutOfStock || !order.licenseLink) {
-        const alertMsg = `🚨 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN 90.000 VNĐ</b>\n` +
+        const alertMsg = `🚨 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN (${order.amount || '90.000 VNĐ'})</b>\n` +
           `━━━━━━━━━━━━━━━━━━━━\n` +
           `📦 Mã đơn: <code>${order.orderId}</code> • ${timeStr}\n` +
           `👤 Khách: <b>${order.name}</b> | <code>${cleanPhone}</code>\n` +
@@ -2508,15 +2696,20 @@
 
         const pendingZaloBtn = document.getElementById('btnClaimViaZalo');
         if (pendingZaloBtn) {
-          const zaloMsg = encodeURIComponent(`Chào shop, mình vừa thanh toán 90.000đ đơn hàng ${custOrderId} (SĐT: ${custPhone}, Gmail: ${custEmail}). Gửi giúp mình link kích hoạt Gemini Pro 18 Tháng nhé!`);
+          const zaloMsg = encodeURIComponent(`Chào shop, mình vừa thanh toán ${order.amount || '90.000đ'} đơn hàng ${custOrderId} (SĐT: ${custPhone}, Gmail: ${custEmail}). Gửi giúp mình link kích hoạt Gemini Pro 18 Tháng nhé!`);
           pendingZaloBtn.href = `https://zalo.me/0567960777?text=${zaloMsg}`;
         }
       }
 
-      // Bắn sự kiện Meta Pixel: Purchase (Thanh toán thành công 90.000 VNĐ)
+      const finalAmtStr = (currentOrder && currentOrder.amount) ? currentOrder.amount : '90.000đ';
+      const finalAmtRaw = (currentOrder && currentOrder.amountRaw) ? currentOrder.amountRaw : 90000;
+      const couponCode = (currentOrder && currentOrder.couponCode) ? currentOrder.couponCode : '';
+      const discountAmt = (currentOrder && currentOrder.discountAmount) ? currentOrder.discountAmount : 0;
+
+      // Bắn sự kiện Meta Pixel: Purchase (Thanh toán thành công)
       trackPixelEvent('Purchase', {
         content_name: 'Google Gemini Pro 18 Tháng',
-        value: 90000,
+        value: finalAmtRaw,
         currency: 'VND',
         transaction_id: custOrderId
       });
@@ -2527,7 +2720,10 @@
         phone: custPhone,
         email: custEmail,
         package: 'Gemini Pro 18 Tháng',
-        amount: '90.000đ',
+        amount: finalAmtStr,
+        amountRaw: finalAmtRaw,
+        couponCode: couponCode,
+        discountAmount: discountAmt,
         memo: custMemo,
         time: new Date().toLocaleString('vi-VN'),
         ip: (typeof visitorData !== 'undefined' && visitorData && visitorData.ip) ? visitorData.ip : '127.0.0.1',

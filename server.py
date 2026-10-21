@@ -34,6 +34,26 @@ LICENSE_STATUSES = {"Sẵn sàng", "Đã cấp"}
 PIXEL_FILE = "pixel_stats.json"
 PIXEL_LOCK = threading.Lock()
 DEFAULT_PIXEL_ID = "762402019586629"
+COUPONS_FILE = "coupons.json"
+COUPONS_LOCK = threading.Lock()
+
+def calculate_coupon_discount(coupon, base_price=90000):
+    dtype = coupon.get("discountType", "fixed")
+    final_price = base_price
+    discount_amount = 0
+
+    if coupon.get("finalPrice") and int(coupon.get("finalPrice")) > 0:
+        final_price = int(coupon.get("finalPrice"))
+        discount_amount = max(0, base_price - final_price)
+    elif dtype == "percent":
+        pct = float(coupon.get("discountValue") or 0)
+        discount_amount = int(base_price * (pct / 100))
+        final_price = max(1000, base_price - discount_amount)
+    else:
+        discount_amount = int(coupon.get("discountValue") or coupon.get("discountAmount") or 0)
+        final_price = max(1000, base_price - discount_amount)
+
+    return discount_amount, final_price
 
 def read_json_file(filename, default):
     filepath = os.path.join(BASE_DIR, filename)
@@ -179,6 +199,40 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
         if path == "/api/orders":
             orders = read_json_file("orders.json", [])
             return self.send_json(orders)
+
+        # 3.0 API: Lấy danh sách mã khuyến mãi hoặc kiểm tra mã
+        if path == "/api/coupons":
+            with COUPONS_LOCK:
+                coupons = read_json_file(COUPONS_FILE, [])
+            return self.send_json(coupons)
+
+        if path == "/api/coupons/check":
+            code = (query.get("code", [""])[0] or "").strip().upper()
+            with COUPONS_LOCK:
+                coupons = read_json_file(COUPONS_FILE, [])
+            found = next((c for c in coupons if (c.get("code") or "").upper() == code), None)
+            if not found:
+                return self.send_json({"valid": False, "message": f"Mã voucher '{code}' không tồn tại!"})
+            if not found.get("active", True):
+                return self.send_json({"valid": False, "message": f"Mã voucher '{code}' hiện đang tạm khóa!"})
+            max_uses = int(found.get("maxUses") or 0)
+            used_count = int(found.get("usedCount") or 0)
+            if max_uses > 0 and used_count >= max_uses:
+                return self.send_json({"valid": False, "message": f"Mã voucher '{code}' đã hết lượt sử dụng ({used_count}/{max_uses})!"})
+
+            discount_amount, final_price = calculate_coupon_discount(found, 90000)
+            return self.send_json({
+                "valid": True,
+                "code": found.get("code"),
+                "discountAmount": discount_amount,
+                "finalPrice": final_price,
+                "originalPrice": 90000,
+                "maxUses": max_uses,
+                "usedCount": used_count,
+                "remainingUses": max_uses - used_count if max_uses > 0 else 9999,
+                "description": found.get("description", ""),
+                "message": f"Áp dụng thành công mã {found.get('code')}! Giảm {discount_amount:,}đ còn {final_price:,}đ."
+            })
 
         # 3.1 API: Lấy kho license dùng chung cho mọi thiết bị
         if path == "/api/licenses":
@@ -681,6 +735,16 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                     break
             if not found:
                 orders.insert(0, body)
+                # Tăng số lượt dùng của mã voucher nếu có
+                if body.get("couponCode"):
+                    c_code = (body.get("couponCode") or "").strip().upper()
+                    with COUPONS_LOCK:
+                        coupons = read_json_file(COUPONS_FILE, [])
+                        for c in coupons:
+                            if (c.get("code") or "").upper() == c_code:
+                                c["usedCount"] = int(c.get("usedCount") or 0) + 1
+                                break
+                        write_json_file(COUPONS_FILE, coupons)
             if len(orders) > 500:
                 orders = orders[:500]
 
@@ -935,6 +999,86 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 return self.send_json(res)
             except Exception as e:
                 return self.send_json({"status": "error", "message": str(e)}, 500)
+
+        # 12. API: Quản lý mã khuyến mãi (Thêm, Sửa, Xóa, Bật/Tắt)
+        if path == "/api/coupons":
+            action = str(body.get("action") or "").strip().lower()
+            code = (body.get("code") or "").strip().upper()
+
+            with COUPONS_LOCK:
+                coupons = read_json_file(COUPONS_FILE, [])
+
+                if action == "delete":
+                    coupons = [c for c in coupons if (c.get("code") or "").upper() != code]
+                    write_json_file(COUPONS_FILE, coupons)
+                    return self.send_json({"status": "success", "message": f"Đã xóa mã {code}!", "coupons": coupons})
+
+                if action == "toggle":
+                    for c in coupons:
+                        if (c.get("code") or "").upper() == code:
+                            c["active"] = not c.get("active", True)
+                            break
+                    write_json_file(COUPONS_FILE, coupons)
+                    return self.send_json({"status": "success", "message": f"Đã cập nhật trạng thái mã {code}!", "coupons": coupons})
+
+                if action in ("add", "create", "save"):
+                    if not code:
+                        return self.send_json({"status": "error", "message": "Vui lòng nhập mã khuyến mãi!"}, 400)
+                    existing = next((c for c in coupons if (c.get("code") or "").upper() == code), None)
+                    final_price = int(body.get("finalPrice") or 0)
+                    discount_val = int(body.get("discountValue") or 0)
+                    discount_type = body.get("discountType") or "fixed"
+
+                    coupon_data = {
+                        "code": code,
+                        "discountType": discount_type,
+                        "discountValue": discount_val,
+                        "finalPrice": final_price,
+                        "maxUses": int(body.get("maxUses") or 0),
+                        "usedCount": int(existing.get("usedCount", 0) if existing else 0),
+                        "active": bool(body.get("active", True)),
+                        "description": str(body.get("description") or ""),
+                        "createdAt": existing.get("createdAt") if existing else datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    }
+
+                    if existing:
+                        coupons = [coupon_data if (c.get("code") or "").upper() == code else c for c in coupons]
+                    else:
+                        coupons.insert(0, coupon_data)
+
+                    write_json_file(COUPONS_FILE, coupons)
+                    return self.send_json({"status": "success", "message": f"Đã lưu thành công mã {code}!", "coupons": coupons})
+
+            return self.send_json({"status": "error", "message": "Hành động không hợp lệ"}, 400)
+
+        # 13. API: Áp dụng mã khuyến mãi qua POST
+        if path == "/api/coupons/apply":
+            code = (body.get("code") or "").strip().upper()
+            with COUPONS_LOCK:
+                coupons = read_json_file(COUPONS_FILE, [])
+            found = next((c for c in coupons if (c.get("code") or "").upper() == code), None)
+            if not found:
+                return self.send_json({"valid": False, "message": f"Mã voucher '{code}' không tồn tại!"})
+            if not found.get("active", True):
+                return self.send_json({"valid": False, "message": f"Mã voucher '{code}' hiện đang tạm khóa!"})
+            max_uses = int(found.get("maxUses") or 0)
+            used_count = int(found.get("usedCount") or 0)
+            if max_uses > 0 and used_count >= max_uses:
+                return self.send_json({"valid": False, "message": f"Mã voucher '{code}' đã hết lượt sử dụng ({used_count}/{max_uses})!"})
+
+            discount_amount, final_price = calculate_coupon_discount(found, 90000)
+            return self.send_json({
+                "valid": True,
+                "code": found.get("code"),
+                "discountAmount": discount_amount,
+                "finalPrice": final_price,
+                "originalPrice": 90000,
+                "maxUses": max_uses,
+                "usedCount": used_count,
+                "remainingUses": max_uses - used_count if max_uses > 0 else 9999,
+                "description": found.get("description", ""),
+                "message": f"Áp dụng thành công mã {found.get('code')}! Giảm {discount_amount:,}đ còn {final_price:,}đ."
+            })
 
         return self.send_json({"status": "ignored"}, 404)
 

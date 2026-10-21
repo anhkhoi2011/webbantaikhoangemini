@@ -235,6 +235,12 @@
         <span>Cấu Hình Tích Hợp</span>
       </button>
 
+      <button onclick="switchTab('coupons')" id="tabBtn-coupons" class="px-4 py-2.5 rounded-xl text-slate-600 hover:text-rose-700 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer whitespace-nowrap">
+        <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+        <span>Mã Giảm Giá (Voucher)</span>
+        <span id="badgeCouponCount" class="bg-rose-100 text-rose-800 text-xs px-2 py-0.5 rounded-full font-mono border border-rose-200">0 mã</span>
+      </button>
+
     </div>
 
     <!-- ======================================================== -->
@@ -1538,6 +1544,226 @@
       </div>
     </section>
 
+    <!-- ======================================================== -->
+    <!-- TAB 5: QUẢN LÝ MÃ KHUYẾN MÃI / VOUCHER -->
+    <!-- ======================================================== -->
+    <section id="tab-coupons" class="space-y-4 hidden">
+
+      <!-- BANNER TIÊU ĐỀ -->
+      <div class="bg-gradient-to-r from-rose-900 via-pink-900 to-slate-900 rounded-3xl p-5 text-white shadow-lg space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center font-bold text-base">🏷️</span>
+              <h3 class="text-base font-extrabold tracking-tight">Quản Lý Mã Khuyến Mãi & Voucher Giảm Giá</h3>
+            </div>
+            <p class="text-xs text-rose-200 mt-0.5">Tạo mã giảm giá linh hoạt (Ví dụ: SALE11 chốt 69.000đ). Tự động sinh VietQR đúng số tiền đã giảm, APIPay và hệ thống tự động xác nhận trong 3 giây.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="loadCouponsFromServer(true)" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer border border-white/20">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>Làm Mới</span>
+            </button>
+            <button onclick="document.getElementById('couponCodeInputAdmin').focus()" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer shadow-sm">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ Thêm Mã Mới</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 KPI CARDS VOUCHER -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+            <div class="text-[11px] font-bold text-rose-200 uppercase tracking-wider">Tổng Voucher</div>
+            <div id="kpiCouponsTotal" class="text-xl sm:text-2xl font-black mt-1 font-mono">0</div>
+            <div class="text-[10px] text-rose-300 mt-0.5">Tất cả mã trong hệ thống</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+            <div class="text-[11px] font-bold text-emerald-300 uppercase tracking-wider">Đang Hoạt Động</div>
+            <div id="kpiCouponsActive" class="text-xl sm:text-2xl font-black mt-1 font-mono text-emerald-400">0</div>
+            <div class="text-[10px] text-emerald-200 mt-0.5">Sẵn sàng cho khách áp dụng</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+            <div class="text-[11px] font-bold text-amber-300 uppercase tracking-wider">Lượt Đã Dùng</div>
+            <div id="kpiCouponsUsed" class="text-xl sm:text-2xl font-black mt-1 font-mono text-amber-300">0</div>
+            <div class="text-[10px] text-amber-200 mt-0.5">Lần khách đã đặt hàng thành công</div>
+          </div>
+          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10">
+            <div class="text-[11px] font-bold text-sky-300 uppercase tracking-wider">Mã Tiêu Biểu Hiện Tại</div>
+            <div id="kpiCouponsHighlight" class="text-lg sm:text-xl font-black mt-1 font-mono text-yellow-300 truncate">SALE11 (69k)</div>
+            <div class="text-[10px] text-sky-200 mt-0.5">Giá gốc: 90.000đ</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORM TẠO / SỬA VOUCHER -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden p-5 space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold">✨</span>
+            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base" id="couponFormTitle">Tạo Mã Khuyến Mãi Mới / Thiết Lập Giảm Giá</h4>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs text-slate-500 font-semibold hidden sm:inline">Mẫu nhanh:</span>
+            <button type="button" onclick="applyCouponPreset('SALE11')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-lg border border-rose-200 transition cursor-pointer">
+              SALE11 (69k)
+            </button>
+            <button type="button" onclick="applyCouponPreset('GIAM11K')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold rounded-lg border border-amber-200 transition cursor-pointer">
+              GIAM11K (79k)
+            </button>
+            <button type="button" onclick="applyCouponPreset('VIP50')" class="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold rounded-lg border border-purple-200 transition cursor-pointer">
+              VIP50 (50k)
+            </button>
+          </div>
+        </div>
+
+        <form id="couponAdminForm" onsubmit="saveCouponFromUI(event)" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+            
+            <!-- Mã Code -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Mã Voucher (Viết liền, không dấu) <span class="text-rose-500">*</span></label>
+              <div class="relative">
+                <input type="text" id="couponCodeInputAdmin" required placeholder="Ví dụ: SALE11" uppercase
+                       oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ''); updateCouponPreviewCalc();"
+                       class="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-sm font-mono font-black text-rose-600 focus:bg-white focus:border-rose-500 focus:outline-none uppercase tracking-wider">
+                <span class="absolute right-3 top-3 text-xs text-slate-400 font-bold">CODE</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">Khách sẽ nhập chính xác mã này vào ô khuyến mãi.</p>
+            </div>
+
+            <!-- Loại Giảm Giá -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Hình thức giảm giá <span class="text-rose-500">*</span></label>
+              <select id="couponTypeSelectAdmin" onchange="handleCouponTypeChange(); updateCouponPreviewCalc();"
+                      class="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-800 focus:bg-white focus:border-rose-500 focus:outline-none">
+                <option value="fixed" selected>🎯 Giá chốt cố định (Khách trả đúng giá này, vd: 69.000đ)</option>
+                <option value="amount">💸 Giảm bớt số tiền cụ thể (vd: Trừ 11.000đ)</option>
+                <option value="percent">📊 Giảm theo phần trăm % (vd: Giảm 10%, 20%)</option>
+              </select>
+              <p class="text-[11px] text-slate-400 mt-1" id="couponTypeHelpText">Khách quét VietQR đúng giá chốt.</p>
+            </div>
+
+            <!-- Giá trị giảm / Giá chốt -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1" id="couponValueLabelAdmin">Giá Chốt Sau Giảm (VND) <span class="text-rose-500">*</span></label>
+              <div class="relative">
+                <input type="number" id="couponValueInputAdmin" required min="1000" step="1000" placeholder="69000" value="69000"
+                       oninput="updateCouponPreviewCalc();"
+                       class="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-sm font-mono font-black text-emerald-700 focus:bg-white focus:border-rose-500 focus:outline-none">
+                <span class="absolute right-3 top-3 text-xs font-bold text-slate-400" id="couponValueUnit">đ</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">Gốc: 90.000đ</p>
+            </div>
+
+          </div>
+
+          <!-- DÒNG 2: Giới hạn lượt dùng, Trạng thái, Mô tả -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+            
+            <!-- Giới hạn số lần sài -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Số Lượng Lượt Dùng Tối Đa <span class="text-rose-500">*</span></label>
+              <input type="number" id="couponMaxUsesInputAdmin" min="0" step="1" placeholder="100 (Nhập 0 = Không giới hạn)" value="100"
+                     class="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs sm:text-sm font-mono font-bold text-slate-800 focus:bg-white focus:border-rose-500 focus:outline-none">
+              <p class="text-[11px] text-slate-400 mt-1">Khi hết lượt, hệ thống tự động khóa mã.</p>
+            </div>
+
+            <!-- Trạng thái kích hoạt -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Trạng thái kích hoạt <span class="text-rose-500">*</span></label>
+              <select id="couponActiveSelectAdmin"
+                      class="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-800 focus:bg-white focus:border-rose-500 focus:outline-none">
+                <option value="true" selected>🟢 Hoạt động (Khách dùng được ngay)</option>
+                <option value="false">⚪ Tạm khóa (Chưa cho áp dụng)</option>
+              </select>
+              <p class="text-[11px] text-slate-400 mt-1">Có thể bật/tắt nhanh bất kỳ lúc nào.</p>
+            </div>
+
+            <!-- Ghi chú / Mô tả -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Ghi chú / Chiến dịch khuyến mãi</label>
+              <input type="text" id="couponDescInputAdmin" placeholder="Ví dụ: Flash Sale 69k cho khách chốt nhanh"
+                     class="w-full px-3.5 py-2.5 bg-slate-50 border-2 border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:border-rose-500 focus:outline-none">
+              <p class="text-[11px] text-slate-400 mt-1">Hiển thị trong CRM để dễ quản lý.</p>
+            </div>
+
+          </div>
+
+          <!-- HỘP TÍNH TOÁN PREVIEW TRỰC TIẾP -->
+          <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border-2 border-dashed border-emerald-300 rounded-2xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold text-lg shrink-0">
+                💰
+              </div>
+              <div>
+                <div class="text-xs font-bold text-slate-500">KẾT QUẢ KHI KHÁCH ÁP MÃ:</div>
+                <div class="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5" id="couponPreviewText">
+                  Giá gốc: <span class="line-through text-slate-400">90.000đ</span> ➔ Khách thanh toán: <span class="text-emerald-700 font-mono font-black text-lg">69.000đ</span> (Giảm <span class="text-rose-600 font-bold">21.000đ</span>)
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
+              <button type="button" onclick="resetCouponForm()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer">
+                Làm Lại
+              </button>
+              <button type="submit" id="btnSaveCoupon" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span>Lưu & Kích Hoạt Voucher</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- BẢNG DANH SÁCH VOUCHER -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm">📋</span>
+            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">Danh Sách Mã Khuyến Mãi Trong Hệ Thống</h4>
+          </div>
+          <div class="w-full sm:w-72">
+            <input type="text" id="couponSearchInput" oninput="renderCoupons(this.value)" placeholder="Tìm mã voucher, mô tả..."
+                   class="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:border-rose-500">
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-3.5">Mã Voucher</th>
+                <th class="py-3 px-3.5">Hình Thức & Giá Khách Trả</th>
+                <th class="py-3 px-3.5">Tiến Độ Lượt Dùng</th>
+                <th class="py-3 px-3.5">Trạng Thái</th>
+                <th class="py-3 px-3.5">Ghi Chú</th>
+                <th class="py-3 px-3.5 text-center">Hành Động</th>
+              </tr>
+            </thead>
+            <tbody id="couponsTableBody" class="divide-y divide-slate-100 font-medium">
+              <!-- Rendered via JS -->
+              <tr>
+                <td colspan="6" class="text-center py-8 text-slate-400 font-bold">
+                  Đang tải danh sách voucher...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- HƯỚNG DẪN TÍCH HỢP THANH TOÁN -->
+        <div class="p-4 bg-slate-50 border-t border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
+          <span class="text-base">💡</span>
+          <div>
+            <span class="font-bold text-slate-800">Cơ Chế Xác Nhận Tự Động 100%:</span>
+            Khi khách nhập mã voucher trên Landing Page (ví dụ: <code class="bg-rose-100 text-rose-800 px-1 py-0.5 rounded font-mono font-bold">SALE11</code>), hệ thống sẽ tính giá chính xác (<code class="bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-mono font-bold">69.000đ</code>), mã VietQR MBBank sinh đúng số tiền 69.000đ, và webhook APIPay nhận diện đúng 69.000đ để tự động xác nhận thành công sau 3 giây mà không cần khách bấm nút.
+          </div>
+        </div>
+      </div>
+
+    </section>
+
   </main>
 
   <!-- ======================================================== -->
@@ -1929,23 +2155,30 @@
         { id: 'orders', activeClass: 'px-4 py-2.5 rounded-xl bg-blue-600 text-white flex items-center gap-2 transition shadow-sm cursor-pointer whitespace-nowrap' },
         { id: 'inventory', activeClass: 'px-4 py-2.5 rounded-xl bg-amber-600 text-white flex items-center gap-2 transition shadow-sm cursor-pointer whitespace-nowrap' },
         { id: 'traffic', activeClass: 'px-4 py-2.5 rounded-xl bg-emerald-600 text-white flex items-center gap-2 transition shadow-sm cursor-pointer whitespace-nowrap' },
-        { id: 'settings', activeClass: 'px-4 py-2.5 rounded-xl bg-purple-600 text-white flex items-center gap-2 transition shadow-sm cursor-pointer whitespace-nowrap' }
+        { id: 'settings', activeClass: 'px-4 py-2.5 rounded-xl bg-purple-600 text-white flex items-center gap-2 transition shadow-sm cursor-pointer whitespace-nowrap' },
+        { id: 'coupons', activeClass: 'px-4 py-2.5 rounded-xl bg-rose-600 text-white flex items-center gap-2 transition shadow-sm cursor-pointer whitespace-nowrap' }
       ];
 
       tabs.forEach(t => {
-        document.getElementById(`tab-${t.id}`).classList.add('hidden');
+        const el = document.getElementById(`tab-${t.id}`);
+        if (el) el.classList.add('hidden');
         const btn = document.getElementById(`tabBtn-${t.id}`);
-        btn.className = "px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition cursor-pointer whitespace-nowrap";
+        if (btn) btn.className = "px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 flex items-center gap-2 transition cursor-pointer whitespace-nowrap";
       });
 
-      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      const targetEl = document.getElementById(`tab-${tabId}`);
+      if (targetEl) targetEl.classList.remove('hidden');
       const activeObj = tabs.find(t => t.id === tabId);
       if (activeObj) {
-        document.getElementById(`tabBtn-${tabId}`).className = activeObj.activeClass;
+        const targetBtn = document.getElementById(`tabBtn-${tabId}`);
+        if (targetBtn) targetBtn.className = activeObj.activeClass;
       }
       if (tabId === 'settings') {
         syncPaymentUI();
         renderBankTransactions();
+      }
+      if (tabId === 'coupons') {
+        loadCouponsFromServer();
       }
     }
 
@@ -2284,6 +2517,14 @@
           <td class="py-3.5 px-3.5 whitespace-nowrap">
             <span class="font-black text-emerald-700 font-mono text-sm">${ord.amount || '90.000đ'}</span>
             <span class="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded ml-1 border border-emerald-200">18 Tháng</span>
+            ${ord.couponCode ? `
+              <div class="mt-1">
+                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
+                  🏷️ ${ord.couponCode}
+                  ${ord.discountAmount ? `<span class="text-rose-500 font-normal">(-${Number(ord.discountAmount).toLocaleString('vi-VN')}đ)</span>` : ''}
+                </span>
+              </div>
+            ` : ''}
           </td>
           <td class="py-3.5 px-3.5">
             <div class="font-mono text-slate-700 font-semibold text-xs">${ord.ip || '113.161.42.x'}</div>
@@ -5240,11 +5481,458 @@
       try { renderInventory(); } catch(e) { console.error("Error renderInventory:", e); }
       try { renderTraffic(); } catch(e) { console.error("Error renderTraffic:", e); }
       try { renderGmailPool(); } catch(e) { console.error("Error renderGmailPool:", e); }
+      try { loadCouponsFromServer(); } catch(e) { console.error("Error loadCouponsFromServer:", e); }
       syncTelegramUI();
       syncPaymentUI();
       renderBankTransactions();
       loadPixelStatsFromBackend();
       showToast('Đã cập nhật toàn bộ dữ liệu!');
+    }
+
+    // ========================================================
+    // QUẢN LÝ MÃ KHUYẾN MÃI / VOUCHER (COUPONS CRM)
+    // ========================================================
+    let cachedCoupons = [];
+
+    async function loadCouponsFromServer(notify = false) {
+      try {
+        const res = await adminApiFetch('/api/coupons');
+        if (res && res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            cachedCoupons = data;
+            try { localStorage.setItem('crm_coupons', JSON.stringify(data)); } catch(e) {}
+            renderCoupons();
+            updateCouponKPIs();
+            if (notify) showToast('✓ Đã tải danh sách mã khuyến mãi mới nhất!');
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Lỗi kết nối /api/coupons:', e);
+      }
+      // Fallback local
+      try {
+        const local = JSON.parse(localStorage.getItem('crm_coupons') || '[]');
+        if (Array.isArray(local) && local.length > 0) {
+          cachedCoupons = local;
+          renderCoupons();
+          updateCouponKPIs();
+        }
+      } catch(e) {}
+    }
+
+    function updateCouponKPIs() {
+      const total = cachedCoupons.length;
+      const active = cachedCoupons.filter(c => c.active !== false).length;
+      const used = cachedCoupons.reduce((sum, c) => sum + (parseInt(c.usedCount) || 0), 0);
+
+      const kpiTotalEl = document.getElementById('kpiCouponsTotal');
+      if (kpiTotalEl) kpiTotalEl.innerText = total.toLocaleString('vi-VN');
+
+      const kpiActiveEl = document.getElementById('kpiCouponsActive');
+      if (kpiActiveEl) kpiActiveEl.innerText = active.toLocaleString('vi-VN');
+
+      const kpiUsedEl = document.getElementById('kpiCouponsUsed');
+      if (kpiUsedEl) kpiUsedEl.innerText = used.toLocaleString('vi-VN');
+
+      const badgeCoupon = document.getElementById('badgeCouponCount');
+      if (badgeCoupon) badgeCoupon.innerText = `${active}/${total} mã`;
+
+      const topActive = cachedCoupons.find(c => c.active !== false);
+      const hlEl = document.getElementById('kpiCouponsHighlight');
+      if (hlEl) {
+        if (topActive) {
+          const price = topActive.finalPrice ? `${(topActive.finalPrice/1000)}k` : 'Ưu đãi';
+          hlEl.innerText = `${topActive.code} (${price})`;
+        } else {
+          hlEl.innerText = 'Chưa có mã bật';
+        }
+      }
+    }
+
+    function handleCouponTypeChange() {
+      const type = document.getElementById('couponTypeSelectAdmin').value;
+      const label = document.getElementById('couponValueLabelAdmin');
+      const unit = document.getElementById('couponValueUnit');
+      const input = document.getElementById('couponValueInputAdmin');
+      const help = document.getElementById('couponTypeHelpText');
+
+      if (type === 'fixed') {
+        label.innerHTML = 'Giá Chốt Sau Giảm (VND) <span class="text-rose-500">*</span>';
+        unit.innerText = 'đ';
+        input.placeholder = '69000';
+        if (!input.value || input.value === '11000' || input.value === '10') input.value = '69000';
+        help.innerText = 'Khách quét VietQR đúng giá chốt này (ví dụ 69.000đ).';
+      } else if (type === 'amount') {
+        label.innerHTML = 'Số Tiền Trừ Đi (VND) <span class="text-rose-500">*</span>';
+        unit.innerText = 'đ';
+        input.placeholder = '11000';
+        if (input.value === '69000') input.value = '11000';
+        help.innerText = 'Giá sau giảm = 90.000đ trừ đi số tiền này.';
+      } else if (type === 'percent') {
+        label.innerHTML = 'Phần Trăm Giảm Giá (%) <span class="text-rose-500">*</span>';
+        unit.innerText = '%';
+        input.placeholder = '10';
+        if (parseInt(input.value) > 100) input.value = '10';
+        help.innerText = 'Giảm % trực tiếp trên giá 90.000đ.';
+      }
+    }
+
+    function updateCouponPreviewCalc() {
+      const type = document.getElementById('couponTypeSelectAdmin')?.value || 'fixed';
+      const val = parseFloat(document.getElementById('couponValueInputAdmin')?.value || 0);
+      const basePrice = 90000;
+      let finalPrice = basePrice;
+      let discountAmount = 0;
+
+      if (type === 'fixed') {
+        finalPrice = val > 0 ? val : basePrice;
+        discountAmount = Math.max(0, basePrice - finalPrice);
+      } else if (type === 'percent') {
+        discountAmount = Math.round(basePrice * (val / 100));
+        finalPrice = Math.max(1000, basePrice - discountAmount);
+      } else {
+        discountAmount = val;
+        finalPrice = Math.max(1000, basePrice - discountAmount);
+      }
+
+      const previewEl = document.getElementById('couponPreviewText');
+      if (previewEl) {
+        previewEl.innerHTML = `Giá gốc: <span class="line-through text-slate-400">90.000đ</span> ➔ Khách thanh toán: <span class="text-emerald-700 font-mono font-black text-lg">${finalPrice.toLocaleString('vi-VN')}đ</span> (Giảm <span class="text-rose-600 font-bold">${discountAmount.toLocaleString('vi-VN')}đ</span>)`;
+      }
+    }
+
+    function applyCouponPreset(preset) {
+      const codeInput = document.getElementById('couponCodeInputAdmin');
+      const typeSelect = document.getElementById('couponTypeSelectAdmin');
+      const valInput = document.getElementById('couponValueInputAdmin');
+      const maxInput = document.getElementById('couponMaxUsesInputAdmin');
+      const descInput = document.getElementById('couponDescInputAdmin');
+
+      if (preset === 'SALE11') {
+        codeInput.value = 'SALE11';
+        typeSelect.value = 'fixed';
+        handleCouponTypeChange();
+        valInput.value = '69000';
+        maxInput.value = '100';
+        descInput.value = 'Flash Sale giảm sốc còn 69k cho khách chốt nhanh';
+      } else if (preset === 'GIAM11K') {
+        codeInput.value = 'GIAM11K';
+        typeSelect.value = 'amount';
+        handleCouponTypeChange();
+        valInput.value = '11000';
+        maxInput.value = '50';
+        descInput.value = 'Giảm ngay 11.000đ còn 79.000đ';
+      } else if (preset === 'VIP50') {
+        codeInput.value = 'VIP50';
+        typeSelect.value = 'fixed';
+        handleCouponTypeChange();
+        valInput.value = '50000';
+        maxInput.value = '20';
+        descInput.value = 'Tri ân khách hàng đặc biệt giá 50k';
+      }
+      updateCouponPreviewCalc();
+    }
+
+    function resetCouponForm() {
+      const form = document.getElementById('couponAdminForm');
+      if (form) form.reset();
+      document.getElementById('couponTypeSelectAdmin').value = 'fixed';
+      handleCouponTypeChange();
+      document.getElementById('couponValueInputAdmin').value = '69000';
+      document.getElementById('couponMaxUsesInputAdmin').value = '100';
+      document.getElementById('couponActiveSelectAdmin').value = 'true';
+      document.getElementById('couponFormTitle').innerText = 'Tạo Mã Khuyến Mãi Mới / Thiết Lập Giảm Giá';
+      document.getElementById('btnSaveCoupon').innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>Lưu & Kích Hoạt Voucher</span>`;
+      updateCouponPreviewCalc();
+    }
+
+    async function saveCouponFromUI(event) {
+      if (event) event.preventDefault();
+      const code = (document.getElementById('couponCodeInputAdmin').value || '').trim().toUpperCase();
+      if (!code) {
+        alert('Vui lòng nhập mã Voucher (ví dụ: SALE11)!');
+        return;
+      }
+
+      const discountType = document.getElementById('couponTypeSelectAdmin').value;
+      const rawVal = parseFloat(document.getElementById('couponValueInputAdmin').value || 0);
+      const maxUses = parseInt(document.getElementById('couponMaxUsesInputAdmin').value || 0);
+      const active = document.getElementById('couponActiveSelectAdmin').value === 'true';
+      const description = (document.getElementById('couponDescInputAdmin').value || '').trim();
+
+      let finalPrice = 0;
+      let discountValue = 0;
+      if (discountType === 'fixed') {
+        finalPrice = rawVal;
+        discountValue = Math.max(0, 90000 - finalPrice);
+      } else {
+        discountValue = rawVal;
+      }
+
+      const payload = {
+        action: 'add',
+        code: code,
+        discountType: discountType,
+        discountValue: discountValue,
+        finalPrice: finalPrice,
+        maxUses: maxUses,
+        active: active,
+        description: description
+      };
+
+      const btn = document.getElementById('btnSaveCoupon');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<span>Đang lưu...</span>';
+      btn.disabled = true;
+
+      try {
+        const res = await adminApiFetch('/api/coupons', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast(`✓ Đã lưu thành công mã ${code}!`);
+          if (Array.isArray(data.coupons)) {
+            cachedCoupons = data.coupons;
+            try { localStorage.setItem('crm_coupons', JSON.stringify(cachedCoupons)); } catch(e) {}
+            renderCoupons();
+            updateCouponKPIs();
+          } else {
+            loadCouponsFromServer();
+          }
+          resetCouponForm();
+        } else {
+          alert('Lỗi lưu mã: ' + (data.message || 'Không thể lưu voucher'));
+        }
+      } catch (err) {
+        alert('Lỗi kết nối máy chủ: ' + err.message);
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    async function toggleCouponStatus(code) {
+      try {
+        const res = await adminApiFetch('/api/coupons', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'toggle', code: code })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast(`✓ Đã đổi trạng thái mã ${code}!`);
+          if (Array.isArray(data.coupons)) {
+            cachedCoupons = data.coupons;
+            try { localStorage.setItem('crm_coupons', JSON.stringify(cachedCoupons)); } catch(e) {}
+            renderCoupons();
+            updateCouponKPIs();
+          } else {
+            loadCouponsFromServer();
+          }
+        }
+      } catch(e) {
+        alert('Lỗi khi đổi trạng thái: ' + e.message);
+      }
+    }
+
+    async function deleteCoupon(code) {
+      if (!confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn mã voucher [${code}]?`)) return;
+      try {
+        const res = await adminApiFetch('/api/coupons', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'delete', code: code })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          showToast(`✓ Đã xóa mã ${code}!`);
+          if (Array.isArray(data.coupons)) {
+            cachedCoupons = data.coupons;
+            try { localStorage.setItem('crm_coupons', JSON.stringify(cachedCoupons)); } catch(e) {}
+            renderCoupons();
+            updateCouponKPIs();
+          } else {
+            loadCouponsFromServer();
+          }
+        }
+      } catch(e) {
+        alert('Lỗi khi xóa mã: ' + e.message);
+      }
+    }
+
+    function editCouponInForm(code) {
+      const c = cachedCoupons.find(item => item.code === code);
+      if (!c) return;
+
+      document.getElementById('couponCodeInputAdmin').value = c.code || '';
+      const typeSelect = document.getElementById('couponTypeSelectAdmin');
+      typeSelect.value = c.discountType || (c.finalPrice ? 'fixed' : 'amount');
+      handleCouponTypeChange();
+
+      const valInput = document.getElementById('couponValueInputAdmin');
+      if (typeSelect.value === 'fixed') {
+        valInput.value = c.finalPrice || 69000;
+      } else {
+        valInput.value = c.discountValue || 11000;
+      }
+
+      document.getElementById('couponMaxUsesInputAdmin').value = c.maxUses !== undefined ? c.maxUses : 100;
+      document.getElementById('couponActiveSelectAdmin').value = c.active !== false ? 'true' : 'false';
+      document.getElementById('couponDescInputAdmin').value = c.description || '';
+
+      document.getElementById('couponFormTitle').innerText = `Chỉnh Sửa Mã Khuyến Mãi: ${c.code}`;
+      document.getElementById('btnSaveCoupon').innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>Cập Nhật Mã ${c.code}</span>`;
+
+      updateCouponPreviewCalc();
+      document.getElementById('couponAdminForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function copyCouponCode(code) {
+      navigator.clipboard.writeText(code).then(() => {
+        showToast(`✓ Đã sao chép mã [${code}]!`);
+      }).catch(() => {
+        alert(`Mã voucher: ${code}`);
+      });
+    }
+
+    function renderCoupons(filterText = '') {
+      const tbody = document.getElementById('couponsTableBody');
+      if (!tbody) return;
+
+      const q = (filterText || '').trim().toLowerCase();
+      const list = cachedCoupons.filter(c => {
+        if (!q) return true;
+        return (c.code && c.code.toLowerCase().includes(q)) ||
+               (c.description && c.description.toLowerCase().includes(q));
+      });
+
+      if (list.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center py-10 text-slate-400 font-bold">
+              <div class="flex flex-col items-center justify-center gap-2">
+                <span class="text-2xl">🏷️</span>
+                <span>Chưa có mã khuyến mãi nào phù hợp. Bấm [+ Thêm Mã Mới] để tạo mã đầu tiên!</span>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = list.map((c, idx) => {
+        const isActive = c.active !== false;
+        const maxUses = parseInt(c.maxUses) || 0;
+        const usedCount = parseInt(c.usedCount) || 0;
+        const pct = maxUses > 0 ? Math.min(100, Math.round((usedCount / maxUses) * 100)) : (usedCount > 0 ? 100 : 0);
+
+        let priceDisplay = '';
+        if (c.finalPrice && c.finalPrice > 0) {
+          const discount = Math.max(0, 90000 - c.finalPrice);
+          priceDisplay = `
+            <div class="font-extrabold text-emerald-700 font-mono text-sm">${c.finalPrice.toLocaleString('vi-VN')}đ</div>
+            <div class="text-[11px] text-slate-400">Giảm ${discount.toLocaleString('vi-VN')}đ so với 90k</div>
+          `;
+        } else if (c.discountType === 'percent') {
+          priceDisplay = `
+            <div class="font-extrabold text-indigo-700 font-mono text-sm">-${c.discountValue || 0}%</div>
+            <div class="text-[11px] text-slate-400">Giảm % trực tiếp</div>
+          `;
+        } else {
+          const disc = c.discountValue || 11000;
+          const finalCalc = Math.max(1000, 90000 - disc);
+          priceDisplay = `
+            <div class="font-extrabold text-emerald-700 font-mono text-sm">${finalCalc.toLocaleString('vi-VN')}đ</div>
+            <div class="text-[11px] text-slate-400">Trừ ${disc.toLocaleString('vi-VN')}đ</div>
+          `;
+        }
+
+        return `
+          <tr class="hover:bg-rose-50/30 transition-colors">
+            
+            <!-- Cột 1: Mã Code -->
+            <td class="py-3 px-3.5">
+              <div class="flex items-center gap-1.5">
+                <span class="font-mono font-black text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 text-xs tracking-wider cursor-pointer select-all"
+                      onclick="copyCouponCode('${c.code}')" title="Bấm để copy mã">
+                  🏷️ ${c.code}
+                </span>
+                <button type="button" onclick="copyCouponCode('${c.code}')" class="text-slate-400 hover:text-rose-600 transition p-1" title="Sao chép">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                </button>
+              </div>
+            </td>
+
+            <!-- Cột 2: Hình thức & Giá khách trả -->
+            <td class="py-3 px-3.5">
+              ${priceDisplay}
+            </td>
+
+            <!-- Cột 3: Tiến độ lượt dùng -->
+            <td class="py-3 px-3.5 min-w-[140px]">
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="font-mono font-bold text-slate-800">${usedCount} <span class="text-slate-400 font-normal">/ ${maxUses > 0 ? maxUses : '∞'} lượt</span></span>
+                <span class="font-bold text-[10px] ${usedCount >= maxUses && maxUses > 0 ? 'text-red-600 font-black' : 'text-slate-500'}">
+                  ${maxUses > 0 ? pct + '%' : 'Không giới hạn'}
+                </span>
+              </div>
+              <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                <div class="h-1.5 rounded-full ${usedCount >= maxUses && maxUses > 0 ? 'bg-red-500' : 'bg-emerald-500'}" style="width: ${pct}%"></div>
+              </div>
+            </td>
+
+            <!-- Cột 4: Trạng thái -->
+            <td class="py-3 px-3.5 whitespace-nowrap">
+              ${isActive ? `
+                <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Hoạt Động
+                </span>
+              ` : `
+                <span class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 bg-slate-100 border border-slate-300 px-2.5 py-1 rounded-full">
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                  Tạm Khóa
+                </span>
+              `}
+            </td>
+
+            <!-- Cột 5: Ghi chú -->
+            <td class="py-3 px-3.5 max-w-xs">
+              <div class="text-xs text-slate-700 truncate font-medium" title="${c.description || ''}">
+                ${c.description || '<span class="text-slate-300 italic">Không có ghi chú</span>'}
+              </div>
+              <div class="text-[10px] text-slate-400 font-mono mt-0.5">${c.createdAt || 'Mới tạo'}</div>
+            </td>
+
+            <!-- Cột 6: Hành động -->
+            <td class="py-3 px-3.5 text-center whitespace-nowrap">
+              <div class="inline-flex items-center gap-1">
+                <button type="button" onclick="toggleCouponStatus('${c.code}')"
+                        class="px-2 py-1 rounded-lg text-xs font-bold transition cursor-pointer border ${isActive ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'}"
+                        title="${isActive ? 'Tạm khóa mã này' : 'Kích hoạt lại mã'}">
+                  ${isActive ? '⏸️ Tắt' : '▶️ Bật'}
+                </button>
+                <button type="button" onclick="editCouponInForm('${c.code}')"
+                        class="px-2 py-1 rounded-lg text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition cursor-pointer"
+                        title="Chỉnh sửa thông số mã">
+                  ✏️ Sửa
+                </button>
+                <button type="button" onclick="deleteCoupon('${c.code}')"
+                        class="px-2 py-1 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition cursor-pointer"
+                        title="Xóa voucher này">
+                  🗑️ Xóa
+                </button>
+              </div>
+            </td>
+
+          </tr>
+        `;
+      }).join('');
     }
 
     // Init
@@ -5267,6 +5955,7 @@
       try { renderInventory(); } catch(e) { console.error("Error renderInventory:", e); }
       try { renderTraffic(); } catch(e) { console.error("Error renderTraffic:", e); }
       try { renderGmailPool(); } catch(e) { console.error("Error renderGmailPool:", e); }
+      try { loadCouponsFromServer(); } catch(e) { console.error("Error loadCouponsFromServer:", e); }
       loadTelegramConfigFromServer();
       syncTelegramUI();
       syncPaymentUI();
@@ -5279,6 +5968,7 @@
       setInterval(syncOrdersFromBackend, 10000);
       setInterval(() => syncInventoryFromServer(), 10000);
       setInterval(loadPixelStatsFromBackend, 15000);
+      setInterval(() => loadCouponsFromServer(false), 20000);
     }
 
     // Luôn kiểm tra khóa bảo mật ngay lập tức khi load trang

@@ -126,6 +126,7 @@ def get_qr_opened_template(order):
     device = order.get("device") or "Thiết bị di động/PC"
     time_str = order.get("time", datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
     ad_info = format_ad_tracking_lines(order)
+    coupon_str = f"\n🏷️ <b>Mã Voucher:</b> <code>{order.get('couponCode')}</code>" if order.get("couponCode") else ""
 
     return f"""⏳ <b>KHÁCH ĐANG MỞ MÃ QR CHỜ THANH TOÁN</b>
 ━━━━━━━━━━━━━━━━━━━━
@@ -134,7 +135,7 @@ def get_qr_opened_template(order):
 📱 <b>SĐT Zalo:</b> <code>{phone}</code>
 ✉️ <b>Gmail:</b> <code>{email}</code>
 💰 <b>Gói:</b> Gemini Pro 18 Tháng (5TB Cloud)
-💵 <b>Số tiền:</b> <b>{amount}</b> (MBBank)
+💵 <b>Số tiền:</b> <b>{amount}</b> (MBBank){coupon_str}
 📝 <b>Cú pháp CK:</b> <code>{memo}</code>
 🌐 <b>Địa chỉ IP:</b> <code>{ip}</code>
 📍 <b>Vị trí khách:</b> <b>{location}</b>
@@ -157,6 +158,7 @@ def get_payment_success_template(order):
     device = order.get("device") or "Thiết bị di động/PC"
     time_str = order.get("time", datetime.now().strftime("%H:%M %d/%m/%Y"))
     ad_info = format_ad_tracking_lines(order)
+    coupon_str = f"🏷️ <b>Mã Voucher:</b> <code>{order.get('couponCode')}</code>\n" if order.get("couponCode") else ""
 
     if not license_link:
         return f"""🚨 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN ({amount})</b>
@@ -168,7 +170,7 @@ def get_payment_success_template(order):
 🌐 <b>Địa chỉ IP:</b> <code>{ip}</code>
 📍 <b>Vị trí khách:</b> <b>{location}</b>
 💻 <b>Thiết bị:</b> {device}
-{ad_info}
+{coupon_str}{ad_info}
 ━━━━━━━━━━━━━━━━━━━━
 ⚠️ <b>KHO ĐÃ HẾT LINK! VUI LÒNG MUA LINK GẤP:</b>
 👉 <b>VÀO BOT MUA NGAY:</b> https://t.me/shopxoainon_bot
@@ -183,7 +185,7 @@ def get_payment_success_template(order):
 🌐 <b>Địa chỉ IP:</b> <code>{ip}</code>
 📍 <b>Vị trí khách:</b> <b>{location}</b>
 💻 <b>Thiết bị:</b> {device}
-{ad_info}
+{coupon_str}{ad_info}
 🔑 <b>Link cấp:</b> <code>{license_link}</code>
 ━━━━━━━━━━━━━━━━━━━━"""
 
