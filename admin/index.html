@@ -326,6 +326,8 @@
               <strong class="text-white font-extrabold" id="statsAllTimeOrders">0 đơn</strong>
               <span class="text-white/40">•</span>
               <span id="statsActiveDays" class="text-slate-300">0 ngày có đơn</span>
+              <span class="text-white/40">•</span>
+              <span id="statsUniqueIps" class="text-amber-200 font-bold" title="Tổng số IP độc lập của khách hàng đã mua">0 IP mua hàng</span>
             </div>
           </div>
         </div>
@@ -403,7 +405,7 @@
                 <th class="py-3.5 px-3.5">Khách Hàng</th>
                 <th class="py-3.5 px-3.5">Liên Hệ (SĐT / Email)</th>
                 <th class="py-3.5 px-3.5">Gói & Giá</th>
-                <th class="py-3.5 px-3.5">IP & Địa Chỉ</th>
+                <th class="py-3.5 px-3.5">🌐 IP Khách Mua & Nguồn</th>
                 <th class="py-3.5 px-3.5">License Cấp</th>
                 <th class="py-3.5 px-3.5">Ghi Chú Quản Trị</th>
                 <th class="py-3.5 px-3.5">Thời Gian</th>
@@ -2322,6 +2324,26 @@
       return data;
     }
 
+    let serverVisitsData = null;
+
+    async function syncVisitsFromBackend() {
+      try {
+        const res = await adminApiFetch('/api/visits');
+        if (res && res.ok) {
+          const data = await res.json();
+          if (data && typeof data === 'object') {
+            serverVisitsData = data;
+            if (Array.isArray(data.visits)) {
+              localStorage.setItem('crm_visits', JSON.stringify(data.visits));
+            }
+            renderTraffic();
+          }
+        }
+      } catch (e) {
+        console.warn('Backend visits sync:', e);
+      }
+    }
+
     function getVisits() {
       try {
         const data = localStorage.getItem('crm_visits');
@@ -2493,6 +2515,9 @@
       const statsActiveDaysEl = document.getElementById('statsActiveDays');
       const activeDays = Object.keys(dateMap).length;
       if (statsActiveDaysEl) statsActiveDaysEl.innerText = `${activeDays} ngày có đơn`;
+      const statsUniqueIpsEl = document.getElementById('statsUniqueIps');
+      const uniqueBuyerIps = new Set(orders.map(o => (o.ip || '').trim()).filter(ip => ip && ip !== '127.0.0.1' && ip !== '::1'));
+      if (statsUniqueIpsEl) statsUniqueIpsEl.innerText = `🌐 ${uniqueBuyerIps.size} IP mua hàng`;
 
       // Render danh sách ngày vào bảng
       const tbody = document.getElementById('dailyStatsTableBody');
@@ -2650,7 +2675,8 @@
       const visits = getVisits();
       const kpiConv = document.getElementById('kpiConversion');
       if (kpiConv) {
-        const cr = visits.length > 0 ? ((orders.length / visits.length) * 100).toFixed(1) : '0.0';
+        const totalVisitsCount = (serverVisitsData && typeof serverVisitsData.totalVisits === 'number') ? Math.max(serverVisitsData.totalVisits, visits.length) : visits.length;
+        const cr = totalVisitsCount > 0 ? ((orders.length / totalVisitsCount) * 100).toFixed(1) : '0.0';
         kpiConv.innerText = cr + '%';
       }
 
@@ -2715,8 +2741,19 @@
             ` : ''}
           </td>
           <td class="py-3.5 px-3.5">
-            <div class="font-mono text-slate-700 font-semibold text-xs">${ord.ip || '113.161.42.x'}</div>
-            <div class="text-[11px] text-blue-700 font-bold">${ord.location || 'Việt Nam'}</div>
+            <div class="flex items-center gap-1.5 mb-1 flex-wrap">
+              <span onclick="filterOrdersByIp('${(ord.ip || '').replace(/'/g, "\\'")}')" class="inline-flex items-center gap-1 font-mono font-bold text-xs bg-slate-900 hover:bg-blue-700 text-white px-2 py-0.5 rounded shadow-xs cursor-pointer transition" title="Bấm để lọc tất cả đơn hàng từ IP này">
+                🌐 ${ord.ip || 'Chưa ghi nhận'}
+              </span>
+              <button onclick="navigator.clipboard.writeText('${(ord.ip || '').replace(/'/g, "\\'")}'); showToast('Đã sao chép IP khách!');" class="text-slate-400 hover:text-slate-700 p-0.5 rounded hover:bg-slate-100 transition cursor-pointer" title="Sao chép IP">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              </button>
+            </div>
+            <div class="text-[11px] text-blue-800 font-bold flex items-center gap-1.5 flex-wrap">
+              <span>📍 ${ord.location || 'Việt Nam'}</span>
+              <span class="text-slate-300">•</span>
+              <span class="text-slate-600 font-semibold">${ord.device || 'Thiết bị'}</span>
+            </div>
             ${(() => {
               const fullUrl = ord.fullUrl || ord.url || '';
               const fbclid = ord.fbclid || '';
@@ -3339,6 +3376,16 @@
       }
     }
 
+    function filterOrdersByIp(ip) {
+      if (!ip) return;
+      const searchInput = document.getElementById('orderSearchInput');
+      if (searchInput) {
+        searchInput.value = ip;
+        filterOrders();
+        showToast(`🔍 Đang lọc đơn hàng từ IP: ${ip}`);
+      }
+    }
+
     function filterOrders() {
       const q = document.getElementById('orderSearchInput').value;
       renderOrders(q);
@@ -3873,9 +3920,17 @@
       });
     }
 
-    function clearTrafficLogs() {
+    async function clearTrafficLogs() {
       if (confirm('Bạn có chắc muốn xóa sạch toàn bộ lịch sử nhật ký truy cập real-time?')) {
+        try {
+          await adminApiFetch('/api/visits', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'clear' })
+          });
+        } catch(e) {}
         localStorage.setItem('crm_visits', JSON.stringify([]));
+        serverVisitsData = null;
         renderTraffic();
         showToast('Đã xóa sạch toàn bộ nhật ký truy cập!');
       }
@@ -3886,7 +3941,9 @@
       const visits = getVisits();
       const orders = getOrders();
       const todayDateStr = new Date().toLocaleDateString('vi-VN');
-      const todayVisits = visits.filter(v => v.time && v.time.includes(todayDateStr)).length;
+      const localTodayVisits = visits.filter(v => v.time && v.time.includes(todayDateStr)).length;
+      const todayVisits = (serverVisitsData && typeof serverVisitsData.todayVisits === 'number') ? Math.max(serverVisitsData.todayVisits, localTodayVisits) : localTodayVisits;
+      const totalVisits = (serverVisitsData && typeof serverVisitsData.totalVisits === 'number') ? Math.max(serverVisitsData.totalVisits, visits.length) : visits.length;
       const todayOrders = orders.filter(o => o.time && (o.time.includes(todayDateStr) || o.time.includes('Vừa xong'))).length;
 
       const badgeElem = document.getElementById('todayLiveDateBadge');
@@ -3910,10 +3967,10 @@
       }
 
       const totalVisitsBadge = document.getElementById('dailyTotalBadge');
-      if (totalVisitsBadge) totalVisitsBadge.innerText = `${visits.length.toLocaleString('vi-VN')} lượt`;
+      if (totalVisitsBadge) totalVisitsBadge.innerText = `${totalVisits.toLocaleString('vi-VN')} lượt`;
 
       const kpiElem = document.getElementById('kpiVisits');
-      if (kpiElem) kpiElem.innerText = visits.length.toLocaleString('vi-VN');
+      if (kpiElem) kpiElem.innerText = totalVisits.toLocaleString('vi-VN');
 
       const kpiTodayElem = document.getElementById('kpiTodayVisits');
       if (kpiTodayElem) kpiTodayElem.innerText = `Hôm nay: ${todayVisits.toLocaleString('vi-VN')} lượt`;
@@ -5117,7 +5174,9 @@
       const availableStock = inventory.filter(i => i.status === 'Sẵn sàng').length;
 
       const todayDateStr = new Date().toLocaleDateString('vi-VN');
-      const todayVisits = visits.filter(v => v.time && v.time.includes(todayDateStr)).length;
+      const localTodayVisits = visits.filter(v => v.time && v.time.includes(todayDateStr)).length;
+      const todayVisits = (serverVisitsData && typeof serverVisitsData.todayVisits === 'number') ? Math.max(serverVisitsData.todayVisits, localTodayVisits) : localTodayVisits;
+      const totalVisits = (serverVisitsData && typeof serverVisitsData.totalVisits === 'number') ? Math.max(serverVisitsData.totalVisits, visits.length) : visits.length;
       const todayOrders = orders.filter(o => o.time && (o.time.includes(todayDateStr) || o.time.includes('Vừa xong'))).length;
       const todayRevenue = (todayOrders * 90000).toLocaleString('vi-VN') + ' VNĐ';
       const conversionRate = todayVisits > 0 ? ((todayOrders / todayVisits) * 100).toFixed(1) + '%' : '0.0%';
@@ -6402,8 +6461,10 @@
       generateUtmLink();
       checkAndTriggerDailyTelegramReport();
       syncOrdersFromBackend();
+      syncVisitsFromBackend();
       syncInventoryFromServer();
       setInterval(syncOrdersFromBackend, 10000);
+      setInterval(syncVisitsFromBackend, 10000);
       setInterval(() => syncInventoryFromServer(), 10000);
       setInterval(loadPixelStatsFromBackend, 15000);
       setInterval(() => loadCouponsFromServer(false), 20000);

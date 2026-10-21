@@ -36,6 +36,8 @@ PIXEL_LOCK = threading.Lock()
 DEFAULT_PIXEL_ID = "762402019586629"
 COUPONS_FILE = "coupons.json"
 COUPONS_LOCK = threading.Lock()
+VISITS_FILE = "visits.json"
+VISITS_LOCK = threading.Lock()
 
 def calculate_coupon_discount(coupon, base_price=90000):
     dtype = coupon.get("discountType", "fixed")
@@ -199,6 +201,24 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
         if path == "/api/orders":
             orders = read_json_file("orders.json", [])
             return self.send_json(orders)
+
+        # 3.01 API: Lấy thống kê lượt truy cập toàn hệ thống (Real-time Central Visits)
+        if path == "/api/visits":
+            with VISITS_LOCK:
+                default_data = {
+                    "totalVisits": 0,
+                    "todayVisits": 0,
+                    "lastDate": datetime.now().strftime("%d/%m/%Y"),
+                    "devices": {"mobile": 0, "desktop": 0, "other": 0},
+                    "sources": {"facebook": 0, "tiktok": 0, "google": 0, "zalo": 0, "direct": 0, "other": 0},
+                    "visits": []
+                }
+                visits_data = read_json_file(VISITS_FILE, default_data)
+                today_str = datetime.now().strftime("%d/%m/%Y")
+                if visits_data.get("lastDate") != today_str:
+                    visits_data["lastDate"] = today_str
+                    visits_data["todayVisits"] = 0
+            return self.send_json(visits_data)
 
         # 3.0 API: Lấy danh sách mã khuyến mãi hoặc kiểm tra mã
         if path == "/api/coupons":
@@ -676,6 +696,119 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 write_json_file(PIXEL_FILE, pixel_data)
             return self.send_json({"status": "success", "event": ev, "count": pixel_data["stats"].get(ev, 0)})
 
+        # 1.3 API: Ghi nhận lượt truy cập tập trung từ mọi thiết bị & IP
+        if path == "/api/track-visit":
+            with VISITS_LOCK:
+                default_data = {
+                    "totalVisits": 0,
+                    "todayVisits": 0,
+                    "lastDate": datetime.now().strftime("%d/%m/%Y"),
+                    "devices": {"mobile": 0, "desktop": 0, "other": 0},
+                    "sources": {"facebook": 0, "tiktok": 0, "google": 0, "zalo": 0, "direct": 0, "other": 0},
+                    "visits": []
+                }
+                visits_data = read_json_file(VISITS_FILE, default_data)
+                
+                today_str = datetime.now().strftime("%d/%m/%Y")
+                if visits_data.get("lastDate") != today_str:
+                    visits_data["lastDate"] = today_str
+                    visits_data["todayVisits"] = 0
+
+                visits_data["totalVisits"] = int(visits_data.get("totalVisits", 0)) + 1
+                visits_data["todayVisits"] = int(visits_data.get("todayVisits", 0)) + 1
+
+                # Trích xuất IP thật từ proxy hoặc header
+                client_ip = self.headers.get("X-Forwarded-For")
+                if client_ip:
+                    client_ip = client_ip.split(",")[0].strip()
+                else:
+                    client_ip = self.client_address[0]
+                
+                ip = body.get("ip") or client_ip or "127.0.0.1"
+                if ip in ["127.0.0.1", "::1"] and client_ip and client_ip not in ["127.0.0.1", "::1"]:
+                    ip = client_ip
+
+                # Trích xuất thiết bị
+                ua = self.headers.get("User-Agent", "")
+                device = body.get("device")
+                if not device:
+                    if any(k in ua for k in ["Mobile", "Android", "iPhone", "iPad"]):
+                        device = "Điện thoại"
+                    else:
+                        device = "Máy tính"
+
+                devices = visits_data.setdefault("devices", {"mobile": 0, "desktop": 0, "other": 0})
+                if "Mobile" in device or "Điện thoại" in device:
+                    devices["mobile"] = devices.get("mobile", 0) + 1
+                elif "Máy tính" in device or "PC" in device:
+                    devices["desktop"] = devices.get("desktop", 0) + 1
+                else:
+                    devices["other"] = devices.get("other", 0) + 1
+
+                # Phân loại nguồn
+                ref = (body.get("referrer") or body.get("rawReferrer") or "").lower()
+                full_url = (body.get("fullUrl") or "").lower()
+                sources = visits_data.setdefault("sources", {"facebook": 0, "tiktok": 0, "google": 0, "zalo": 0, "direct": 0, "other": 0})
+                
+                if "facebook" in ref or "fb" in ref or "fbclid" in full_url:
+                    sources["facebook"] = sources.get("facebook", 0) + 1
+                    ref_label = "Facebook Ads" if ("fbclid" in full_url or "ads" in ref) else "Facebook"
+                elif "tiktok" in ref or "ttclid" in full_url:
+                    sources["tiktok"] = sources.get("tiktok", 0) + 1
+                    ref_label = "TikTok Ads" if "ttclid" in full_url else "TikTok"
+                elif "google" in ref or "search" in ref or "gclid" in full_url:
+                    sources["google"] = sources.get("google", 0) + 1
+                    ref_label = "Google Search"
+                elif "zalo" in ref:
+                    sources["zalo"] = sources.get("zalo", 0) + 1
+                    ref_label = "Zalo Chat"
+                elif not ref or "trực tiếp" in ref or "direct" in ref:
+                    sources["direct"] = sources.get("direct", 0) + 1
+                    ref_label = "Truy cập trực tiếp"
+                else:
+                    sources["other"] = sources.get("other", 0) + 1
+                    ref_label = body.get("referrer") or "Khác"
+
+                visit_entry = {
+                    "time": body.get("time") or datetime.now().strftime("%H:%M:%S %d/%m/%Y"),
+                    "ip": ip,
+                    "location": body.get("location") or "Việt Nam",
+                    "device": device,
+                    "browser": body.get("browser") or "Trình duyệt Web",
+                    "referrer": ref_label,
+                    "fullUrl": body.get("fullUrl") or "",
+                    "rawReferrer": body.get("rawReferrer") or ""
+                }
+
+                visits_list = visits_data.setdefault("visits", [])
+                visits_list.insert(0, visit_entry)
+                if len(visits_list) > 1000:
+                    visits_data["visits"] = visits_list[:1000]
+
+                write_json_file(VISITS_FILE, visits_data)
+            return self.send_json({
+                "status": "success",
+                "totalVisits": visits_data["totalVisits"],
+                "todayVisits": visits_data["todayVisits"],
+                "clientIp": ip
+            })
+
+        # 1.4 API: Xóa lịch sử lượt truy cập
+        if path == "/api/visits":
+            action = str(body.get("action") or "").strip().lower()
+            if action == "clear":
+                with VISITS_LOCK:
+                    empty_data = {
+                        "totalVisits": 0,
+                        "todayVisits": 0,
+                        "lastDate": datetime.now().strftime("%d/%m/%Y"),
+                        "devices": {"mobile": 0, "desktop": 0, "other": 0},
+                        "sources": {"facebook": 0, "tiktok": 0, "google": 0, "zalo": 0, "direct": 0, "other": 0},
+                        "visits": []
+                    }
+                    write_json_file(VISITS_FILE, empty_data)
+                return self.send_json({"status": "success", "message": "Visits cleared"})
+
         # 2. API: Nhận hoặc xóa biến động số dư
         if path == "/api/bank-transactions":
             write_json_file("bank_transactions.json", [])
@@ -709,6 +842,9 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             if not body.get("ip") or body.get("ip") in ["127.0.0.1", "::1"]:
                 if client_ip and client_ip not in ["127.0.0.1", "::1"]:
                     body["ip"] = client_ip
+            if not body.get("ip"):
+                body["ip"] = client_ip or "127.0.0.1"
+            body["buyerIp"] = body.get("ip")
 
             if not body.get("location") or body.get("location") == "Việt Nam":
                 # Nếu đã có IP thật từ ngoài mạng, có thể đối soát

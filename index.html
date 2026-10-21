@@ -1866,19 +1866,32 @@
         } catch (err) {}
       }
 
-      // Lưu nhật ký ngầm vào localStorage cho Admin dashboard (/admin)
+      // Gửi đồng bộ lượt truy cập tập trung về máy chủ (Server Backend)
       try {
-        let visits = JSON.parse(localStorage.getItem('crm_visits') || '[]');
-        visits.unshift({
+        const visitPayload = {
           time: new Date().toLocaleString('vi-VN'),
-          ip: visitorData.ip,
-          location: visitorData.location,
-          device: visitorData.device,
-          browser: visitorData.browser,
-          referrer: visitorData.referrer,
+          ip: visitorData.ip || '127.0.0.1',
+          location: visitorData.location || 'Việt Nam',
+          device: visitorData.device || 'Thiết bị di động/PC',
+          browser: visitorData.browser || 'Trình duyệt Web',
+          referrer: visitorData.referrer || 'Truy cập trực tiếp',
           fullUrl: window.location.href,
-          rawReferrer: document.referrer || '(Trực tiếp / Bookmark)'
-        });
+          rawReferrer: document.referrer || '(Trực tiếp / Bookmark)',
+          fbclid: (new URLSearchParams(window.location.search)).get('fbclid') || '',
+          utmSource: (new URLSearchParams(window.location.search)).get('utm_source') || '',
+          utmCampaign: (new URLSearchParams(window.location.search)).get('utm_campaign') || ''
+        };
+
+        // Gửi ngầm tới backend (không làm chậm trang web)
+        smartApiFetch('/api/track-visit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(visitPayload)
+        }).catch(() => {});
+
+        // Lưu localStorage phụ trợ
+        let visits = JSON.parse(localStorage.getItem('crm_visits') || '[]');
+        visits.unshift(visitPayload);
         if (visits.length > 80) visits = visits.slice(0, 80);
         localStorage.setItem('crm_visits', JSON.stringify(visits));
       } catch(e) {}
