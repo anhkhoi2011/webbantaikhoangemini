@@ -70,6 +70,44 @@ def send_telegram_raw(html_text, bot_token=None, chat_id=None):
 # 4 MẪU TIN NHẮN CHUẨN ĐẸP, GỌN GÀNG, CHUYÊN NGHIỆP
 # ==========================================
 
+def format_ad_tracking_lines(order):
+    """
+    Tạo khối thông tin nguồn quảng cáo và link chi tiết rõ ràng gửi về Telegram.
+    Đặc biệt ghi rõ link khi khách đến từ chiến dịch Facebook Ads, TikTok Ads, Google...
+    """
+    full_url = order.get("fullUrl") or order.get("url") or ""
+    fbclid = order.get("fbclid") or ""
+    utm_source = order.get("utmSource") or order.get("utm_source") or ""
+    utm_campaign = order.get("utmCampaign") or order.get("utm_campaign") or ""
+    referrer = order.get("referrer") or ""
+    raw_ref = order.get("rawReferrer") or ""
+
+    is_ad = bool(fbclid or utm_source or utm_campaign or "quảng cáo" in referrer.lower() or "ads" in referrer.lower() or "facebook" in referrer.lower() or "tiktok" in referrer.lower())
+
+    lines = []
+    if is_ad or fbclid or utm_source:
+        ad_badge = "🔵 Quảng Cáo Facebook (Meta Ads)" if (fbclid or "facebook" in (utm_source + referrer).lower() or "fb" in utm_source.lower()) else (
+                   "⚫ Quảng Cáo TikTok Ads" if ("tiktok" in (utm_source + referrer).lower()) else (
+                   "🔴 Quảng Cáo Google Ads" if ("google" in (utm_source + referrer).lower() or order.get("gclid")) else f"📢 Quảng Cáo ({referrer or utm_source})"))
+        lines.append(f"🎯 <b>Nguồn QC:</b> <b>{ad_badge}</b>")
+        if utm_campaign:
+            lines.append(f"🏷️ <b>Chiến dịch (Campaign):</b> <code>{utm_campaign}</code>")
+        if utm_source:
+            lines.append(f"📌 <b>UTM Source:</b> <code>{utm_source}</code>")
+        if fbclid:
+            short_fbclid = (fbclid[:30] + "...") if len(fbclid) > 30 else fbclid
+            lines.append(f"🆔 <b>FB Click ID:</b> <code>{short_fbclid}</code>")
+        if full_url:
+            lines.append(f"🔗 <b>LINK QUẢNG CÁO KHÁCH BẤM VÀO:</b>\n<code>{full_url}</code>")
+        elif raw_ref:
+            lines.append(f"🔗 <b>Link giới thiệu:</b> <code>{raw_ref}</code>")
+    else:
+        lines.append(f"🌐 <b>Nguồn truy cập:</b> {referrer or 'Trực tiếp / Bookmark'}")
+        if full_url:
+            lines.append(f"🔗 <b>Link truy cập:</b> <code>{full_url}</code>")
+
+    return "\n".join(lines)
+
 def get_qr_opened_template(order):
     order_id = order.get("orderId", "#GEM-" + datetime.now().strftime("%H%M"))
     name = order.get("name", "Khách hàng")
@@ -80,8 +118,8 @@ def get_qr_opened_template(order):
     ip = order.get("ip") or "127.0.0.1"
     location = order.get("location") or "Việt Nam"
     device = order.get("device") or "Thiết bị di động/PC"
-    referrer = order.get("referrer") or "Trực tiếp"
     time_str = order.get("time", datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+    ad_info = format_ad_tracking_lines(order)
 
     return f"""⏳ <b>KHÁCH ĐANG MỞ MÃ QR CHỜ THANH TOÁN</b>
 ━━━━━━━━━━━━━━━━━━━━
@@ -94,7 +132,8 @@ def get_qr_opened_template(order):
 📝 <b>Cú pháp CK:</b> <code>{memo}</code>
 🌐 <b>Địa chỉ IP:</b> <code>{ip}</code>
 📍 <b>Vị trí khách:</b> <b>{location}</b>
-💻 <b>Thiết bị:</b> {device} • <b>Nguồn:</b> {referrer}
+💻 <b>Thiết bị:</b> {device}
+{ad_info}
 ⏰ <b>Thời gian:</b> {time_str}
 ━━━━━━━━━━━━━━━━━━━━
 👀 <i>Hệ thống API Pay đang tự động kiểm tra số dư MBBank...</i>"""
@@ -111,6 +150,7 @@ def get_payment_success_template(order):
     location = order.get("location") or "Việt Nam"
     device = order.get("device") or "Thiết bị di động/PC"
     time_str = order.get("time", datetime.now().strftime("%H:%M %d/%m/%Y"))
+    ad_info = format_ad_tracking_lines(order)
 
     if not license_link:
         return f"""🚨 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN ({amount})</b>
@@ -122,6 +162,7 @@ def get_payment_success_template(order):
 🌐 <b>Địa chỉ IP:</b> <code>{ip}</code>
 📍 <b>Vị trí khách:</b> <b>{location}</b>
 💻 <b>Thiết bị:</b> {device}
+{ad_info}
 ━━━━━━━━━━━━━━━━━━━━
 ⚠️ <b>KHO ĐÃ HẾT LINK! VUI LÒNG MUA LINK GẤP:</b>
 👉 <b>VÀO BOT MUA NGAY:</b> https://t.me/shopxoainon_bot
@@ -136,6 +177,7 @@ def get_payment_success_template(order):
 🌐 <b>Địa chỉ IP:</b> <code>{ip}</code>
 📍 <b>Vị trí khách:</b> <b>{location}</b>
 💻 <b>Thiết bị:</b> {device}
+{ad_info}
 🔑 <b>Link cấp:</b> <code>{license_link}</code>
 ━━━━━━━━━━━━━━━━━━━━"""
 

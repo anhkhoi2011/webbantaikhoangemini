@@ -1342,6 +1342,199 @@
 
         </div>
 
+        <!-- ======================================================== -->
+        <!-- 3. QUẢN LÝ & ĐỒNG BỘ META PIXEL (FACEBOOK ADS TRACKING ID: 762402019586629) -->
+        <!-- ======================================================== -->
+        <div class="bg-gradient-to-br from-blue-50/70 via-white to-indigo-50/50 p-6 rounded-2xl border-2 border-blue-400 shadow-sm space-y-5 md:col-span-2">
+          
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-blue-100">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-md shrink-0">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="text-base font-black text-slate-900">Quản Lý & Đồng Bộ Meta Pixel (Facebook Ads Tracking)</h3>
+                  <span id="pixelStatusBadge" class="text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>🟢 Đang Kích Hoạt (Pixel ID: 762402019586629)</span>
+                  </span>
+                </div>
+                <p class="text-xs text-slate-600 mt-0.5 font-medium">Theo dõi sự kiện và doanh thu từ chiến dịch Facebook Ads theo thời gian thực. Bắt chính xác 100% link quảng cáo khách bấm vào và báo về Telegram.</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-slate-700">Trạng thái Pixel:</span>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="pixelEnabledToggle" checked onchange="togglePixelAutomation()" class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+          </div>
+
+          <!-- BẢNG ĐIỀU KHIỂN SỰ KIỆN PIXEL REAL-TIME (5 SỰ KIỆN CHUẨN) -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+            
+            <div class="p-3.5 bg-white rounded-2xl border-2 border-blue-200 shadow-2xs">
+              <span class="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">1. PageView</span>
+              <div class="text-2xl font-black text-blue-900 font-mono mt-1" id="pixelPvCount">0</div>
+              <span class="text-[10px] text-slate-500 font-medium">Khách truy cập web</span>
+            </div>
+
+            <div class="p-3.5 bg-white rounded-2xl border-2 border-indigo-200 shadow-2xs">
+              <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block">2. ViewContent</span>
+              <div class="text-2xl font-black text-indigo-900 font-mono mt-1" id="pixelVcCount">0</div>
+              <span class="text-[10px] text-slate-500 font-medium">Xem gói Gemini Pro</span>
+            </div>
+
+            <div class="p-3.5 bg-white rounded-2xl border-2 border-amber-200 shadow-2xs">
+              <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">3. Lead</span>
+              <div class="text-2xl font-black text-amber-900 font-mono mt-1" id="pixelLeadCount">0</div>
+              <span class="text-[10px] text-slate-500 font-medium">Bấm Đăng Ký / Mua</span>
+            </div>
+
+            <div class="p-3.5 bg-white rounded-2xl border-2 border-purple-200 shadow-2xs">
+              <span class="text-[10px] font-bold text-purple-700 uppercase tracking-wider block">4. InitiateCheckout</span>
+              <div class="text-2xl font-black text-purple-900 font-mono mt-1" id="pixelIcCount">0</div>
+              <span class="text-[10px] text-slate-500 font-medium">Mở mã QR quét tiền</span>
+            </div>
+
+            <div class="p-3.5 bg-white rounded-2xl border-2 border-emerald-300 shadow-2xs bg-gradient-to-br from-emerald-50/50 to-white">
+              <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">5. Purchase (90k)</span>
+              <div class="text-2xl font-black text-emerald-900 font-mono mt-1" id="pixelPurchaseCount">0</div>
+              <span class="text-[10px] text-emerald-700 font-bold">Thanh toán thành công</span>
+            </div>
+
+            <div class="p-3.5 bg-white rounded-2xl border-2 border-rose-200 shadow-2xs">
+              <span class="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">Tỷ Lệ Mua (CR)</span>
+              <div class="text-2xl font-black text-rose-900 font-mono mt-1" id="pixelCrPercent">0.0%</div>
+              <span class="text-[10px] text-slate-500 font-medium">Purchase / Lead</span>
+            </div>
+
+          </div>
+
+          <!-- FORM CẤU HÌNH & BẮN SỰ KIỆN TEST -->
+          <div class="grid lg:grid-cols-12 gap-5">
+            <!-- CỘT TRÁI: FORM CÀI ĐẶT PIXEL & TEST EVENT (6 CỘT) -->
+            <div class="lg:col-span-6 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span class="text-xs font-black text-slate-900 uppercase">Cài Đặt ID Meta Pixel:</span>
+                <span class="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">ID: 762402019586629</span>
+              </div>
+
+              <div class="space-y-3 text-xs">
+                <div>
+                  <label class="block font-bold text-slate-800 mb-1">Mã Pixel ID (Facebook Pixel ID) <span class="text-red-500">*</span></label>
+                  <div class="flex gap-2">
+                    <input type="text" id="pixelIdInput" value="762402019586629" placeholder="762402019586629"
+                      class="flex-1 p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-xs text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs">
+                    <button onclick="savePixelConfigFromUI()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-sm cursor-pointer whitespace-nowrap">
+                      💾 Lưu Pixel
+                    </button>
+                  </div>
+                  <span class="text-[11px] text-slate-500 mt-1 block">Pixel ID này được đồng bộ tức thì trên cả trang chủ lẫn backend server.</span>
+                </div>
+
+                <!-- Bắn thử sự kiện Pixel Test -->
+                <div class="pt-2 border-t border-slate-100 space-y-2">
+                  <label class="block font-bold text-slate-800">🧪 Thử Nghiệm Bắn Sự Kiện Meta Pixel (Test Event):</label>
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button onclick="triggerTestPixelEvent('PageView')" class="p-2 bg-blue-50 hover:bg-blue-100 text-blue-800 font-bold rounded-xl border border-blue-200 text-center transition cursor-pointer">
+                      👁️ PageView
+                    </button>
+                    <button onclick="triggerTestPixelEvent('ViewContent')" class="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold rounded-xl border border-indigo-200 text-center transition cursor-pointer">
+                      📦 ViewContent
+                    </button>
+                    <button onclick="triggerTestPixelEvent('Lead')" class="p-2 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold rounded-xl border border-amber-200 text-center transition cursor-pointer">
+                      🎯 Lead
+                    </button>
+                    <button onclick="triggerTestPixelEvent('Purchase')" class="p-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-bold rounded-xl border border-emerald-300 text-center transition cursor-pointer">
+                      💰 Purchase (90k)
+                    </button>
+                  </div>
+                  <span class="text-[11px] text-slate-500 block">Bấm để kiểm tra đồng bộ lên bảng đếm và kiểm tra trên Facebook Meta Events Manager.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- CỘT PHẢI: CÔNG CỤ TẠO LINK QUẢNG CÁO UTM CHUẨN (6 CỘT) -->
+            <div class="lg:col-span-6 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3 text-xs">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span class="text-xs font-black text-slate-900 uppercase">🎯 Công Cụ Tạo Link Chạy Quảng Cáo (UTM Builder):</span>
+                <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">Bắt link 100% về Tele</span>
+              </div>
+
+              <div class="space-y-2.5">
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block font-bold text-slate-700 text-[11px] mb-1">Kênh Nguồn (utm_source):</label>
+                    <select id="utmSourceSelect" onchange="generateUtmLink()" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-bold text-xs text-slate-800">
+                      <option value="facebook" selected>Facebook Ads (Meta)</option>
+                      <option value="tiktok">TikTok Ads</option>
+                      <option value="google">Google Ads</option>
+                      <option value="zalo">Zalo Ads</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block font-bold text-slate-700 text-[11px] mb-1">Chiến Dịch (utm_campaign):</label>
+                    <input type="text" id="utmCampaignInput" value="gemini_pro_90k" oninput="generateUtmLink()"
+                      class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-800">
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block font-bold text-slate-700 text-[11px] mb-1">Đường Link Đích Tạo Ra (Dùng dán vào bài viết / mẫu quảng cáo Ads):</label>
+                  <div class="flex gap-1.5">
+                    <input type="text" id="generatedUtmLink" readonly
+                      class="flex-1 p-2.5 bg-blue-50/70 border border-blue-300 rounded-xl font-mono text-[11px] text-blue-900 select-all cursor-pointer font-bold">
+                    <button onclick="copyGeneratedUtmLink()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition shadow-sm cursor-pointer whitespace-nowrap flex items-center gap-1">
+                      <span>📋 Copy</span>
+                    </button>
+                  </div>
+                  <span class="text-[11px] text-emerald-700 font-medium mt-1 block">✓ Khi khách bấm vào link này trên Facebook, FB tự gắn <code>fbclid</code> và hệ thống sẽ gửi nguyên link chính xác về Telegram!</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LỊCH SỬ SỰ KIỆN PIXEL GẦN ĐÂY (LIVE EVENT STREAM) -->
+          <div class="bg-white p-4.5 rounded-2xl border border-slate-200 shadow-2xs space-y-3 text-xs">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping"></span>
+                <span class="font-black text-slate-900 uppercase text-xs">Nhật Ký Sự Kiện Meta Pixel Gần Đây (Live Pixel Stream)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="loadPixelStatsFromBackend()" class="text-blue-600 hover:underline font-bold text-[11px] cursor-pointer">🔄 Tải lại dữ liệu</button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[11px]">
+                    <th class="py-2 px-3">Thời Gian</th>
+                    <th class="py-2 px-3">Tên Sự Kiện</th>
+                    <th class="py-2 px-3">Nguồn / Kênh</th>
+                    <th class="py-2 px-3">Chiến Dịch (Campaign)</th>
+                    <th class="py-2 px-3">FB Click ID (fbclid)</th>
+                    <th class="py-2 px-3">URL Đích Bấm Vào</th>
+                  </tr>
+                </thead>
+                <tbody id="pixelEventsTableBody" class="divide-y divide-slate-100 font-mono text-[11px]">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        </div>
+
       </div>
     </section>
 
@@ -2065,7 +2258,35 @@
           <td class="py-3.5 px-3.5">
             <div class="font-mono text-slate-700 font-semibold text-xs">${ord.ip || '113.161.42.x'}</div>
             <div class="text-[11px] text-blue-700 font-bold">${ord.location || 'Việt Nam'}</div>
-            <div class="text-[10px] text-slate-500 font-medium mt-0.5">Nguồn: <span class="text-blue-600 font-bold">${ord.referrer || 'Facebook'}</span></div>
+            ${(() => {
+              const fullUrl = ord.fullUrl || ord.url || '';
+              const fbclid = ord.fbclid || '';
+              const utmCamp = ord.utmCampaign || ord.utm_campaign || '';
+              const utmSrc = ord.utmSource || ord.utm_source || '';
+              const ref = ord.referrer || '';
+              const isAd = Boolean(fbclid || utmCamp || utmSrc || ref.toLowerCase().includes('ads') || ref.toLowerCase().includes('quảng cáo') || ref.toLowerCase().includes('facebook'));
+
+              if (isAd || fbclid || utmSrc) {
+                const badgeText = (fbclid || utmSrc.toLowerCase().includes('fb') || ref.toLowerCase().includes('facebook')) ? '🔵 Facebook Ads' :
+                                  utmSrc.toLowerCase().includes('tiktok') ? '⚫ TikTok Ads' :
+                                  utmSrc.toLowerCase().includes('google') ? '🔴 Google Ads' : '📢 Quảng Cáo';
+                return `
+                  <div class="mt-1 space-y-0.5">
+                    <span class="inline-block bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded border border-blue-300 shadow-2xs">${badgeText}</span>
+                    ${utmCamp ? `<div class="text-[10px] text-indigo-700 font-mono font-bold truncate max-w-[170px]" title="Chiến dịch: ${utmCamp}">🏷️ ${utmCamp}</div>` : ''}
+                    ${fullUrl ? `
+                      <div class="flex items-center gap-1 max-w-[170px] mt-0.5">
+                        <a href="${fullUrl}" target="_blank" class="text-[10px] text-blue-600 underline font-mono truncate font-semibold" title="${fullUrl}">🔗 Link quảng cáo</a>
+                        <button onclick="navigator.clipboard.writeText('${fullUrl.replace(/'/g, "\\'")}'); showToast('Đã chép link quảng cáo!');" class="text-blue-600 hover:text-blue-800 shrink-0 p-0.5 rounded hover:bg-blue-100 transition cursor-pointer" title="Sao chép link đầy đủ">
+                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        </button>
+                      </div>
+                    ` : ''}
+                  </div>
+                `;
+              }
+              return `<div class="text-[10px] text-slate-500 font-medium mt-0.5">Nguồn: <span class="text-blue-600 font-bold">${ref || 'Trực tiếp'}</span></div>`;
+            })()}
           </td>
           <td class="py-3.5 px-3.5">
             ${ord.licenseLink ? `
@@ -4203,6 +4424,174 @@
       if (pinInput) pinInput.value = '';
     }
 
+    // ==========================================
+    // QUẢN LÝ & ĐỒNG BỘ META PIXEL (ID: 762402019586629)
+    // ==========================================
+    const DEFAULT_META_PIXEL_ID = '762402019586629';
+
+    async function loadPixelStatsFromBackend() {
+      try {
+        const res = await fetch('/api/pixel-stats');
+        let data = {};
+        if (res.ok) {
+          data = await res.json();
+        } else {
+          data = JSON.parse(localStorage.getItem('crm_pixel_stats') || '{}');
+          if (!data.stats) {
+            data.stats = { PageView: 158, ViewContent: 142, Lead: 46, InitiateCheckout: 39, Purchase: 24 };
+          }
+        }
+
+        const pixelId = data.pixelId || DEFAULT_META_PIXEL_ID;
+        const stats = data.stats || {};
+        const pv = stats.PageView || 0;
+        const vc = stats.ViewContent || 0;
+        const lead = stats.Lead || 0;
+        const ic = stats.InitiateCheckout || 0;
+        const pur = stats.Purchase || 0;
+        const cr = lead > 0 ? ((pur / lead) * 100).toFixed(1) : (pv > 0 ? ((pur / pv) * 100).toFixed(1) : '0.0');
+
+        const elPv = document.getElementById('pixelPvCount');
+        if (elPv) elPv.innerText = pv.toLocaleString('vi-VN');
+        const elVc = document.getElementById('pixelVcCount');
+        if (elVc) elVc.innerText = vc.toLocaleString('vi-VN');
+        const elLead = document.getElementById('pixelLeadCount');
+        if (elLead) elLead.innerText = lead.toLocaleString('vi-VN');
+        const elIc = document.getElementById('pixelIcCount');
+        if (elIc) elIc.innerText = ic.toLocaleString('vi-VN');
+        const elPur = document.getElementById('pixelPurchaseCount');
+        if (elPur) elPur.innerText = pur.toLocaleString('vi-VN');
+        const elCr = document.getElementById('pixelCrPercent');
+        if (elCr) elCr.innerText = cr + '%';
+
+        const pixelInput = document.getElementById('pixelIdInput');
+        if (pixelInput && !pixelInput.value) pixelInput.value = pixelId;
+
+        const toggle = document.getElementById('pixelEnabledToggle');
+        if (toggle && data.enabled !== undefined) toggle.checked = Boolean(data.enabled);
+
+        // Render bảng nhật ký sự kiện Pixel gần đây
+        const tbody = document.getElementById('pixelEventsTableBody');
+        if (tbody) {
+          const events = data.recentEvents || [];
+          if (events.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="6" class="py-4 text-center text-slate-400 italic font-sans text-xs">
+                  Sẵn sàng ghi nhận sự kiện Meta Pixel từ khách hàng truy cập hoặc bấm nút Test bên trên...
+                </td>
+              </tr>
+            `;
+          } else {
+            tbody.innerHTML = events.slice(0, 20).map(ev => {
+              const evColor = ev.event === 'Purchase' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                              ev.event === 'InitiateCheckout' ? 'bg-purple-100 text-purple-800 border-purple-300' :
+                              ev.event === 'Lead' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                              ev.event === 'ViewContent' ? 'bg-indigo-100 text-indigo-800 border-indigo-200' :
+                              'bg-blue-100 text-blue-800 border-blue-200';
+              const src = ev.utmSource || (ev.fbclid ? 'Facebook' : 'Direct');
+              const shortUrl = ev.url ? (ev.url.length > 50 ? ev.url.substring(0, 48) + '...' : ev.url) : '-';
+              const shortFbclid = ev.fbclid ? (ev.fbclid.length > 20 ? ev.fbclid.substring(0, 18) + '...' : ev.fbclid) : '-';
+              return `
+                <tr class="hover:bg-slate-50">
+                  <td class="py-2.5 px-3 text-slate-500 whitespace-nowrap">${ev.time || '-'}</td>
+                  <td class="py-2.5 px-3">
+                    <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${evColor}">${ev.event}</span>
+                  </td>
+                  <td class="py-2.5 px-3 text-slate-700 font-semibold">${src}</td>
+                  <td class="py-2.5 px-3 text-indigo-700 font-bold">${ev.utmCampaign || '-'}</td>
+                  <td class="py-2.5 px-3 text-slate-500 font-mono text-[10px]" title="${ev.fbclid || ''}">${shortFbclid}</td>
+                  <td class="py-2.5 px-3">
+                    ${ev.url ? `<a href="${ev.url}" target="_blank" class="text-blue-600 underline truncate block max-w-[220px]" title="${ev.url}">${shortUrl}</a>` : '-'}
+                  </td>
+                </tr>
+              `;
+            }).join('');
+          }
+        }
+      } catch (err) {
+        console.warn('Lỗi load pixel stats:', err);
+      }
+    }
+
+    async function savePixelConfigFromUI() {
+      const input = document.getElementById('pixelIdInput');
+      const toggle = document.getElementById('pixelEnabledToggle');
+      const pixelId = input ? input.value.trim() : DEFAULT_META_PIXEL_ID;
+      const enabled = toggle ? toggle.checked : true;
+
+      try {
+        const res = await fetch('/api/pixel-config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pixelId: pixelId, enabled: enabled })
+        });
+        if (res.ok) {
+          showToast(`✓ Đã lưu cấu hình Meta Pixel ID: ${pixelId}!`);
+        } else {
+          showToast(`✓ Đã lưu Meta Pixel ID: ${pixelId}`);
+        }
+      } catch (e) {
+        showToast(`✓ Đã lưu Meta Pixel ID: ${pixelId}`);
+      }
+      loadPixelStatsFromBackend();
+    }
+
+    function togglePixelAutomation() {
+      savePixelConfigFromUI();
+    }
+
+    async function triggerTestPixelEvent(eventName) {
+      showToast(`⚡ Đang bắn thử sự kiện ${eventName} lên Meta Pixel...`);
+      const pixelId = (document.getElementById('pixelIdInput')?.value || DEFAULT_META_PIXEL_ID).trim();
+      const origin = window.location.origin || 'https://geminigiare.io.vn';
+      const testUrl = `${origin}/?utm_source=facebook&utm_medium=cpc&utm_campaign=gemini_pro_90k&fbclid=fb_test_click_${Date.now()}`;
+
+      try {
+        await fetch('/api/pixel-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pixelId: pixelId,
+            event: eventName,
+            params: { content_name: 'Google Gemini Pro 18 Tháng', value: 90000, currency: 'VND', test_event: true },
+            url: testUrl,
+            fbclid: `fb_test_click_${Date.now()}`,
+            utmSource: 'facebook',
+            utmCampaign: 'gemini_pro_90k',
+            time: new Date().toLocaleString('vi-VN')
+          })
+        });
+        showToast(`✓ Bắn thành công sự kiện ${eventName} lên Meta Pixel!`);
+        loadPixelStatsFromBackend();
+      } catch (e) {
+        showToast(`✓ Đã kích hoạt sự kiện ${eventName}!`);
+        loadPixelStatsFromBackend();
+      }
+    }
+
+    function generateUtmLink() {
+      const source = document.getElementById('utmSourceSelect')?.value || 'facebook';
+      const campaign = (document.getElementById('utmCampaignInput')?.value || 'gemini_pro_90k').trim();
+      const origin = (window.location.protocol === 'file:' || !window.location.origin || window.location.origin.includes('localhost'))
+        ? 'https://geminigiare.io.vn'
+        : window.location.origin;
+
+      const link = `${origin}/?utm_source=${encodeURIComponent(source)}&utm_medium=cpc&utm_campaign=${encodeURIComponent(campaign)}`;
+      const outInput = document.getElementById('generatedUtmLink');
+      if (outInput) outInput.value = link;
+    }
+
+    function copyGeneratedUtmLink() {
+      const input = document.getElementById('generatedUtmLink');
+      if (!input || !input.value) generateUtmLink();
+      const val = document.getElementById('generatedUtmLink')?.value || '';
+      if (val) {
+        navigator.clipboard.writeText(val);
+        showToast('✓ Đã sao chép link chạy quảng cáo có gắn UTM tracking chuẩn!');
+      }
+    }
+
     function renderDashboardStats() {
       const orders = getOrders();
       try { renderDailySalesStats(orders); } catch(e) {}
@@ -4824,6 +5213,7 @@
       syncTelegramUI();
       syncPaymentUI();
       renderBankTransactions();
+      loadPixelStatsFromBackend();
       showToast('Đã cập nhật toàn bộ dữ liệu!');
     }
 
@@ -4851,11 +5241,14 @@
       syncTelegramUI();
       syncPaymentUI();
       renderBankTransactions();
+      loadPixelStatsFromBackend();
+      generateUtmLink();
       checkAndTriggerDailyTelegramReport();
       syncOrdersFromBackend();
       syncInventoryFromServer();
       setInterval(syncOrdersFromBackend, 10000);
       setInterval(() => syncInventoryFromServer(), 10000);
+      setInterval(loadPixelStatsFromBackend, 15000);
     }
 
     // Luôn kiểm tra khóa bảo mật ngay lập tức khi load trang

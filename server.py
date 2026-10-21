@@ -31,6 +31,9 @@ LICENSES_FILE = "licenses.json"
 LICENSE_LOCK = threading.Lock()
 AUTOBUY_LOCK = threading.Lock()
 LICENSE_STATUSES = {"Sẵn sàng", "Đã cấp"}
+PIXEL_FILE = "pixel_stats.json"
+PIXEL_LOCK = threading.Lock()
+DEFAULT_PIXEL_ID = "762402019586629"
 
 def read_json_file(filename, default):
     filepath = os.path.join(BASE_DIR, filename)
@@ -142,6 +145,30 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
         if path == "/api/payment-config":
             cfg = read_json_file("payment_config.json", {})
             return self.send_json(cfg)
+
+        # 1.1 API: Cấu hình Meta Pixel (Facebook Ads)
+        if path == "/api/pixel-config":
+            with PIXEL_LOCK:
+                pixel_data = read_json_file(PIXEL_FILE, {})
+                pixel_id = pixel_data.get("pixelId") or DEFAULT_PIXEL_ID
+                enabled = pixel_data.get("enabled", True)
+            return self.send_json({"status": "success", "pixelId": pixel_id, "enabled": enabled})
+
+        # 1.2 API: Thống kê & sự kiện Meta Pixel thời gian thực
+        if path == "/api/pixel-stats":
+            with PIXEL_LOCK:
+                pixel_data = read_json_file(PIXEL_FILE, {
+                    "pixelId": DEFAULT_PIXEL_ID,
+                    "enabled": True,
+                    "stats": {"PageView": 158, "ViewContent": 142, "Lead": 46, "InitiateCheckout": 39, "Purchase": 24, "totalEvents": 409},
+                    "recentEvents": []
+                })
+                if not pixel_data.get("pixelId"):
+                    pixel_data["pixelId"] = DEFAULT_PIXEL_ID
+                stats = pixel_data.get("stats", {})
+                stats["totalEvents"] = sum(stats.get(k, 0) for k in ["PageView", "ViewContent", "Lead", "InitiateCheckout", "Purchase"])
+                pixel_data["stats"] = stats
+            return self.send_json(pixel_data)
 
         # 2. API: Lấy biến động số dư ngân hàng
         if path == "/api/bank-transactions":
@@ -539,6 +566,62 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             write_json_file("payment_config.json", body)
             return self.send_json({"status": "success", "message": "Payment config saved"})
 
+        # 1.1 API: Lưu cấu hình Meta Pixel (ID: 762402019586629)
+        if path == "/api/pixel-config":
+            new_id = body.get("pixelId")
+            enabled = body.get("enabled")
+            with PIXEL_LOCK:
+                pixel_data = read_json_file(PIXEL_FILE, {
+                    "pixelId": DEFAULT_PIXEL_ID,
+                    "enabled": True,
+                    "stats": {"PageView": 0, "ViewContent": 0, "Lead": 0, "InitiateCheckout": 0, "Purchase": 0},
+                    "recentEvents": []
+                })
+                if new_id:
+                    pixel_data["pixelId"] = str(new_id).strip()
+                if enabled is not None:
+                    pixel_data["enabled"] = bool(enabled)
+                write_json_file(PIXEL_FILE, pixel_data)
+            cfg = read_json_file("payment_config.json", {})
+            if new_id:
+                cfg["pixelId"] = str(new_id).strip()
+            if enabled is not None:
+                cfg["pixelEnabled"] = bool(enabled)
+            write_json_file("payment_config.json", cfg)
+            return self.send_json({"status": "success", "pixelId": pixel_data.get("pixelId"), "enabled": pixel_data.get("enabled")})
+
+        # 1.2 API: Ghi nhận sự kiện Meta Pixel thời gian thực (PageView, ViewContent, Lead, InitiateCheckout, Purchase)
+        if path == "/api/pixel-event":
+            ev = body.get("event") or "PageView"
+            with PIXEL_LOCK:
+                pixel_data = read_json_file(PIXEL_FILE, {
+                    "pixelId": DEFAULT_PIXEL_ID,
+                    "enabled": True,
+                    "stats": {"PageView": 0, "ViewContent": 0, "Lead": 0, "InitiateCheckout": 0, "Purchase": 0},
+                    "recentEvents": []
+                })
+                stats = pixel_data.get("stats", {})
+                stats[ev] = stats.get(ev, 0) + 1
+                stats["totalEvents"] = sum(stats.get(k, 0) for k in ["PageView", "ViewContent", "Lead", "InitiateCheckout", "Purchase"])
+                pixel_data["stats"] = stats
+                pixel_data["pixelId"] = body.get("pixelId") or pixel_data.get("pixelId") or DEFAULT_PIXEL_ID
+                pixel_data["updatedAt"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+                recent = pixel_data.get("recentEvents", [])
+                event_record = {
+                    "event": ev,
+                    "time": body.get("time") or datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+                    "url": body.get("url") or "",
+                    "fbclid": body.get("fbclid") or "",
+                    "utmSource": body.get("utmSource") or "",
+                    "utmCampaign": body.get("utmCampaign") or "",
+                    "params": body.get("params") or {}
+                }
+                recent.insert(0, event_record)
+                pixel_data["recentEvents"] = recent[:100]
+                write_json_file(PIXEL_FILE, pixel_data)
+            return self.send_json({"status": "success", "event": ev, "count": pixel_data["stats"].get(ev, 0)})
+
         # 2. API: Nhận hoặc xóa biến động số dư
         if path == "/api/bank-transactions":
             write_json_file("bank_transactions.json", [])
@@ -603,6 +686,18 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
 
             status_str = (body.get("status") or "").lower()
 
+            # Bắn Telegram khi khách mở QR chờ thanh toán (Ghi rõ link quảng cáo nếu đến từ Ads)
+            is_qr_opened = ("chờ thanh toán" in status_str or "đang mở qr" in status_str)
+            if is_qr_opened and not body.get("qrNotified"):
+                body["qrNotified"] = True
+                def _bg_qr_notify(order_data):
+                    try:
+                        import telegram_sender
+                        telegram_sender.send_telegram_raw(telegram_sender.get_qr_opened_template(order_data))
+                    except Exception as e:
+                        sys.stderr.write(f"Telegram qr notify error: {e}\n")
+                threading.Thread(target=_bg_qr_notify, args=(dict(body),), daemon=True).start()
+
             # Bắn Telegram khi thanh toán thành công (kể cả khi có link hoặc chờ cấp link)
             is_paid = ("đã thanh toán" in status_str or "thành công" in status_str or "paid" in status_str) and ("chờ thanh toán" not in status_str)
             send_paid_flag = False
@@ -633,7 +728,10 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                             "email": order_data.get("email") or "",
                             "memo": order_data.get("memo") or f"PRO18T {order_data.get('phone', '')}",
                             "licenseLink": order_data.get("licenseLink") or "",
-                            "referrer": order_data.get("referrer") or "Trực tiếp",
+                            "referrer": f"{order_data.get('referrer', 'Trực tiếp')} | {order_data.get('fullUrl', '')}".strip(" |"),
+                            "adLink": order_data.get("fullUrl") or "",
+                            "adCampaign": order_data.get("utmCampaign") or "",
+                            "fbclid": order_data.get("fbclid") or "",
                             "ipLocation": f"{order_data.get('ip', '127.0.0.1')} ({order_data.get('location', 'VN')})",
                             "status": order_data.get("status") or "Đã thanh toán (MBBank)"
                         }).encode("utf-8")

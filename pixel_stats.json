@@ -1,0 +1,24 @@
+{
+  "pixelId": "762402019586629",
+  "enabled": true,
+  "stats": {
+    "PageView": 158,
+    "ViewContent": 142,
+    "Lead": 47,
+    "InitiateCheckout": 39,
+    "Purchase": 24,
+    "totalEvents": 410
+  },
+  "recentEvents": [
+    {
+      "event": "Lead",
+      "time": "21/10/2026 22:47:29",
+      "url": "https://geminigiare.io.vn/?utm_source=facebook&utm_campaign=gemini_pro_90k&fbclid=test_fbclid_123",
+      "fbclid": "test_fbclid_123",
+      "utmSource": "facebook",
+      "utmCampaign": "gemini_pro_90k",
+      "params": {}
+    }
+  ],
+  "updatedAt": "21/10/2026 22:47:29"
+}

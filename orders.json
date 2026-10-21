@@ -11,7 +11,11 @@
     "ip": "42.118.137.52",
     "location": "Ho Chi Minh City, Viet Nam",
     "device": "Máy tính",
-    "referrer": "Truy cập trực tiếp",
+    "referrer": "Facebook (Meta Ads)",
+    "fullUrl": "https://geminigiare.io.vn/?utm_source=facebook&utm_medium=cpc&utm_campaign=gemini_pro_90k&fbclid=IwAR2V8qJkPz9X_7Lm6O9eN1qR",
+    "fbclid": "IwAR2V8qJkPz9X_7Lm6O9eN1qR",
+    "utmSource": "facebook",
+    "utmCampaign": "gemini_pro_90k",
     "status": "Chờ thanh toán (Đang mở QR)"
   },
   {

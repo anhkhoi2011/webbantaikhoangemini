@@ -34,6 +34,25 @@
   <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
+  <!-- Meta Pixel Code (Facebook Ads Tracking ID: 762402019586629) -->
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '762402019586629');
+    fbq('track', 'PageView');
+  </script>
+  <noscript>
+    <img height="1" width="1" style="display:none"
+         src="https://www.facebook.com/tr?id=762402019586629&ev=PageView&noscript=1" />
+  </noscript>
+  <!-- End Meta Pixel Code -->
+
   <!-- Schema Markup (JSON-LD) - Product, AggregateRating 4.9, Organization, FAQPage -->
   <script type="application/ld+json">
   {
@@ -1435,6 +1454,51 @@
       googleAppsScriptUrl: "https://script.google.com/macros/s/AKfycbxBCAtlOD-v0bqTJSsjjiksBccuJSlBnybznPsxOHj6f8rkT44cUlnF__i6Ms14U2uS/exec"
     };
 
+    // ==========================================
+    // META PIXEL (FACEBOOK ADS) TRACKING ENGINE
+    // ==========================================
+    const META_PIXEL_ID = '762402019586629';
+
+    function trackPixelEvent(eventName, params = {}) {
+      try {
+        if (typeof window.fbq === 'function') {
+          window.fbq('track', eventName, params);
+        }
+        // Ghi nhận vào localStorage để đồng bộ sang Admin dashboard
+        const key = 'crm_pixel_stats';
+        const stats = JSON.parse(localStorage.getItem(key) || '{}');
+        stats[eventName] = (stats[eventName] || 0) + 1;
+        stats.lastTracked = new Date().toISOString();
+        stats.pixelId = META_PIXEL_ID;
+        localStorage.setItem(key, JSON.stringify(stats));
+
+        // Đồng bộ ngầm về backend server
+        const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
+        window.fetch(`${apiBase}/api/pixel-event`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pixelId: META_PIXEL_ID,
+            event: eventName,
+            params: params,
+            url: window.location.href,
+            referrer: document.referrer || '',
+            fbclid: (new URLSearchParams(window.location.search)).get('fbclid') || '',
+            utmSource: (new URLSearchParams(window.location.search)).get('utm_source') || '',
+            utmCampaign: (new URLSearchParams(window.location.search)).get('utm_campaign') || '',
+            time: new Date().toLocaleString('vi-VN')
+          })
+        }).catch(() => {});
+      } catch (e) {
+        console.warn('Pixel tracking warning:', e);
+      }
+    }
+
+    // Tự động kích hoạt ViewContent khi khách vào trang
+    setTimeout(() => {
+      trackPixelEvent('ViewContent', { content_name: 'Google Gemini Pro 18 Tháng', value: 90000, currency: 'VND' });
+    }, 1000);
+
     // Bắt nguồn truy cập thông minh & Chuẩn xác 100% (Phát hiện thật từ Referrer & Query Params)
     function getTrafficSource() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -1445,34 +1509,31 @@
       const gclid = urlParams.get('gclid');
       const docRef = (document.referrer || '').toLowerCase();
 
-      // 1. TỪ X / TWITTER (x.com, twitter.com, t.co)
+      // 1. TỪ FACEBOOK ADS / META ADS (fbclid, utm_source=fb/facebook)
+      if (fbclid || utm.includes('facebook') || utm.includes('fb') || ref.includes('facebook') || ref.includes('fb') ||
+          docRef.includes('facebook.com') || docRef.includes('fb.com')) {
+        return fbclid ? 'Quảng cáo Facebook (Meta Ads)' : 'Facebook';
+      }
+
+      // 2. TỪ TIKTOK ADS (ttclid, tiktok)
+      if (ttclid || utm.includes('tiktok') || ref.includes('tiktok') || docRef.includes('tiktok.com')) {
+        return ttclid ? 'Quảng cáo TikTok (TikTok Ads)' : 'TikTok';
+      }
+
+      // 3. TỪ GOOGLE ADS / SEARCH (gclid, google)
+      if (gclid || utm.includes('google') || docRef.includes('google.')) {
+        return gclid ? 'Quảng cáo Google (Google Ads)' : 'Tìm kiếm Google';
+      }
+
+      // 4. TỪ X / TWITTER (x.com, twitter.com, t.co)
       if (utm === 'x' || utm.includes('twitter') || utm.includes('t.co') || ref === 'x' || ref.includes('twitter') ||
           docRef.includes('t.co') || docRef.includes('x.com') || docRef.includes('twitter.com')) {
         return 'X (Twitter)';
       }
 
-      // 2. TỪ THREADS (threads.net)
+      // 5. TỪ THREADS (threads.net)
       if (utm.includes('threads') || ref.includes('threads') || docRef.includes('threads.net')) {
         return 'Threads';
-      }
-
-      // 3. TỪ TIKTOK (tiktok.com)
-      if (ttclid || utm.includes('tiktok') || ref.includes('tiktok') || docRef.includes('tiktok.com')) {
-        return 'TikTok';
-      }
-
-      // 4. TỪ FACEBOOK (facebook.com, fb.com, fbclid Meta Ads)
-      if (fbclid || utm.includes('facebook') || utm.includes('fb') || ref.includes('facebook') || ref.includes('fb') ||
-          docRef.includes('facebook.com') || docRef.includes('fb.com')) {
-        return 'Facebook';
-      }
-
-      // 5. TỪ TÌM KIẾM TỰ NHIÊN / RESEARCH (Google, Bing, Cốc Cốc, Perplexity, ChatGPT, Claude, Gemini...)
-      if (gclid || utm.includes('search') || utm.includes('research') || utm.includes('organic') || utm.includes('google') ||
-          ref.includes('search') || ref.includes('research') || ref.includes('organic') || ref.includes('google') ||
-          docRef.includes('google.') || docRef.includes('bing.com') || docRef.includes('coccoc.com') || docRef.includes('duckduckgo.com') ||
-          docRef.includes('chatgpt.com') || docRef.includes('perplexity.ai') || docRef.includes('claude.ai') || docRef.includes('gemini.google.com')) {
-        return 'Tìm kiếm & Research';
       }
 
       // 6. TỪ ZALO CHAT (zalo.me)
@@ -1480,9 +1541,19 @@
         return 'Zalo Chat';
       }
 
-      // 7. TRUY CẬP TRỰC TIẾP (DIRECT URL / BOOKMARK)
+      // 7. TÌM KIẾM TỰ NHIÊN / RESEARCH KHÁC
+      if (utm.includes('search') || utm.includes('research') || docRef.includes('bing.com') || docRef.includes('coccoc.com') || docRef.includes('chatgpt.com') || docRef.includes('perplexity.ai') || docRef.includes('claude.ai')) {
+        return 'Tìm kiếm & AI Research';
+      }
+
+      // 8. TRUY CẬP TRỰC TIẾP (DIRECT URL / BOOKMARK)
       return 'Truy cập trực tiếp';
     }
+
+    const _urlParams = new URLSearchParams(window.location.search);
+    const _fbclid = _urlParams.get('fbclid') || '';
+    const _utmSource = _urlParams.get('utm_source') || '';
+    const _utmCampaign = _urlParams.get('utm_campaign') || '';
 
     // Dữ liệu khách truy cập (Chạy ngầm, không hiện ra ngoài cho khách)
     let visitorData = {
@@ -1490,7 +1561,13 @@
       location: 'Việt Nam',
       device: navigator.userAgent.includes('Mobile') ? 'Điện thoại' : 'Máy tính',
       browser: navigator.userAgent.includes('Chrome') ? 'Google Chrome' : (navigator.userAgent.includes('Safari') ? 'Safari' : 'Trình duyệt khác'),
-      referrer: getTrafficSource()
+      referrer: getTrafficSource(),
+      fullUrl: window.location.href,
+      rawReferrer: document.referrer || '',
+      fbclid: _fbclid,
+      utmSource: _utmSource,
+      utmCampaign: _utmCampaign,
+      isFromAd: Boolean(_fbclid || _utmSource || _utmCampaign)
     };
 
     let currentOrder = { name: '', phone: '', email: '', memo: '', orderId: '' };
@@ -1772,6 +1849,10 @@
           }
         }).catch(err => console.warn('apipay-create error:', err));
       } catch(e) {}
+      // Bắn sự kiện Meta Pixel: Lead & InitiateCheckout
+      trackPixelEvent('Lead', { content_name: 'Đăng Ký Gemini Pro 18T', value: 90000, currency: 'VND' });
+      trackPixelEvent('InitiateCheckout', { content_name: 'Google Gemini Pro 18 Tháng', value: 90000, currency: 'VND', num_items: 1 });
+
       // Lưu đơn tạm thời lên Server (orders.json) và thông báo Telegram có khách đang mở QR
       try {
         window.fetch(`${apiBase}/api/orders`, {
@@ -1790,6 +1871,11 @@
             location: (visitorData && visitorData.location) ? visitorData.location : 'Việt Nam',
             device: (visitorData && visitorData.device) ? visitorData.device : 'Thiết bị di động/PC',
             referrer: (visitorData && visitorData.referrer) ? visitorData.referrer : 'Trực tiếp',
+            fullUrl: (visitorData && visitorData.fullUrl) ? visitorData.fullUrl : window.location.href,
+            rawReferrer: (visitorData && visitorData.rawReferrer) ? visitorData.rawReferrer : (document.referrer || ''),
+            fbclid: (visitorData && visitorData.fbclid) ? visitorData.fbclid : '',
+            utmSource: (visitorData && visitorData.utmSource) ? visitorData.utmSource : '',
+            utmCampaign: (visitorData && visitorData.utmCampaign) ? visitorData.utmCampaign : '',
             status: 'Chờ thanh toán (Đang mở QR)'
           })
         }).catch(() => {});
@@ -2103,6 +2189,24 @@
       const loc = order.location || (visitorData && visitorData.location) || 'Việt Nam';
       const dev = order.device || (visitorData && visitorData.device) || 'Điện thoại/PC';
 
+      const fullUrl = order.fullUrl || (visitorData && visitorData.fullUrl) || window.location.href;
+      const fbclid = order.fbclid || (visitorData && visitorData.fbclid) || '';
+      const utmCampaign = order.utmCampaign || (visitorData && visitorData.utmCampaign) || '';
+      const utmSource = order.utmSource || (visitorData && visitorData.utmSource) || '';
+      const referrer = order.referrer || (visitorData && visitorData.referrer) || 'Trực tiếp';
+
+      let adSourceInfo = '';
+      if (fbclid || utmSource || utmCampaign || referrer.includes('Quảng cáo') || referrer.includes('Facebook') || referrer.includes('TikTok') || referrer.includes('Google')) {
+        const adBadge = fbclid ? '🔵 Facebook Ads (Meta Ads)' : (utmSource ? `📢 Quảng Cáo (${utmSource})` : referrer);
+        adSourceInfo = `🎯 <b>Nguồn QC:</b> <b>${adBadge}</b>\n` +
+          (utmCampaign ? `🏷️ <b>Chiến dịch:</b> <code>${utmCampaign}</code>\n` : '') +
+          (fbclid ? `🆔 <b>FB Click ID:</b> <code>${fbclid.length > 25 ? (fbclid.substring(0, 25) + '...') : fbclid}</code>\n` : '') +
+          `🔗 <b>LINK QUẢNG CÁO KHÁCH BẤM:</b>\n<code>${fullUrl}</code>\n`;
+      } else {
+        adSourceInfo = `🌐 <b>Nguồn truy cập:</b> ${referrer}\n` +
+          `🔗 <b>Link truy cập:</b> <code>${fullUrl}</code>\n`;
+      }
+
       if (isOutOfStock || !order.licenseLink) {
         const alertMsg = `🚨 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN 90.000 VNĐ</b>\n` +
           `━━━━━━━━━━━━━━━━━━━━\n` +
@@ -2113,6 +2217,7 @@
           `🌐 Địa chỉ IP: <code>${ip}</code>\n` +
           `📍 Vị trí khách: <b>${loc}</b>\n` +
           `📱 Thiết bị: ${dev}\n` +
+          adSourceInfo +
           `━━━━━━━━━━━━━━━━━━━━\n` +
           `⚠️ <b>KHO ĐÃ HẾT LINK! VUI LÒNG MUA LINK GẤP:</b>\n` +
           `👉 <b>VÀO BOT MUA NGAY:</b> https://t.me/shopxoainon_bot\n` +
@@ -2130,6 +2235,7 @@
         `🌐 Địa chỉ IP: <code>${ip}</code>\n` +
         `📍 Vị trí khách: <b>${loc}</b>\n` +
         `📱 Thiết bị: ${dev}\n` +
+        adSourceInfo +
         `🔑 Link cấp: <code>${order.licenseLink}</code>\n` +
         `📦 Kho còn: <b>${remainingStock} mã</b>\n` +
         `━━━━━━━━━━━━━━━━━━━━`;
@@ -2286,6 +2392,14 @@
         }
       }
 
+      // Bắn sự kiện Meta Pixel: Purchase (Thanh toán thành công 90.000 VNĐ)
+      trackPixelEvent('Purchase', {
+        content_name: 'Google Gemini Pro 18 Tháng',
+        value: 90000,
+        currency: 'VND',
+        transaction_id: custOrderId
+      });
+
       const newOrder = {
         orderId: custOrderId,
         name: custName,
@@ -2299,6 +2413,12 @@
         location: (typeof visitorData !== 'undefined' && visitorData && visitorData.location) ? visitorData.location : 'Việt Nam',
         device: (typeof visitorData !== 'undefined' && visitorData && visitorData.device) ? visitorData.device : 'Điện thoại/PC',
         referrer: (typeof visitorData !== 'undefined' && visitorData && visitorData.referrer) ? visitorData.referrer : 'Trực tiếp',
+        fullUrl: (typeof visitorData !== 'undefined' && visitorData && visitorData.fullUrl) ? visitorData.fullUrl : window.location.href,
+        rawReferrer: (typeof visitorData !== 'undefined' && visitorData && visitorData.rawReferrer) ? visitorData.rawReferrer : (document.referrer || ''),
+        fbclid: (typeof visitorData !== 'undefined' && visitorData && visitorData.fbclid) ? visitorData.fbclid : '',
+        utmSource: (typeof visitorData !== 'undefined' && visitorData && visitorData.utmSource) ? visitorData.utmSource : '',
+        utmCampaign: (typeof visitorData !== 'undefined' && visitorData && visitorData.utmCampaign) ? visitorData.utmCampaign : '',
+        isFromAd: (typeof visitorData !== 'undefined' && visitorData && visitorData.isFromAd) ? visitorData.isFromAd : false,
         licenseLink: licenseLink,
         status: hasRealLink ? 'Đã thanh toán (MBBank)' : 'Đã thanh toán (Chờ cấp link)',
         paymentTxId: (txData && txData.id) ? txData.id : ('APIPAY-' + Math.floor(100000 + Math.random() * 900000)),
