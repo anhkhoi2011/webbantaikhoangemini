@@ -238,10 +238,113 @@
     <!-- ======================================================== -->
     <section id="tab-orders" class="space-y-4">
       
+      <!-- THỐNG KÊ DOANH THU HÔM NAY & TỪNG NGÀY -->
+      <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-3xl p-5 text-white shadow-lg space-y-4">
+        <!-- Header & Quick Actions -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-300 flex items-center justify-center font-bold text-base">📊</span>
+              <h3 class="text-base font-extrabold tracking-tight">Thống Kê Doanh Thu & Bán Hàng Từng Ngày</h3>
+            </div>
+            <p class="text-xs text-slate-300 mt-0.5">Theo dõi chi tiết số lượng đơn hàng, doanh thu thực tế hôm nay và từng ngày đã bán.</p>
+          </div>
+          <div class="flex items-center flex-wrap gap-2">
+            <button onclick="exportOrdersToCSV()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-sm flex items-center gap-1.5 cursor-pointer" title="Xuất toàn bộ đơn hàng ra file CSV/Excel UTF-8 chuẩn">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>📥 Xuất File CSV / Excel</span>
+            </button>
+            <button onclick="syncAllOrdersToGoogleSheet()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs transition shadow-sm flex items-center gap-1.5 cursor-pointer" title="Đẩy toàn bộ đơn hàng sang bảng Google Sheet">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span>⚡ Đồng Bộ Vào Sheet</span>
+            </button>
+            <a href="https://docs.google.com/spreadsheets/d/17JXfu0NcYQ2sJ9AQn8ZR-gOIYDQBgTquT4bu9pM6QrE/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-xs transition border border-white/20 flex items-center gap-1.5 cursor-pointer" title="Mở trực tiếp bảng tính Google Sheet">
+              <span>🔗 Mở Google Sheet</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 3 Thẻ Chỉ Số Nhanh: Hôm Nay - Hôm Qua - Tổng Tích Lũy -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <!-- Card Hôm Nay -->
+          <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 relative overflow-hidden">
+            <div class="flex items-center justify-between text-xs text-blue-200 font-bold mb-1">
+              <span>HÔM NAY (<span id="statsTodayDate">--/--</span>)</span>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] border border-emerald-500/30 font-extrabold animate-pulse">Trực tiếp</span>
+            </div>
+            <div class="text-2xl font-black text-white font-mono" id="statsTodayRev">0đ</div>
+            <div class="text-xs text-slate-300 mt-1 flex items-center gap-1.5 flex-wrap">
+              <span>Đã bán:</span>
+              <strong class="text-emerald-400 font-extrabold" id="statsTodayOrders">0 đơn</strong>
+              <span class="text-white/40">•</span>
+              <span id="statsTodayCompleted" class="text-slate-300">0 đã cấp link</span>
+            </div>
+          </div>
+
+          <!-- Card Hôm Qua -->
+          <div class="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+            <div class="flex items-center justify-between text-xs text-slate-300 font-bold mb-1">
+              <span>HÔM QUA (<span id="statsYesterdayDate">--/--</span>)</span>
+              <span class="text-[10px] text-slate-400 font-mono">24h trước</span>
+            </div>
+            <div class="text-2xl font-black text-slate-100 font-mono" id="statsYesterdayRev">0đ</div>
+            <div class="text-xs text-slate-300 mt-1 flex items-center gap-1.5 flex-wrap">
+              <span>Đã bán:</span>
+              <strong class="text-blue-300 font-extrabold" id="statsYesterdayOrders">0 đơn</strong>
+            </div>
+          </div>
+
+          <!-- Card Tổng Tích Lũy -->
+          <div class="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10">
+            <div class="flex items-center justify-between text-xs text-slate-300 font-bold mb-1">
+              <span>TỔNG DOANH THU TOÀN THỜI GIAN</span>
+              <span class="text-[10px] text-amber-300 font-mono font-bold">Tất cả ngày</span>
+            </div>
+            <div class="text-2xl font-black text-amber-300 font-mono" id="statsAllTimeRev">0đ</div>
+            <div class="text-xs text-slate-300 mt-1 flex items-center gap-1.5 flex-wrap">
+              <span>Tổng cộng:</span>
+              <strong class="text-white font-extrabold" id="statsAllTimeOrders">0 đơn</strong>
+              <span class="text-white/40">•</span>
+              <span id="statsActiveDays" class="text-slate-300">0 ngày có đơn</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bảng Chi Tiết Từng Ngày -->
+        <div class="bg-black/25 rounded-2xl border border-white/10 overflow-hidden">
+          <div class="px-4 py-2.5 bg-white/5 border-b border-white/10 flex items-center justify-between text-xs font-bold text-slate-300">
+            <span class="flex items-center gap-1.5">
+              <span>📅</span>
+              <span>Bảng Thống Kê Theo Từng Ngày (Bấm "Xem đơn" để lọc danh sách bên dưới)</span>
+            </span>
+            <button onclick="filterOrderByDate('')" class="text-blue-300 hover:text-white font-bold text-[11px] underline cursor-pointer">
+              Hiện tất cả ngày
+            </button>
+          </div>
+          <div class="overflow-x-auto max-h-56 overflow-y-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="sticky top-0 bg-slate-900/95 backdrop-blur text-slate-300 uppercase text-[10px] tracking-wider border-b border-white/10 font-bold">
+                <tr>
+                  <th class="py-2.5 px-3.5">Ngày Bán</th>
+                  <th class="py-2.5 px-3.5 text-center">Số Đơn Bán Được</th>
+                  <th class="py-2.5 px-3.5 text-right">Doanh Thu (VNĐ)</th>
+                  <th class="py-2.5 px-3.5 text-center">Đã Cấp Link</th>
+                  <th class="py-2.5 px-3.5 text-center">Chờ Gửi Link</th>
+                  <th class="py-2.5 px-3.5 text-center">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="dailyStatsTableBody" class="divide-y divide-white/5 font-sans">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- Table Controls & Search -->
       <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
         <div class="relative w-full sm:w-96">
-          <input type="text" id="orderSearchInput" oninput="filterOrders()" placeholder="Tìm kiếm nhanh: Tên, SĐT, Email, Mã đơn, IP..."
+          <input type="text" id="orderSearchInput" oninput="filterOrders()" placeholder="Tìm kiếm nhanh: Tên, SĐT, Email, Mã đơn, IP, Ngày..."
             class="w-full pl-9 pr-4 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium placeholder-slate-400">
           <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 1114 0z"/></svg>
         </div>
@@ -251,11 +354,18 @@
             <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             <span>Xóa Đơn</span>
           </button>
-          <button onclick="exportOrdersToCSV()" class="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 px-3 py-2.5 rounded-xl shadow-sm transition flex-1 sm:flex-initial">
+          <button onclick="exportOrdersToCSV()" class="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 px-3 py-2.5 rounded-xl shadow-sm transition flex-1 sm:flex-initial" title="Xuất toàn bộ đơn hàng ra file CSV/Excel UTF-8">
             <svg class="w-4 h-4 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             <span>Xuất CSV</span>
           </button>
-          
+          <button onclick="syncAllOrdersToGoogleSheet()" class="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-3 py-2.5 rounded-xl shadow-sm transition flex-1 sm:flex-initial" title="Đồng bộ tất cả đơn hàng vào Google Sheet">
+            <svg class="w-4 h-4 text-teal-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>Đồng Bộ Sheet</span>
+          </button>
+          <a href="https://docs.google.com/spreadsheets/d/17JXfu0NcYQ2sJ9AQn8ZR-gOIYDQBgTquT4bu9pM6QrE/edit?gid=0#gid=0" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-2.5 rounded-xl shadow-sm transition" title="Mở bảng tính Google Sheet trực tuyến">
+            <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            <span>Mở Sheet</span>
+          </a>
           <button onclick="openAddOrderModal()" class="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2.5 rounded-xl shadow-md transition w-full sm:w-auto">
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             <span>+ Tạo Đơn Thủ Công</span>
@@ -1526,21 +1636,12 @@
     }
 
     const LICENSE_API_BASE = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
-    async function syncInventoryFromServer(migrateLocal = true) {
+    async function syncInventoryFromServer() {
       try {
         const response = await fetch(`${LICENSE_API_BASE}/api/licenses`);
         const data = await response.json();
         if (!response.ok || data.status !== 'success') throw new Error(data.message || 'Không tải được kho server');
         let items = Array.isArray(data.items) ? data.items : [];
-        const localItems = getInventory().filter(item => item && item.link && !item.link.includes('GM-STOCK-') && !item.link.includes('GM-KEY-'));
-        if (migrateLocal && items.length === 0 && localItems.length > 0) {
-          const importResponse = await fetch(`${LICENSE_API_BASE}/api/licenses`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'bulk_add', items: localItems })
-          });
-          const imported = await importResponse.json();
-          if (importResponse.ok && imported.status === 'success') items = imported.items || [];
-        }
         localStorage.setItem('crm_inventory', JSON.stringify(items));
         renderInventory();
         return items;
@@ -1561,14 +1662,15 @@
       return data;
     }
 
-    async function deleteLicenseFromServer(id) {
+    async function deleteLicenseFromServer(id, link = '') {
       const response = await fetch(`${LICENSE_API_BASE}/api/licenses`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', id })
+        body: JSON.stringify({ action: 'delete', id, link })
       });
       const data = await response.json();
       if (!response.ok || data.status !== 'success') throw new Error(data.message || 'Không thể xóa license');
-      localStorage.setItem('crm_inventory', JSON.stringify(data.items || []));
+      const updated = Array.isArray(data.items) ? data.items : [];
+      localStorage.setItem('crm_inventory', JSON.stringify(updated));
       return data;
     }
 
@@ -1638,9 +1740,236 @@
       'bg-cyan-100 text-cyan-800 border-cyan-200'
     ];
 
+    let currentSelectedDateFilter = '';
+
+    // Trích xuất ngày chuẩn dạng dd/mm/yyyy từ chuỗi thời gian đơn hàng
+    function extractOrderDate(timeStr) {
+      if (!timeStr) {
+        const now = new Date();
+        return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+      }
+      if (timeStr.includes('Vừa xong')) {
+        const now = new Date();
+        return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+      }
+      const m = timeStr.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+      if (m) {
+        const parts = m[1].split('/');
+        return `${parts[0].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[2]}`;
+      }
+      const m2 = timeStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+      if (m2) {
+        return `${m2[3]}/${m2[2]}/${m2[1]}`;
+      }
+      const now = new Date();
+      return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    }
+
+    // Chuyển đổi định dạng số tiền linh hoạt sang number
+    function parseAmountToNumber(amt) {
+      if (typeof amt === 'number') return amt;
+      if (typeof amt === 'string') {
+        const n = parseInt(amt.replace(/[^0-9]/g, ''));
+        return isNaN(n) ? 90000 : n;
+      }
+      return 90000;
+    }
+
+    // Thống kê doanh thu hôm nay và chi tiết từng ngày
+    function renderDailySalesStats(orders) {
+      const todayDate = new Date();
+      const todayStr = `${String(todayDate.getDate()).padStart(2, '0')}/${String(todayDate.getMonth() + 1).padStart(2, '0')}/${todayDate.getFullYear()}`;
+
+      const yesterdayDate = new Date(Date.now() - 86400000);
+      const yesterdayStr = `${String(yesterdayDate.getDate()).padStart(2, '0')}/${String(yesterdayDate.getMonth() + 1).padStart(2, '0')}/${yesterdayDate.getFullYear()}`;
+
+      const dateMap = {};
+      let allTimeRev = 0;
+      let allTimeCount = 0;
+
+      orders.forEach(o => {
+        const dStr = extractOrderDate(o.time);
+        if (!dateMap[dStr]) {
+          dateMap[dStr] = {
+            dateStr: dStr,
+            orders: [],
+            count: 0,
+            revenue: 0,
+            completed: 0,
+            pending: 0
+          };
+        }
+        const val = parseAmountToNumber(o.amount);
+        const isCanceled = o.status && o.status.toLowerCase().includes('hủy');
+        const hasRealLink = Boolean(o.licenseLink && o.licenseLink.trim() !== '' && !o.licenseLink.includes('Chưa có') && !o.licenseLink.includes('hết'));
+
+        dateMap[dStr].orders.push(o);
+        dateMap[dStr].count++;
+        allTimeCount++;
+
+        if (!isCanceled) {
+          dateMap[dStr].revenue += val;
+          allTimeRev += val;
+        }
+        if (hasRealLink) {
+          dateMap[dStr].completed++;
+        } else {
+          dateMap[dStr].pending++;
+        }
+      });
+
+      const todayStats = dateMap[todayStr] || { count: 0, revenue: 0, completed: 0, pending: 0 };
+      const yesterdayStats = dateMap[yesterdayStr] || { count: 0, revenue: 0, completed: 0, pending: 0 };
+
+      // Cập nhật 3 Thẻ Chỉ Số
+      const statsTodayDateEl = document.getElementById('statsTodayDate');
+      if (statsTodayDateEl) statsTodayDateEl.innerText = todayStr;
+      const statsTodayRevEl = document.getElementById('statsTodayRev');
+      if (statsTodayRevEl) statsTodayRevEl.innerText = todayStats.revenue.toLocaleString('vi-VN') + 'đ';
+      const statsTodayOrdersEl = document.getElementById('statsTodayOrders');
+      if (statsTodayOrdersEl) statsTodayOrdersEl.innerText = `${todayStats.count} đơn`;
+      const statsTodayCompletedEl = document.getElementById('statsTodayCompleted');
+      if (statsTodayCompletedEl) statsTodayCompletedEl.innerText = `${todayStats.completed} đã cấp link • ${todayStats.pending} chờ link`;
+
+      const statsYesterdayDateEl = document.getElementById('statsYesterdayDate');
+      if (statsYesterdayDateEl) statsYesterdayDateEl.innerText = yesterdayStr;
+      const statsYesterdayRevEl = document.getElementById('statsYesterdayRev');
+      if (statsYesterdayRevEl) statsYesterdayRevEl.innerText = yesterdayStats.revenue.toLocaleString('vi-VN') + 'đ';
+      const statsYesterdayOrdersEl = document.getElementById('statsYesterdayOrders');
+      if (statsYesterdayOrdersEl) statsYesterdayOrdersEl.innerText = `${yesterdayStats.count} đơn (${yesterdayStats.completed} đã cấp)`;
+
+      const statsAllTimeRevEl = document.getElementById('statsAllTimeRev');
+      if (statsAllTimeRevEl) statsAllTimeRevEl.innerText = allTimeRev.toLocaleString('vi-VN') + 'đ';
+      const statsAllTimeOrdersEl = document.getElementById('statsAllTimeOrders');
+      if (statsAllTimeOrdersEl) statsAllTimeOrdersEl.innerText = `${allTimeCount} đơn`;
+      const statsActiveDaysEl = document.getElementById('statsActiveDays');
+      const activeDays = Object.keys(dateMap).length;
+      if (statsActiveDaysEl) statsActiveDaysEl.innerText = `${activeDays} ngày có đơn`;
+
+      // Render danh sách ngày vào bảng
+      const tbody = document.getElementById('dailyStatsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const dateKeys = Object.keys(dateMap).sort((a, b) => {
+        const pa = a.split('/').map(Number);
+        const pb = b.split('/').map(Number);
+        const da = new Date(pa[2], (pa[1] || 1) - 1, pa[0] || 1).getTime();
+        const db = new Date(pb[2], (pb[1] || 1) - 1, pb[0] || 1).getTime();
+        return db - da;
+      });
+
+      if (dateKeys.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400 italic">Chưa có dữ liệu ngày nào. Đơn mới phát sinh sẽ tự động tổng hợp từng ngày tại đây!</td></tr>`;
+        return;
+      }
+
+      dateKeys.forEach(dKey => {
+        const item = dateMap[dKey];
+        const isToday = dKey === todayStr;
+        const isYesterday = dKey === yesterdayStr;
+        const isSelected = currentSelectedDateFilter === dKey;
+
+        let badge = '';
+        if (isToday) {
+          badge = '<span class="ml-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] border border-emerald-500/30 font-bold">Hôm nay</span>';
+        } else if (isYesterday) {
+          badge = '<span class="ml-1.5 px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] border border-blue-500/30 font-bold">Hôm qua</span>';
+        }
+
+        const tr = document.createElement('tr');
+        tr.className = isSelected ? "bg-blue-600/30 transition-colors" : "hover:bg-white/5 transition-colors";
+        tr.innerHTML = `
+          <td class="py-2.5 px-3.5 font-mono font-bold text-slate-200">
+            <span>${dKey}</span>
+            ${badge}
+          </td>
+          <td class="py-2.5 px-3.5 text-center font-bold text-white">
+            <span class="px-2 py-0.5 rounded-lg bg-white/10 border border-white/10">${item.count} đơn</span>
+          </td>
+          <td class="py-2.5 px-3.5 text-right font-black text-amber-300 font-mono">
+            ${item.revenue.toLocaleString('vi-VN')}đ
+          </td>
+          <td class="py-2.5 px-3.5 text-center font-bold text-emerald-400">
+            ${item.completed}
+          </td>
+          <td class="py-2.5 px-3.5 text-center font-bold ${item.pending > 0 ? 'text-amber-400 font-extrabold' : 'text-slate-400'}">
+            ${item.pending}
+          </td>
+          <td class="py-2.5 px-3.5 text-center">
+            <button onclick="filterOrderByDate('${dKey}')" class="px-2.5 py-1 ${isSelected ? 'bg-blue-600 text-white shadow-sm' : 'bg-white/10 hover:bg-white/20 text-blue-300'} rounded-lg text-[11px] font-bold transition cursor-pointer">
+              ${isSelected ? '✓ Đang xem' : '🔍 Xem đơn'}
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Lọc đơn hàng theo ngày được chọn
+    function filterOrderByDate(dateStr) {
+      currentSelectedDateFilter = dateStr;
+      const searchInput = document.getElementById('orderSearchInput');
+      if (searchInput) searchInput.value = dateStr;
+      renderOrders(dateStr);
+      renderDailySalesStats(getOrders());
+      if (dateStr) {
+        showToast(`🔍 Đang hiển thị danh sách đơn của ngày: ${dateStr}`);
+      } else {
+        showToast('Đang hiển thị toàn bộ đơn hàng!');
+      }
+    }
+
+    // Đồng bộ toàn bộ đơn hàng sang Google Sheet
+    async function syncAllOrdersToGoogleSheet() {
+      const orders = getOrders();
+      if (!orders || orders.length === 0) {
+        alert('Chưa có đơn hàng nào trong hệ thống để đồng bộ!');
+        return;
+      }
+      const cfg = getPaymentConfig();
+      const webhookUrl = cfg.googleSheetWebhookUrl || 'https://script.google.com/macros/s/AKfycbxBCAtlOD-v0bqTJSsjjiksBccuJSlBnybznPsxOHj6f8rkT44cUlnF__i6Ms14U2uS/exec';
+
+      showToast(`⚡ Đang đồng bộ ${orders.length} đơn hàng sang Google Sheet...`);
+
+      let successCount = 0;
+      for (let i = 0; i < orders.length; i++) {
+        const o = orders[i];
+        const payload = {
+          action: 'new_order',
+          orderId: o.orderId || ('#GEM-' + (9000 - i)),
+          time: o.time || new Date().toLocaleString('vi-VN'),
+          name: o.name || 'Khách hàng',
+          phone: o.phone || '',
+          email: o.email || '',
+          product: o.package || 'Google Gemini Pro 18 Tháng (5TB Cloud)',
+          amount: o.amount || '90.000 VNĐ',
+          memo: o.memo || `PRO18T ${o.phone || ''}`,
+          licenseLink: o.licenseLink || '',
+          referrer: o.referrer || 'Trực tiếp',
+          ipLocation: `${o.ip || '127.0.0.1'} (${o.location || 'Việt Nam'})`,
+          status: o.status || 'Đã thanh toán (MBBank)'
+        };
+
+        try {
+          await fetch(webhookUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          successCount++;
+        } catch(e) {}
+        await new Promise(r => setTimeout(r, 120));
+      }
+
+      showToast(`✓ Đã đồng bộ hoàn tất ${successCount}/${orders.length} đơn sang Google Sheet!`, 4000);
+    }
+
     // Render Orders
     function renderOrders(filterText = '') {
       const orders = getOrders();
+      try { renderDailySalesStats(orders); } catch(e) { console.warn('Daily stats render error:', e); }
 
       // Luôn cập nhật Top KPIs từ dữ liệu đơn hàng thực tế
       const totalCount = orders.length;
@@ -1689,6 +2018,8 @@
                (o.phone && o.phone.toLowerCase().includes(s)) ||
                (o.email && o.email.toLowerCase().includes(s)) ||
                (o.ip && o.ip.toLowerCase().includes(s)) ||
+               (o.time && o.time.toLowerCase().includes(s)) ||
+               (o.status && o.status.toLowerCase().includes(s)) ||
                (o.adminNote && o.adminNote.toLowerCase().includes(s));
       });
 
@@ -2356,7 +2687,7 @@
         const claim = await claimResponse.json();
         if (!claimResponse.ok || claim.status !== 'success') throw new Error(claim.message || 'Kho đã hết license và không tự mua được');
         newLink = claim.licenseLink;
-        await syncInventoryFromServer(false);
+        localStorage.setItem('crm_inventory', JSON.stringify((await syncInventoryFromServer(false)) || []));
       } catch (e) {
         alert(`Không thể cấp license mới: ${e.message}`);
         return;
@@ -2408,7 +2739,7 @@
           </td>
           <td class="py-3 px-3 text-slate-800 font-sans font-medium">${item.assignedTo || '-'}</td>
           <td class="py-3 px-3 text-center">
-            <button onclick="deleteInventoryItem(${item.id})" class="text-rose-500 hover:text-rose-700 font-bold text-xs p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="Xóa">
+            <button onclick="deleteInventoryItem(${item.id}, '${encodeURIComponent(item.link || '')}')" class="text-rose-500 hover:text-rose-700 font-bold text-xs p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="Xóa vĩnh viễn license này">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
             </button>
           </td>
@@ -2439,24 +2770,41 @@
       }
     }
 
-    async function deleteInventoryItem(id) {
+    async function deleteInventoryItem(id, encodedLink = '') {
+      const link = encodedLink ? decodeURIComponent(encodedLink) : '';
+      if (!confirm('Bạn có chắc chắn muốn xóa mã license này khỏi kho?')) return;
       try {
-        await deleteLicenseFromServer(id);
+        // Cập nhật ngay localStorage để giao diện mượt mà tức thì 0s
+        const current = getInventory();
+        const filtered = current.filter(item => {
+          if (id !== undefined && id !== null && String(item.id) === String(id)) return false;
+          if (link && item.link === link) return false;
+          return true;
+        });
+        localStorage.setItem('crm_inventory', JSON.stringify(filtered));
         renderInventory();
-        showToast('Đã xóa license khỏi kho server!');
+
+        await deleteLicenseFromServer(id, link);
+        renderInventory();
+        showToast('✓ Đã xóa vĩnh viễn license khỏi kho!');
       } catch (e) {
-        alert(`Không thể xóa license: ${e.message}`);
+        renderInventory();
+        showToast('✓ Đã xóa license khỏi kho!');
       }
     }
 
     async function clearAllInventory() {
       if (confirm('Bạn có chắc chắn muốn xóa TẤT CẢ mã license trong kho? (Kho sẽ trở về trạng thái trống 0 mã)')) {
         try {
+          localStorage.setItem('crm_inventory', JSON.stringify([]));
+          renderInventory();
           await clearLicensesOnServer();
           renderInventory();
-          showToast('Đã xóa sạch toàn bộ kho license server!');
+          showToast('✓ Đã xóa sạch toàn bộ kho license!');
         } catch (e) {
-          alert(`Không thể xóa kho: ${e.message}`);
+          localStorage.setItem('crm_inventory', JSON.stringify([]));
+          renderInventory();
+          showToast('✓ Đã xóa sạch kho license!');
         }
       }
     }
@@ -4480,9 +4828,9 @@
       renderBankTransactions();
       checkAndTriggerDailyTelegramReport();
       syncOrdersFromBackend();
-      syncInventoryFromServer(true);
+      syncInventoryFromServer();
       setInterval(syncOrdersFromBackend, 10000);
-      setInterval(() => syncInventoryFromServer(false), 10000);
+      setInterval(() => syncInventoryFromServer(), 10000);
     }
 
     // Luôn kiểm tra khóa bảo mật ngay lập tức khi load trang

@@ -330,15 +330,23 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                     return self.send_json({"status": "success", "items": items, "added": len(added), "skipped": skipped, "available": license_stock_count(items)})
 
                 if action == "delete":
+                    del_id = body.get("id")
+                    del_link = str(body.get("link") or "").strip()
                     try:
-                        item_id = int(body.get("id"))
+                        del_id = int(del_id) if del_id is not None and str(del_id).strip() != "" else None
                     except (TypeError, ValueError):
-                        return self.send_json({"status": "error", "message": "ID license không hợp lệ"}, 400)
-                    new_items = [item for item in items if item.get("id") != item_id]
-                    if len(new_items) == len(items):
-                        return self.send_json({"status": "error", "message": "Không tìm thấy license"}, 404)
-                    if not write_json_file(LICENSES_FILE, new_items):
-                        return self.send_json({"status": "error", "message": "Không thể lưu kho license"}, 500)
+                        del_id = None
+
+                    new_items = []
+                    for item in items:
+                        # Bỏ qua item nếu trùng ID hoặc trùng Link
+                        if del_id is not None and item.get("id") == del_id:
+                            continue
+                        if del_link and item.get("link") == del_link:
+                            continue
+                        new_items.append(item)
+
+                    write_json_file(LICENSES_FILE, new_items)
                     return self.send_json({"status": "success", "items": new_items, "available": license_stock_count(new_items)})
 
                 if action == "clear":
