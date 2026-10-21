@@ -17,12 +17,31 @@ if sys.stdout.encoding != 'utf-8':
     except:
         pass
 
+import os
+
 DEFAULT_BOT_TOKEN = "8924743387:AAHmuHUEUyK2XtRL4N6dUEbHf98xmj1wE2c"
 DEFAULT_CHAT_ID = "-1004413665683"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def get_current_tele_config():
+    token = None
+    cid = None
+    for filename in ["telegram_config.json", "payment_config.json"]:
+        p = os.path.join(BASE_DIR, filename)
+        if os.path.exists(p):
+            try:
+                with open(p, "r", encoding="utf-8-sig") as f:
+                    c = json.load(f)
+                    token = token or c.get("botToken") or c.get("telegramBotToken")
+                    cid = cid or c.get("chatId") or c.get("telegramChatId")
+            except:
+                pass
+    return token or DEFAULT_BOT_TOKEN, cid or DEFAULT_CHAT_ID
 
 def send_telegram_raw(html_text, bot_token=None, chat_id=None):
-    token = bot_token or DEFAULT_BOT_TOKEN
-    cid = chat_id or DEFAULT_CHAT_ID
+    def_tok, def_cid = get_current_tele_config()
+    token = bot_token or def_tok
+    cid = chat_id or def_cid
     
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     payload = {
@@ -58,21 +77,24 @@ def get_qr_opened_template(order):
     email = order.get("email", "Chưa nhập")
     amount = order.get("amount", "90.000đ")
     memo = order.get("memo", f"PRO18T {phone}")
-    ip = order.get("ip", "127.0.0.1")
-    location = order.get("location", "Việt Nam")
-    referrer = order.get("referrer", "Trực tiếp")
+    ip = order.get("ip") or "127.0.0.1"
+    location = order.get("location") or "Việt Nam"
+    device = order.get("device") or "Thiết bị di động/PC"
+    referrer = order.get("referrer") or "Trực tiếp"
     time_str = order.get("time", datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
 
     return f"""⏳ <b>KHÁCH ĐANG MỞ MÃ QR CHỜ THANH TOÁN</b>
 ━━━━━━━━━━━━━━━━━━━━
 📦 <b>Mã đơn:</b> <code>{order_id}</code>
-👤 <b>Khách hàng:</b> {name}
+👤 <b>Khách hàng:</b> <b>{name}</b>
 📱 <b>SĐT Zalo:</b> <code>{phone}</code>
 ✉️ <b>Gmail:</b> <code>{email}</code>
 💰 <b>Gói:</b> Gemini Pro 18 Tháng (5TB Cloud)
 💵 <b>Số tiền:</b> <b>{amount}</b> (MBBank)
 📝 <b>Cú pháp CK:</b> <code>{memo}</code>
-🌐 <b>Nguồn:</b> {referrer} • IP: <code>{ip}</code> ({location})
+🌐 <b>Địa chỉ IP:</b> <code>{ip}</code>
+📍 <b>Vị trí khách:</b> <b>{location}</b>
+💻 <b>Thiết bị:</b> {device} • <b>Nguồn:</b> {referrer}
 ⏰ <b>Thời gian:</b> {time_str}
 ━━━━━━━━━━━━━━━━━━━━
 👀 <i>Hệ thống API Pay đang tự động kiểm tra số dư MBBank...</i>"""
@@ -85,25 +107,37 @@ def get_payment_success_template(order):
     amount = order.get("amount", "90.000 VNĐ")
     memo = order.get("memo", f"PRO18T {phone}")
     license_link = order.get("licenseLink", "")
+    ip = order.get("ip") or "127.0.0.1"
+    location = order.get("location") or "Việt Nam"
+    device = order.get("device") or "Thiết bị di động/PC"
     time_str = order.get("time", datetime.now().strftime("%H:%M %d/%m/%Y"))
 
     if not license_link:
         return f"""🚨 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN ({amount})</b>
-Mã đơn: <code>{order_id}</code> • {time_str}
-Khách: <b>{name}</b> | <code>{phone}</code>
-Gmail: <code>{email}</code>
-Nội dung CK: <code>{memo}</code>
-
+━━━━━━━━━━━━━━━━━━━━
+📦 <b>Mã đơn:</b> <code>{order_id}</code> • {time_str}
+👤 <b>Khách:</b> <b>{name}</b> | <code>{phone}</code>
+✉️ <b>Gmail:</b> <code>{email}</code>
+📝 <b>Nội dung CK:</b> <code>{memo}</code>
+🌐 <b>Địa chỉ IP:</b> <code>{ip}</code>
+📍 <b>Vị trí khách:</b> <b>{location}</b>
+💻 <b>Thiết bị:</b> {device}
+━━━━━━━━━━━━━━━━━━━━
 ⚠️ <b>KHO ĐÃ HẾT LINK! VUI LÒNG MUA LINK GẤP:</b>
 👉 <b>VÀO BOT MUA NGAY:</b> https://t.me/shopxoainon_bot
 <i>(Mua xong vào /admin hoặc gửi Zalo cho khách liền!)</i>"""
 
-    return f"""🟢 <b>ĐƠN HÀNG MỚI ({amount})</b>
-Mã đơn: <code>{order_id}</code> • {time_str}
-Khách: <b>{name}</b> | <code>{phone}</code>
-Gmail: <code>{email}</code>
-Nội dung: <code>{memo}</code>
-Link cấp: <code>{license_link}</code>"""
+    return f"""🟢 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN ({amount})</b>
+━━━━━━━━━━━━━━━━━━━━
+📦 <b>Mã đơn:</b> <code>{order_id}</code> • {time_str}
+👤 <b>Khách:</b> <b>{name}</b> | <code>{phone}</code>
+✉️ <b>Gmail:</b> <code>{email}</code>
+📝 <b>Nội dung:</b> <code>{memo}</code>
+🌐 <b>Địa chỉ IP:</b> <code>{ip}</code>
+📍 <b>Vị trí khách:</b> <b>{location}</b>
+💻 <b>Thiết bị:</b> {device}
+🔑 <b>Link cấp:</b> <code>{license_link}</code>
+━━━━━━━━━━━━━━━━━━━━"""
 
 def get_low_stock_template(current_stock=0, threshold=5):
     return f"""⚠️ <b>CẢNH BÁO: KHO SẮP HẾT</b>

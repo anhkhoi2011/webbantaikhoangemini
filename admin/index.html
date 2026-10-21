@@ -1525,6 +1525,64 @@
       }
     }
 
+    const LICENSE_API_BASE = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
+    async function syncInventoryFromServer(migrateLocal = true) {
+      try {
+        const response = await fetch(`${LICENSE_API_BASE}/api/licenses`);
+        const data = await response.json();
+        if (!response.ok || data.status !== 'success') throw new Error(data.message || 'Không tải được kho server');
+        let items = Array.isArray(data.items) ? data.items : [];
+        const localItems = getInventory().filter(item => item && item.link && !item.link.includes('GM-STOCK-') && !item.link.includes('GM-KEY-'));
+        if (migrateLocal && items.length === 0 && localItems.length > 0) {
+          const importResponse = await fetch(`${LICENSE_API_BASE}/api/licenses`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'bulk_add', items: localItems })
+          });
+          const imported = await importResponse.json();
+          if (importResponse.ok && imported.status === 'success') items = imported.items || [];
+        }
+        localStorage.setItem('crm_inventory', JSON.stringify(items));
+        renderInventory();
+        return items;
+      } catch (e) {
+        console.warn('Inventory server sync warning:', e);
+        return getInventory();
+      }
+    }
+
+    async function addLicensesToServer(items) {
+      const response = await fetch(`${LICENSE_API_BASE}/api/licenses`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'bulk_add', items })
+      });
+      const data = await response.json();
+      if (!response.ok || data.status !== 'success') throw new Error(data.message || 'Không thể cập nhật kho server');
+      localStorage.setItem('crm_inventory', JSON.stringify(data.items || []));
+      return data;
+    }
+
+    async function deleteLicenseFromServer(id) {
+      const response = await fetch(`${LICENSE_API_BASE}/api/licenses`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', id })
+      });
+      const data = await response.json();
+      if (!response.ok || data.status !== 'success') throw new Error(data.message || 'Không thể xóa license');
+      localStorage.setItem('crm_inventory', JSON.stringify(data.items || []));
+      return data;
+    }
+
+    async function clearLicensesOnServer() {
+      const response = await fetch(`${LICENSE_API_BASE}/api/licenses`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clear' })
+      });
+      const data = await response.json();
+      if (!response.ok || data.status !== 'success') throw new Error(data.message || 'Không thể xóa kho license');
+      localStorage.setItem('crm_inventory', JSON.stringify([]));
+      return data;
+    }
+
     function getVisits() {
       try {
         const data = localStorage.getItem('crm_visits');
@@ -2288,16 +2346,19 @@
         return;
       }
 
-      let inventory = getInventory();
-      const availableItem = inventory.find(i => i.status === 'Sẵn sàng');
       let newLink = '';
 
-      if (availableItem) {
-        newLink = availableItem.link;
-        availableItem.status = 'Đã cấp';
-        availableItem.assignedTo = `${ord.name} (${orderId})`;
-      } else {
-        alert('Kho hiện tại đã hết mã sẵn sàng! Vui lòng nạp thêm mã hoặc mua qua bot @shopxoainon_bot.');
+      try {
+        const claimResponse = await fetch(`${LICENSE_API_BASE}/api/licenses/auto-claim`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: ord.name, orderId })
+        });
+        const claim = await claimResponse.json();
+        if (!claimResponse.ok || claim.status !== 'success') throw new Error(claim.message || 'Kho đã hết license và không tự mua được');
+        newLink = claim.licenseLink;
+        await syncInventoryFromServer(false);
+      } catch (e) {
+        alert(`Không thể cấp license mới: ${e.message}`);
         return;
       }
 
@@ -2309,7 +2370,7 @@
       ord.emailStatus = ok ? `Cấp mới qua Gmail` : `Lỗi gửi Gmail`;
 
       localStorage.setItem('crm_orders', JSON.stringify(orders));
-      localStorage.setItem('crm_inventory', JSON.stringify(inventory));
+      const inventory = await syncInventoryFromServer(false);
 
       const remainingStock = inventory.filter(i => i.status === 'Sẵn sàng').length;
       const teleCfg = getTelegramConfig();
@@ -2360,45 +2421,43 @@
       document.getElementById('stockStatusText').innerText = `${availableCount} Mã License Khả Dụng`;
     }
 
-    function addBulkLinks() {
+    async function addBulkLinks() {
       const text = document.getElementById('bulkLinkInput').value.trim();
       if (!text) {
         alert('Vui lòng nhập ít nhất 1 đường link kích hoạt!');
         return;
       }
       const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      let items = getInventory();
-      let lastId = items.length > 0 ? Math.max(...items.map(i => i.id || 0)) : 0;
-
-      // Nạp theo thứ tự nối tiếp tăng dần (push) giữ nguyên thứ tự nhập Link 1 -> Link 2 -> Link 3
-      lines.forEach(link => {
-        lastId++;
-        items.push({
-          id: lastId,
-          link: link,
-          status: 'Sẵn sàng',
-          assignedTo: '-'
-        });
-      });
-
-      localStorage.setItem('crm_inventory', JSON.stringify(items));
-      document.getElementById('bulkLinkInput').value = '';
-      renderInventory();
-      showToast(`Đã thêm thành công ${lines.length} mã license vào kho theo thứ tự tăng dần!`);
-    }
-
-    function deleteInventoryItem(id) {
-      let items = getInventory().filter(i => i.id !== id);
-      localStorage.setItem('crm_inventory', JSON.stringify(items));
-      renderInventory();
-      showToast('Đã xóa license khỏi kho!');
-    }
-
-    function clearAllInventory() {
-      if (confirm('Bạn có chắc chắn muốn xóa TẤT CẢ mã license trong kho? (Kho sẽ trở về trạng thái trống 0 mã)')) {
-        localStorage.setItem('crm_inventory', JSON.stringify([]));
+      const items = lines.map(link => ({ link, status: 'Sẵn sàng', assignedTo: '-' }));
+      try {
+        const result = await addLicensesToServer(items);
+        document.getElementById('bulkLinkInput').value = '';
         renderInventory();
-        showToast('Đã xóa sạch tất cả mã trong kho!');
+        showToast(`Đã thêm ${result.added} mã license vào kho server${result.skipped && result.skipped.length ? ` (bỏ qua ${result.skipped.length} mã trùng/không hợp lệ)` : ''}!`);
+      } catch (e) {
+        alert(`Không thể nạp kho server: ${e.message}`);
+      }
+    }
+
+    async function deleteInventoryItem(id) {
+      try {
+        await deleteLicenseFromServer(id);
+        renderInventory();
+        showToast('Đã xóa license khỏi kho server!');
+      } catch (e) {
+        alert(`Không thể xóa license: ${e.message}`);
+      }
+    }
+
+    async function clearAllInventory() {
+      if (confirm('Bạn có chắc chắn muốn xóa TẤT CẢ mã license trong kho? (Kho sẽ trở về trạng thái trống 0 mã)')) {
+        try {
+          await clearLicensesOnServer();
+          renderInventory();
+          showToast('Đã xóa sạch toàn bộ kho license server!');
+        } catch (e) {
+          alert(`Không thể xóa kho: ${e.message}`);
+        }
       }
     }
 
@@ -2890,7 +2949,7 @@
     function closeAddOrderModal() {
       document.getElementById('addOrderModal').classList.add('hidden');
     }
-    function saveManualOrder() {
+    async function saveManualOrder() {
       const name = document.getElementById('manualName').value.trim();
       const phone = document.getElementById('manualPhone').value.trim();
       const email = document.getElementById('manualEmail').value.trim();
@@ -2901,16 +2960,23 @@
       }
 
       const orders = getOrders();
-      const inventory = getInventory();
-      const availableItem = inventory.find(i => i.status === 'Sẵn sàng');
       const orderId = '#' + Math.floor(1000 + Math.random() * 9000);
-      let licenseLink = 'https://one.google.com/promo/gemini-pro-enterprise/ACT-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-
-      if (availableItem) {
-        licenseLink = availableItem.link;
-        availableItem.status = 'Đã cấp';
-        availableItem.assignedTo = `${name} (${orderId})`;
-        localStorage.setItem('crm_inventory', JSON.stringify(inventory));
+      let licenseLink = '';
+      try {
+        const claimResponse = await fetch(`${LICENSE_API_BASE}/api/licenses/auto-claim`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, orderId, phone, email })
+        });
+        const claim = await claimResponse.json();
+        if (!claimResponse.ok || claim.status !== 'success') {
+          alert(claim.message || 'Kho hiện đã hết license.');
+          return;
+        }
+        licenseLink = claim.licenseLink;
+        await syncInventoryFromServer(false);
+      } catch (e) {
+        alert(`Không thể kết nối kho server: ${e.message}`);
+        return;
       }
 
       const newOrder = {
@@ -2947,6 +3013,7 @@
       showToast(`Đã tạo đơn thành công cho ${name}!`);
 
       // Bắn thông báo Telegram tự động
+      const inventory = getInventory();
       const remainingStock = inventory.filter(i => i.status === 'Sẵn sàng').length;
       notifyTelegramNewOrder(newOrder, remainingStock);
     }
@@ -4413,7 +4480,9 @@
       renderBankTransactions();
       checkAndTriggerDailyTelegramReport();
       syncOrdersFromBackend();
+      syncInventoryFromServer(true);
       setInterval(syncOrdersFromBackend, 10000);
+      setInterval(() => syncInventoryFromServer(false), 10000);
     }
 
     // Luôn kiểm tra khóa bảo mật ngay lập tức khi load trang

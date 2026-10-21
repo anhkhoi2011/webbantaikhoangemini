@@ -37,7 +37,178 @@ function getPostJson() {
     return json_decode($raw, true) ?: [];
 }
 
+// ============================================
+// KHO LICENSE TẬP TRUNG (ĐỒNG BỘ MỌI THIẾT BỊ)
+// ============================================
+$LICENSES_FILE = __DIR__ . '/licenses.json';
+
+function normalizeLicense($item) {
+    if (!is_array($item)) return null;
+    $link = isset($item['link']) ? trim($item['link']) : '';
+    if ($link === '' || strpos($link, 'GM-STOCK-') !== false || strpos($link, 'GM-KEY-') !== false) return null;
+    if (!preg_match('/^https?:\/\//i', $link)) return null;
+    return [
+        'id' => isset($item['id']) ? intval($item['id']) : 0,
+        'link' => $link,
+        'status' => (isset($item['status']) && $item['status'] === 'Đã cấp') ? 'Đã cấp' : 'Sẵn sàng',
+        'assignedTo' => isset($item['assignedTo']) ? substr($item['assignedTo'], 0, 300) : '-'
+    ];
+}
+
+function readLicenses() {
+    global $LICENSES_FILE;
+    if (!file_exists($LICENSES_FILE)) return [];
+    $data = json_decode(file_get_contents($LICENSES_FILE), true);
+    if (!is_array($data)) return [];
+    $out = [];
+    foreach ($data as $item) {
+        $n = normalizeLicense($item);
+        if ($n) $out[] = $n;
+    }
+    return $out;
+}
+
+function writeLicenses($items) {
+    global $LICENSES_FILE;
+    file_put_contents($LICENSES_FILE, json_encode(array_values($items), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+function nextLicenseId($items) {
+    $max = 0;
+    foreach ($items as $i) { if (($i['id'] ?? 0) > $max) $max = $i['id']; }
+    return $max + 1;
+}
+
+function licenseStock($items) {
+    $c = 0; foreach ($items as $i) if (($i['status'] ?? '') === 'Sẵn sàng') $c++;
+    return $c;
+}
+
+// 0. API: Kho License Tập Trung (Server-Side Shared Inventory)
+if (strpos($requestUri, '/api/licenses') !== false) {
+    if ($method === 'GET') {
+        $items = readLicenses();
+        echo json_encode(["status" => "success", "items" => $items, "available" => licenseStock($items)]);
+        exit();
+    }
+
+    if ($method === 'POST') {
+        $body = getPostJson();
+        $action = strtolower(trim($body['action'] ?? ''));
+
+        // 0.1 Nạp hàng loạt
+        if ($action === 'bulk_add' || $action === 'add' || $action === 'import') {
+            $newItems = $body['items'] ?? ($body['links'] ?? []);
+            if (is_array($newItems) && isset($newItems[0]) && !is_array($newItems[0])) {
+                $newItems = array_map(function($l) { return ['link' => $l]; }, $newItems);
+            }
+            $items = readLicenses();
+            $existing = array_column($items, 'link');
+            $added = 0; $skipped = [];
+            foreach ($newItems as $raw) {
+                $n = normalizeLicense($raw);
+                if (!$n || in_array($n['link'], $existing)) { $skipped[] = is_array($raw) ? ($raw['link'] ?? json_encode($raw)) : $raw; continue; }
+                $n['id'] = nextLicenseId($items);
+                $items[] = $n; $existing[] = $n['link']; $added++;
+            }
+            writeLicenses($items);
+            echo json_encode(["status" => "success", "items" => $items, "added" => $added, "skipped" => $skipped, "available" => licenseStock($items)]);
+            exit();
+        }
+
+        // 0.2 Xóa 1 mã
+        if ($action === 'delete') {
+            $id = intval($body['id'] ?? 0);
+            $items = readLicenses();
+            $before = count($items);
+            $items = array_filter($items, function($i) use ($id) { return ($i['id'] ?? 0) !== $id; });
+            if (count($items) === $before) { http_response_code(404); echo json_encode(["status" => "error", "message" => "Không tìm thấy license"]); exit(); }
+            writeLicenses($items);
+            echo json_encode(["status" => "success", "items" => array_values($items), "available" => licenseStock($items)]);
+            exit();
+        }
+
+        // 0.3 Xóa toàn bộ
+        if ($action === 'clear') {
+            writeLicenses([]);
+            echo json_encode(["status" => "success", "items" => [], "available" => 0]);
+            exit();
+        }
+
+        // 0.4 Cấp phát FIFO (không trùng lặp)
+        if ($action === 'claim' || strpos($requestUri, '/api/licenses/claim') !== false) {
+            $items = readLicenses();
+            $avail = array_filter($items, function($i) { return ($i['status'] ?? '') === 'Sẵn sàng'; });
+            usort($avail, function($a, $b) { return ($a['id'] ?? 0) - ($b['id'] ?? 0); });
+            if (empty($avail)) {
+                http_response_code(409);
+                echo json_encode(["status" => "out_of_stock", "message" => "Kho hiện đã hết license", "available" => 0]);
+                exit();
+            }
+            $selected = $avail[0];
+            $name = substr($body['name'] ?? 'Khách hàng', 0, 120);
+            $orderId = substr($body['orderId'] ?? '', 0, 80);
+            $selected['status'] = 'Đã cấp';
+            $selected['assignedTo'] = $orderId ? "$name ($orderId)" : $name;
+            foreach ($items as $k => $it) { if (($it['id'] ?? 0) === ($selected['id'] ?? 0)) { $items[$k] = $selected; break; } }
+            writeLicenses($items);
+            echo json_encode(["status" => "success", "license" => $selected, "licenseLink" => $selected['link'], "available" => licenseStock($items)]);
+            exit();
+        }
+
+        // 0.5 Cấp lại link cụ thể (Admin Reissue)
+        if ($action === 'reissue' || strpos($requestUri, '/api/licenses/reissue') !== false) {
+            $id = intval($body['id'] ?? 0);
+            $items = readLicenses();
+            $selected = null;
+            foreach ($items as $k => $it) {
+                if (($it['id'] ?? 0) === $id && ($it['status'] ?? '') === 'Sẵn sàng') { $selected = $it; $idx = $k; break; }
+            }
+            if (!$selected) { http_response_code(409); echo json_encode(["status" => "out_of_stock", "message" => "Không tìm thấy license sẵn sàng"]); exit(); }
+            $name = substr($body['name'] ?? 'Khách hàng', 0, 120);
+            $orderId = substr($body['orderId'] ?? '', 0, 80);
+            $items[$idx]['status'] = 'Đã cấp';
+            $items[$idx]['assignedTo'] = $orderId ? "$name ($orderId)" : $name;
+            writeLicenses($items);
+            echo json_encode(["status" => "success", "license" => $items[$idx], "licenseLink" => $items[$idx]['link'], "available" => licenseStock($items)]);
+            exit();
+        }
+
+        http_response_code(400);
+        echo json_encode(["status" => "error", "message" => "Action kho license không hợp lệ"]);
+        exit();
+    }
+}
+
+// 0.6 API: Auto-claim (Cấp + TỰ MUA khi hết kho)
+// PHP hosting không chạy được Telethon Userbot -> trả trạng thái rõ ràng.
+// Cấp thử từ kho trước; nếu hết thì báo userbot_runtime_unavailable.
+if (strpos($requestUri, '/api/licenses/auto-claim') !== false && $method === 'POST') {
+    $body = getPostJson();
+    $name = substr($body['name'] ?? 'Khách hàng', 0, 120);
+    $orderId = substr($body['orderId'] ?? '', 0, 80);
+    $items = readLicenses();
+    $avail = array_filter($items, function($i) { return ($i['status'] ?? '') === 'Sẵn sàng'; });
+    usort($avail, function($a, $b) { return ($a['id'] ?? 0) - ($b['id'] ?? 0); });
+    if (!empty($avail)) {
+        $selected = $avail[0];
+        $selected['status'] = 'Đã cấp';
+        $selected['assignedTo'] = $orderId ? "$name ($orderId)" : $name;
+        foreach ($items as $k => $it) { if (($it['id'] ?? 0) === ($selected['id'] ?? 0)) { $items[$k] = $selected; break; } }
+        writeLicenses($items);
+        echo json_encode(["status" => "success", "source" => "stock", "license" => $selected, "licenseLink" => $selected['link'], "available" => licenseStock($items)]);
+        exit();
+    }
+    echo json_encode([
+        "status" => "userbot_runtime_unavailable",
+        "message" => "Kho hết link. Tự mua tự động chỉ hoạt động trên Python server (server.py) đã đăng nhập Userbot. Vui lòng nạp kho thủ công hoặc chạy server.py.",
+        "available" => 0
+    ]);
+    exit();
+}
+
 // 1. API: Cấu hình cổng thanh toán
+
 if (strpos($requestUri, '/api/payment-config') !== false) {
     if ($method === 'POST') {
         $body = getPostJson();

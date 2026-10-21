@@ -90,7 +90,7 @@
       <span class="w-2 h-2 rounded-full bg-yellow-300 animate-ping"></span>
       FLASH SALE ĐỢT CUỐI
     </span>
-    <span>Chỉ còn đúng <span id="fomoSlots" class="bg-yellow-300 text-red-950 px-2 py-0.5 rounded-md font-black shadow-sm transition-transform duration-300 inline-block">12 suất</span> trợ giá <strong>90.000đ</strong> <span class="hidden md:inline text-white/85 font-semibold">(Giá gốc 4.500.000đ)</span></span>
+    <span><strong class="bg-red-600 text-yellow-300 px-2 py-0.5 rounded uppercase font-black tracking-wide animate-pulse">🔥 CHUẨN BỊ LÊN GIÁ 129K!</strong> Đã bán <span id="topSoldSlots" class="font-mono underline font-black">150</span>/200 đơn • Còn đúng <span id="fomoSlots" class="bg-yellow-300 text-red-950 px-2 py-0.5 rounded-md font-black shadow-sm transition-transform duration-300 inline-block">50 suất</span> trợ giá <strong>90.000đ</strong> (Bán đủ 200 đơn sẽ lên <strong>129.000đ</strong>)</span>
     <span class="hidden sm:inline opacity-75">•</span>
     <span class="inline-flex items-center gap-1">
       <span class="hidden sm:inline text-white/90">Kết thúc sau:</span>
@@ -121,14 +121,6 @@
           <p class="text-[11px] text-slate-500 hidden sm:block">Nâng cấp trực tiếp trên Gmail cá nhân • Không cần mật khẩu • Bảo hành 1 đổi 1</p>
         </div>
       </div>
-
-      <!-- Quick Nav cho Máy Tính -->
-      <nav class="hidden xl:flex items-center gap-1 text-xs font-bold text-slate-600 bg-slate-100/80 p-1 rounded-xl border border-slate-200/70">
-        <a href="#orderFormSection" class="px-3 py-1.5 rounded-lg bg-white text-blue-700 shadow-2xs hover:text-blue-800 transition">⚡ Đặt Mua 90K</a>
-        <a href="#perksSection" class="px-3 py-1.5 rounded-lg hover:bg-white hover:text-slate-900 transition">16 Đặc Quyền</a>
-        <a href="#showcaseSection" class="px-3 py-1.5 rounded-lg hover:bg-white hover:text-slate-900 transition">5 Lý Do Nâng Cấp</a>
-        <a href="#faqSection" class="px-3 py-1.5 rounded-lg hover:bg-white hover:text-slate-900 transition">Hỏi Đáp</a>
-      </nav>
 
       <div class="flex items-center gap-2 shrink-0">
         <a href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer" class="text-xs sm:text-sm font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-300 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl flex items-center gap-1.5 sm:gap-2 transition shadow-2xs cursor-pointer group shrink-0">
@@ -168,8 +160,9 @@
           </span>
           <span>Đang có <strong id="heroViewerMirror" class="text-red-600 font-mono underline">38 người</strong> cùng xem ưu đãi này</span>
         </div>
-        <div class="text-[11px] sm:text-xs font-extrabold text-red-700 bg-white/90 px-3 py-1 rounded-xl border border-red-200 shadow-2xs">
-          ⚠️ Giá sẽ tăng lên <span class="line-through text-slate-400">290.000đ</span> ngay khi hết <span id="heroTopSlotsMirror" class="underline font-black">12 suất</span> cuối!
+        <div class="text-[11px] sm:text-xs font-black text-red-700 bg-white px-3 py-1.5 rounded-xl border-2 border-red-400 shadow-sm flex items-center gap-1.5 flex-wrap">
+          <span class="bg-red-600 text-yellow-300 px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-black uppercase animate-pulse">🔥 CHUẨN BỊ LÊN GIÁ 129K</span>
+          <span>Giới hạn 200 đơn (Đã bán <span id="heroMirrorSoldCount" class="font-mono font-black text-red-600">150</span>/200) • Còn <span id="heroTopSlotsMirror" class="underline font-black text-red-600">50 suất</span> giá 90K cuối cùng!</span>
         </div>
       </div>
     </div>
@@ -195,37 +188,18 @@
             </div>
           </div>
 
-          <!-- BẢNG LỘ TRÌNH GIÁ (TĂNG SỨC ÉP FOMO CỰC MẠNH) -->
-          <div class="grid grid-cols-3 gap-1.5 sm:gap-2.5 text-center">
-            <div class="p-2 sm:p-2.5 rounded-xl bg-emerald-50 border-2 border-emerald-500 relative shadow-xs">
-              <span class="absolute -top-2 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap">Đang mở</span>
-              <div class="text-[10px] sm:text-[11px] font-bold text-emerald-900 mt-1">Trợ Giá Đợt 1</div>
-              <div class="text-sm sm:text-lg font-black text-emerald-600">90.000đ</div>
-              <div class="text-[9px] sm:text-[10px] font-bold text-red-600">Còn vài suất cuối</div>
-            </div>
-            <div class="p-2 sm:p-2.5 rounded-xl bg-slate-50 border border-slate-200 opacity-75">
-              <div class="text-[10px] sm:text-[11px] font-bold text-slate-500 mt-1">Đợt 2 (Kế tiếp)</div>
-              <div class="text-sm sm:text-lg font-black text-slate-600">290.000đ</div>
-              <div class="text-[9px] sm:text-[10px] text-slate-400">Áp dụng khi hết Đợt 1</div>
-            </div>
-            <div class="p-2 sm:p-2.5 rounded-xl bg-slate-50 border border-slate-200 opacity-65">
-              <div class="text-[10px] sm:text-[11px] font-bold text-slate-500 mt-1">Giá Niêm Yết</div>
-              <div class="text-sm sm:text-lg font-black text-slate-400 line-through decoration-red-500">4.500.000đ</div>
-              <div class="text-[9px] sm:text-[10px] text-slate-400">250.000đ / tháng</div>
-            </div>
-          </div>
-
-          <!-- BẢNG GIÁ NIÊM YẾT VÀ GIÁ KHUYẾN MÃI -->
+          <!-- BẢNG GIÁ NIÊM YẾT VÀ GIÁ KHUYẾN MÃI (CHỈNH THEO GIÁ GỐC GOOGLE 489K/THÁNG) -->
           <div class="p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-blue-50/80 via-white to-emerald-50/80 border-2 border-blue-300 shadow-md space-y-3.5 relative overflow-hidden">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200/80">
               <div class="flex items-center gap-2 flex-wrap">
-                <span class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Giá gốc Google Store:</span>
+                <span class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Giá gốc Google:</span>
                 <span class="text-xl sm:text-2xl font-black text-slate-400 line-through decoration-red-600 decoration-2 whitespace-nowrap">
-                  4.500.000 VNĐ
+                  489.000đ <span class="text-xs sm:text-sm font-bold text-slate-400 no-underline">/ tháng</span>
                 </span>
+                <span class="text-[11px] font-semibold text-slate-400 hidden sm:inline">(~8.802.000đ / 18 tháng)</span>
               </div>
               <div class="badge-fomo-pulse bg-gradient-to-r from-red-600 to-orange-600 text-white text-[11px] sm:text-xs font-black px-3 py-1 rounded-full shadow-md w-fit">
-                GIẢM SỐC 98% (-4.410.000đ)
+                GIẢM SỐC 99% (Tiết kiệm 8.712.000đ)
               </div>
             </div>
 
@@ -235,6 +209,15 @@
                 <div class="flex items-baseline gap-2 mt-0.5">
                   <span class="text-4xl sm:text-5xl font-black text-emerald-600 tracking-tight">90.000đ</span>
                   <span class="text-xs sm:text-sm font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">/ 18 tháng</span>
+                </div>
+                <!-- TAG FOMO CHUẨN BỊ LÊN GIÁ 129K TRỰC DIỆN BÊN CẠNH GIÁ 90K -->
+                <div class="mt-1.5 text-xs font-black text-red-600 flex items-center gap-1.5 animate-pulse flex-wrap">
+                  <span class="bg-red-600 text-yellow-300 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-md uppercase tracking-wider shadow-2xs">
+                    🔥 CHUẨN BỊ LÊN GIÁ 129K
+                  </span>
+                  <span class="text-slate-600 text-[11px] font-bold">
+                    (Đủ 200 đơn sẽ tự động nhảy lên 129.000đ)
+                  </span>
                 </div>
               </div>
               <div class="text-left sm:text-right bg-blue-600 text-white px-3.5 py-2 rounded-xl shadow-sm">
@@ -248,18 +231,58 @@
             <!-- Thanh Tiến Độ Khan Hiếm Có Shimmer -->
             <div class="pt-3 border-t border-slate-200/80 space-y-2">
               <div class="flex justify-between items-center text-xs font-bold flex-wrap gap-1">
-                <span class="text-slate-700">Đã đăng ký: <strong id="heroActivatedCount" class="text-slate-900 font-mono">1.488/1.500 tài khoản</strong></span>
-                <span id="heroRemainingBadge" class="text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-200 font-black animate-pulse">🔥 Chỉ còn <span id="heroRemainingSlots">12 suất</span> cuối!</span>
+                <span class="text-slate-700">Đã bán: <strong id="heroActivatedCount" class="text-slate-900 font-mono text-xs sm:text-sm">150/200 đơn</strong></span>
+                <span id="heroRemainingBadge" class="text-red-700 bg-red-100 px-2 py-0.5 rounded-md border border-red-300 font-black animate-pulse">🚨 Còn <span id="heroRemainingSlots">50 suất</span> (Sắp lên 129K)!</span>
               </div>
               <div class="w-full bg-slate-200 rounded-full h-3.5 overflow-hidden p-0.5 border border-slate-300 shadow-inner">
-                <div id="heroProgressBar" class="shimmer-bar h-full rounded-full transition-all duration-1000" style="width: 98.4%"></div>
+                <div id="heroProgressBar" class="shimmer-bar h-full rounded-full transition-all duration-1000" style="width: 75.0%"></div>
               </div>
               <div class="flex items-center justify-between text-[11px] text-slate-600 font-medium pt-0.5">
                 <span id="recentActivityLine" class="text-emerald-700 font-bold flex items-center gap-1">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-                  <span>Vừa có khách hàng tại TP.HCM kích hoạt 6 giây trước</span>
+                  <span id="recentActivityText">Vừa có IP máy tại TP.HCM kết nối & kích hoạt thành công</span>
                 </span>
-                <span class="text-red-600 font-bold hidden sm:inline">Tốc độ bán: Rất nhanh ⚡</span>
+                <span class="text-red-600 font-black hidden sm:inline">⚡ Đủ 200 đơn tự động lên 129K</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- HỘP BÁO ĐỘNG LÊN GIÁ KHI BÁN ĐỦ 200 ĐƠN (BỰ & NỔI TRỘI FOMO CỰC MẠNH) -->
+          <div class="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white shadow-2xl border-4 border-yellow-300 relative overflow-hidden ring-4 ring-red-400/30">
+            <!-- Shimmer ánh sáng chạy ngang -->
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2.5s_infinite]"></div>
+
+            <div class="relative space-y-2.5">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <span class="inline-flex items-center gap-1.5 bg-yellow-400 text-red-950 text-[11px] sm:text-xs font-black uppercase px-3 py-1 rounded-full shadow-md tracking-wider animate-pulse">
+                  <span class="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping"></span>
+                  🚨 CẢNH BÁO BÁO ĐỘNG ĐỎ
+                </span>
+                <span class="text-xs font-extrabold text-yellow-200 bg-black/30 px-3 py-1 rounded-full border border-yellow-300/40">
+                  Tối đa chỉ 200 đơn đợt 1
+                </span>
+              </div>
+
+              <!-- DÒNG CHỮ CHUẨN BỊ LÊN GIÁ 129K SIÊU BỰ NỔI TRỘI -->
+              <div class="pt-1">
+                <div class="text-2xl sm:text-3xl md:text-4xl lg:text-[34px] font-black text-yellow-300 tracking-tight leading-tight uppercase drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] flex items-center gap-2 flex-wrap">
+                  <span class="animate-pulse">🔥 CHUẨN BỊ LÊN GIÁ 129K!</span>
+                </div>
+                <p class="text-xs sm:text-sm font-bold text-white/95 mt-1 leading-snug">
+                  Hệ thống sẽ <strong class="text-yellow-200 underline">TỰ ĐỘNG TĂNG LÊN 129.000đ</strong> ngay khi chạm mốc 200 đơn!
+                </p>
+              </div>
+
+              <!-- THÔNG TIN TIẾN ĐỘ & SỐ SUẤT CÒN LẠI -->
+              <div class="pt-2 flex items-center justify-between text-xs sm:text-sm font-bold border-t border-red-500/80 flex-wrap gap-2">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-white/90">Đã bán được:</span>
+                  <strong id="alertBoxSoldCount" class="font-mono text-lg sm:text-xl text-yellow-300 font-black underline">150</strong>
+                  <span class="text-white/80">/ 200 đơn</span>
+                </div>
+                <div class="bg-yellow-300 text-red-950 px-3.5 py-1.5 rounded-xl font-black text-xs sm:text-sm shadow-md animate-pulse">
+                  ⚡ CHỈ CÒN ĐÚNG <span id="alertBoxRemainingSlots" class="text-base font-black underline">50 SUẤT</span> GIÁ 90.000đ!
+                </div>
               </div>
             </div>
           </div>
@@ -303,13 +326,6 @@
       <!-- CỘT PHẢI: FORM ĐĂNG KÝ MUA SIÊU DỄ DÙNG -->
       <div class="lg:col-span-5 p-4 sm:p-7 md:p-8 bg-gradient-to-b from-slate-50 to-blue-50/30 flex flex-col justify-between">
         <div class="space-y-4">
-          <!-- Thanh 3 bước trực quan -->
-          <div class="grid grid-cols-3 gap-1.5 bg-white p-1.5 rounded-2xl border border-slate-200 text-center text-[10px] sm:text-[11px] font-bold shadow-2xs">
-            <div class="bg-blue-600 text-white py-1.5 px-1 rounded-xl shadow-2xs">1. Điền thông tin</div>
-            <div class="text-slate-600 py-1.5 px-1 rounded-xl bg-slate-50">2. Quét QR 90K</div>
-            <div class="text-slate-600 py-1.5 px-1 rounded-xl bg-slate-50">3. Mở link 3s</div>
-          </div>
-
           <div class="border-b border-slate-200 pb-3">
             <div class="flex items-center justify-between flex-wrap gap-2">
               <span class="text-[11px] sm:text-xs font-extrabold text-blue-700 uppercase tracking-wide">⚡ Giữ Suất Trợ Giá 90.000đ</span>
@@ -712,9 +728,9 @@
     <div id="roiSection" class="scroll-mt-24 p-5 sm:p-8 rounded-3xl bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white flex flex-col lg:flex-row items-center justify-between gap-6 shadow-2xl border border-blue-400/20">
       <div class="space-y-3 text-center lg:text-left max-w-xl">
         <span class="text-[11px] sm:text-xs font-black text-yellow-300 tracking-wider uppercase bg-yellow-400/20 px-3 py-1 rounded-full border border-yellow-300/30 inline-block">BÀI TOÁN KINH TẾ SIÊU HỜI</span>
-        <h3 class="text-xl sm:text-3xl font-black leading-tight">Giá niêm yết lẻ: <span class="line-through text-slate-400 decoration-red-500">4.500.000 VNĐ</span> / 18 Tháng</h3>
+        <h3 class="text-xl sm:text-3xl font-black leading-tight">Giá gốc Google Store: <span class="line-through text-slate-400 decoration-red-500">489.000đ / tháng</span></h3>
         <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-          Mua riêng gói Google One 5TB + Gemini Advanced + Colab Pro ngoài thị trường tốn hơn 250.000đ mỗi tháng. Đăng ký suất trợ giá hôm nay giúp bạn tiết kiệm ngay <strong>98% chi phí</strong>.
+          Mua trực tiếp gói Google One AI Premium (Gemini Advanced 5TB) tại Google tốn 489.000đ mỗi tháng (~8.802.000đ cho 18 tháng). Đăng ký ưu đãi hôm nay trọn gói 18 tháng chỉ <strong>90.000đ</strong> giúp bạn tiết kiệm ngay <strong>99% chi phí</strong>.
         </p>
         <div class="pt-1">
           <button type="button" onclick="scrollToOrderForm()" class="px-5 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg transition cursor-pointer inline-flex items-center gap-2">
@@ -725,9 +741,9 @@
       </div>
       <div class="bg-white/10 backdrop-blur-md p-5 sm:p-6 rounded-2xl text-center shrink-0 border-2 border-emerald-400/40 w-full lg:w-auto min-w-[260px] shadow-inner">
         <div class="text-xs font-extrabold text-yellow-300 uppercase tracking-wide">BẠN TIẾT KIỆM TRỌN VẸN</div>
-        <div class="text-3xl sm:text-5xl font-black text-emerald-400 mt-1">4.410.000đ</div>
+        <div class="text-3xl sm:text-5xl font-black text-emerald-400 mt-1">8.712.000đ</div>
         <div class="text-xs text-white/90 mt-2 bg-black/30 py-1.5 px-3 rounded-xl border border-white/10">
-          Chỉ trả đúng <strong class="text-yellow-300 text-sm">90.000đ</strong> một lần duy nhất!
+          Chỉ trả đúng <strong class="text-yellow-300 text-sm">90.000đ</strong> cho cả 18 tháng!
         </div>
       </div>
     </div>
@@ -900,6 +916,29 @@
 
         <!-- TRƯỜNG HỢP 1: CÓ SẴN LINK TRONG KHO (HIỂN THỊ LINK & HƯỚNG DẪN) -->
         <div id="successHasLinkView" class="space-y-4">
+          <!-- THÔNG BÁO GỬI EMAIL THÀNH CÔNG & HƯỚNG DẪN CHECK THƯ RÁC / SPAM -->
+          <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-400 text-slate-800 shadow-sm space-y-2 text-left">
+            <div class="flex items-center gap-2 text-amber-900 font-black text-sm sm:text-base">
+              <span class="text-xl">📧</span>
+              <span>ĐÃ GỬI LINK KÍCH HOẠT VỀ GMAIL!</span>
+            </div>
+            <div class="text-xs text-slate-700 leading-relaxed">
+              Hệ thống đã tự động gửi đường link và hướng dẫn kích hoạt bản quyền tới hòm thư:
+              <div class="mt-1">
+                <span id="sentEmailDisplay" class="font-mono text-xs sm:text-sm text-blue-700 bg-white px-2.5 py-1 rounded-lg border border-blue-200 inline-block shadow-2xs font-black">user@gmail.com</span>
+              </div>
+            </div>
+            <div class="p-3 bg-white/95 rounded-xl border border-amber-300 text-xs text-amber-900 space-y-1">
+              <div class="font-black flex items-center gap-1.5 text-red-600">
+                <span>⚠️</span>
+                <span class="uppercase tracking-wide">Lưu ý quan trọng:</span>
+              </div>
+              <p class="font-medium text-slate-700 leading-relaxed">
+                Quý khách vui lòng kiểm tra hộp thư đến (Inbox). Nếu <strong>chưa thấy</strong> trong mục thư chính, hãy kiểm tra kỹ cả trong hòm <span class="bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-black border border-amber-300">Thư rác (Spam)</span> hoặc mục <span class="bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-black border border-amber-300">Quảng cáo / Danh mục</span> của Gmail nhé!
+              </p>
+            </div>
+          </div>
+
           <!-- KHUNG LINK BẢN QUYỀN VÀ NÚT SAO CHÉP -->
           <div class="p-4 rounded-2xl bg-gradient-to-br from-amber-50 via-white to-emerald-50 border-2 border-emerald-400 shadow-sm text-left space-y-3">
             <div class="flex items-start gap-2.5">
@@ -995,41 +1034,61 @@
           </div>
         </div>
 
-        <!-- TRƯỜNG HỢP 2: KHO ĐANG HẾT LINK (CẦN MUA TỪ BOT HOẶC GỬI QUA ZALO) -->
+        <!-- TRƯỜNG HỢP 2: KHO ĐANG HẾT LINK (ADMIN SẼ GỬI QUA ZALO HOẶC GMAIL) -->
         <div id="successPendingLinkView" class="space-y-3.5 text-left hidden">
-          <div class="p-5 rounded-2xl bg-gradient-to-br from-blue-50 via-sky-50 to-emerald-50 border-2 border-blue-400 text-left space-y-3.5 shadow-sm">
+          <div class="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-amber-50 via-sky-50 to-emerald-50 border-2 border-amber-400 text-left space-y-4 shadow-sm">
             <div class="flex items-center gap-3">
-              <span class="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-md shrink-0">
-                💬
+              <span class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center font-bold text-2xl shadow-md shrink-0">
+                ⚡
               </span>
               <div>
-                <h4 class="text-sm sm:text-base font-black text-slate-900">Bấm Nhận Link Bản Quyền Qua Zalo Ngay</h4>
-                <p class="text-xs text-slate-600 font-medium">Chuyên viên hỗ trợ trực tuyến 24/7 đang online</p>
+                <h4 class="text-base sm:text-lg font-black text-slate-900 leading-snug">
+                  Admin sẽ gửi link tới Zalo hoặc Gmail bạn trong ít phút!
+                </h4>
+                <p class="text-xs text-slate-600 font-medium mt-0.5">
+                  Đơn hàng 90.000đ của bạn đã được hệ thống ghi nhận thành công 100%
+                </p>
               </div>
             </div>
-            
-            <p class="text-xs text-slate-700 leading-relaxed">
-              Hệ thống đã xác nhận bạn chuyển khoản thành công <strong>90.000 VNĐ</strong>. Để nhận đường link kích hoạt riêng biệt cho Gmail của bạn ngay lập tức, vui lòng <strong>bấm nút Zalo bên dưới</strong>:
-            </p>
 
-            <a id="btnClaimViaZalo" href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer"
-               class="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 hover:from-blue-700 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
-              <span>💬 BẤM VÀO ĐÂY NHẬN LINK QUA ZALO (0567.960.777)</span>
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-            </a>
+            <div class="p-4 bg-white/95 rounded-2xl border border-amber-300 text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2 shadow-2xs">
+              <div class="flex items-center gap-2 text-emerald-700 font-bold">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Đã nhận thanh toán • Kỹ thuật viên đang kích hoạt link bản quyền</span>
+              </div>
+              <p class="text-slate-700 text-xs sm:text-sm font-semibold">
+                Do số lượng khách đăng ký khuyến mãi 90K rất đông, <strong class="text-blue-700 font-black">Admin sẽ gửi link kích hoạt tới Zalo hoặc Gmail của bạn trong ít phút!</strong>
+              </p>
+            </div>
 
-            <div class="p-3 bg-white/90 rounded-xl border border-blue-200 text-xs text-slate-600 space-y-1">
-              <div class="font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <!-- THÔNG TIN NHẬN LINK CỦA KHÁCH -->
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-2">
+              <div class="font-bold text-slate-800 flex items-center justify-between">
                 <span>Thông tin xác nhận đơn hàng:</span>
+                <span class="text-[11px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-bold">Đã tiếp nhận</span>
               </div>
-              <div class="grid grid-cols-2 gap-1 text-[11px] pt-1 border-t border-slate-100 font-mono">
-                <div>• SĐT: <strong id="pendingCustomerPhone" class="text-slate-900">09...</strong></div>
-                <div>• Gói: <strong class="text-blue-700 font-sans">Gemini Pro 18T</strong></div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1 border-t border-slate-200 font-mono">
+                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                  <span class="text-slate-500 block text-[11px] font-sans font-medium">Số điện thoại / Zalo:</span>
+                  <strong id="pendingCustomerPhone" class="text-slate-900 text-xs font-bold">09...</strong>
+                </div>
+                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                  <span class="text-slate-500 block text-[11px] font-sans font-medium">Hòm thư Gmail:</span>
+                  <strong id="pendingCustomerEmail" class="text-blue-700 text-xs font-bold break-all">user@gmail.com</strong>
+                </div>
               </div>
-              <div class="text-[11px] text-slate-500 italic pt-1">
-                *Nếu bạn không dùng Zalo, chuyên viên kỹ thuật sẽ chủ động liên hệ SĐT trên để gửi link cho bạn trong 1 - 3 phút!
-              </div>
+            </div>
+
+            <!-- NÚT BẤM NHẬN LINK QUA ZALO NGAY -->
+            <div class="space-y-1.5">
+              <a id="btnClaimViaZalo" href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer"
+                 class="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 via-sky-600 to-blue-700 hover:from-blue-700 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition hover:scale-[1.01] active:scale-[0.99] cursor-pointer uppercase">
+                <span>💬 BẤM VÀO ĐÂY NHẬN LINK QUA ZALO NGAY (0567.960.777)</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </a>
+              <p class="text-[11px] text-slate-500 italic text-center font-medium">
+                *Admin đang chủ động xử lý và gửi link qua Zalo hoặc Gmail bạn trong ít phút!
+              </p>
             </div>
           </div>
         </div>
@@ -1091,9 +1150,9 @@
     <div class="min-w-0">
       <div class="flex items-center gap-1.5">
         <span class="text-base font-black text-emerald-600 leading-none">90.000đ</span>
-        <span class="text-[10px] text-slate-400 line-through font-bold">4.500K</span>
-        <span class="bg-red-100 text-red-700 text-[10px] font-black px-1.5 py-0.5 rounded border border-red-200 animate-pulse">
-          Còn <span id="mobileFomoSlots">12 suất</span>
+        <span class="text-[10px] text-slate-400 line-through font-bold">489K/th</span>
+        <span class="bg-gradient-to-r from-red-600 to-rose-600 text-yellow-300 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-md border border-yellow-300 shadow-xs animate-pulse">
+          🔥 CHUẨN BỊ LÊN 129K (Còn <span id="mobileFomoSlots">50 suất</span> 90K / Tối đa 200 đơn)
         </span>
       </div>
       <div class="text-[10px] font-bold text-slate-600 truncate mt-0.5">
@@ -1225,7 +1284,7 @@
       accountNo: "517041996",
       accountName: "NGUYEN TRAN HAN",
       amount: 90000,
-      googleAppsScriptUrl: "https://script.google.com/macros/s/AKfycbx_SAMPLE_GEMINI_CRM_WEBHOOK/exec"
+      googleAppsScriptUrl: "https://script.google.com/macros/s/AKfycbxBCAtlOD-v0bqTJSsjjiksBccuJSlBnybznPsxOHj6f8rkT44cUlnF__i6Ms14U2uS/exec"
     };
 
     // Bắt nguồn truy cập thông minh & Chuẩn xác 100% (Phát hiện thật từ Referrer & Query Params)
@@ -1291,21 +1350,38 @@
 
     // Tự động bắt địa chỉ IP & Tỉnh thành ngầm để phục vụ quản trị CRM
     async function captureVisitorIpSilently() {
+      // 1. Thử qua ipwho.is trước (nhanh, miễn phí, trả về cả IP và Thành phố/Quốc gia trong 1 request)
       try {
-        const res = await fetch('https://api.ipify.org?format=json');
+        const res = await fetch('https://ipwho.is/');
         if (res.ok) {
-          const ipJson = await res.json();
-          visitorData.ip = ipJson.ip;
-
-          try {
-            const locRes = await fetch(`https://ipapi.co/${ipJson.ip}/json/`);
-            if (locRes.ok) {
-              const locJson = await locRes.json();
-              visitorData.location = `${locJson.city || ''}, ${locJson.country_name || 'VN'}`;
-            }
-          } catch(e) {}
+          const data = await res.json();
+          if (data && data.success !== false && data.ip) {
+            visitorData.ip = data.ip;
+            const city = data.city || data.region || '';
+            const country = data.country || 'Việt Nam';
+            visitorData.location = city ? `${city}, ${country}` : country;
+          }
         }
       } catch (err) {}
+
+      // 2. Fallback nếu chưa lấy được IP
+      if (!visitorData.ip || visitorData.ip === '127.0.0.1') {
+        try {
+          const res = await fetch('https://api.ipify.org?format=json');
+          if (res.ok) {
+            const ipJson = await res.json();
+            visitorData.ip = ipJson.ip;
+
+            try {
+              const locRes = await fetch(`https://ipapi.co/${ipJson.ip}/json/`);
+              if (locRes.ok) {
+                const locJson = await locRes.json();
+                visitorData.location = `${locJson.city || ''}, ${locJson.country_name || 'VN'}`;
+              }
+            } catch(e) {}
+          }
+        } catch (err) {}
+      }
 
       // Lưu nhật ký ngầm vào localStorage cho Admin dashboard (/admin)
       try {
@@ -1867,13 +1943,21 @@
     function notifyTelegramCustomerOrder(order, remainingStock, isOutOfStock) {
       const cleanPhone = order.phone ? order.phone.toString().replace(/^'/, '') : "N/A";
       const timeStr = order.time || new Date().toLocaleString('vi-VN');
+      const ip = order.ip || (visitorData && visitorData.ip) || '127.0.0.1';
+      const loc = order.location || (visitorData && visitorData.location) || 'Việt Nam';
+      const dev = order.device || (visitorData && visitorData.device) || 'Điện thoại/PC';
 
       if (isOutOfStock || !order.licenseLink) {
         const alertMsg = `🚨 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN 90.000 VNĐ</b>\n` +
-          `Mã đơn: <code>${order.orderId}</code> • ${timeStr}\n` +
-          `Khách: <b>${order.name}</b> | <code>${cleanPhone}</code>\n` +
-          `Gmail: <code>${order.email}</code>\n` +
-          `Nội dung CK: <code>${order.memo || ('PRO18T ' + cleanPhone)}</code>\n\n` +
+          `━━━━━━━━━━━━━━━━━━━━\n` +
+          `📦 Mã đơn: <code>${order.orderId}</code> • ${timeStr}\n` +
+          `👤 Khách: <b>${order.name}</b> | <code>${cleanPhone}</code>\n` +
+          `✉️ Gmail: <code>${order.email}</code>\n` +
+          `📝 Nội dung CK: <code>${order.memo || ('PRO18T ' + cleanPhone)}</code>\n` +
+          `🌐 Địa chỉ IP: <code>${ip}</code>\n` +
+          `📍 Vị trí khách: <b>${loc}</b>\n` +
+          `📱 Thiết bị: ${dev}\n` +
+          `━━━━━━━━━━━━━━━━━━━━\n` +
           `⚠️ <b>KHO ĐÃ HẾT LINK! VUI LÒNG MUA LINK GẤP:</b>\n` +
           `👉 <b>VÀO BOT MUA NGAY:</b> https://t.me/shopxoainon_bot\n` +
           `<i>(Mua xong vào /admin hoặc gửi Zalo cho khách liền!)</i>`;
@@ -1881,13 +1965,18 @@
         return;
       }
 
-      const msg = `🟢 <b>ĐƠN HÀNG MỚI (${order.amount || '90.000 VNĐ'})</b>\n` +
-        `Mã đơn: <code>${order.orderId}</code> • ${timeStr}\n` +
-        `Khách: <b>${order.name}</b> | <code>${cleanPhone}</code>\n` +
-        `Gmail: <code>${order.email}</code>\n` +
-        `Nội dung: <code>${order.memo || ('PRO18T ' + cleanPhone)}</code>\n` +
-        `Link cấp: <code>${order.licenseLink}</code>\n` +
-        `Kho còn: <b>${remainingStock} mã</b>`;
+      const msg = `🟢 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN (${order.amount || '90.000 VNĐ'})</b>\n` +
+        `━━━━━━━━━━━━━━━━━━━━\n` +
+        `📦 Mã đơn: <code>${order.orderId}</code> • ${timeStr}\n` +
+        `👤 Khách: <b>${order.name}</b> | <code>${cleanPhone}</code>\n` +
+        `✉️ Gmail: <code>${order.email}</code>\n` +
+        `📝 Nội dung: <code>${order.memo || ('PRO18T ' + cleanPhone)}</code>\n` +
+        `🌐 Địa chỉ IP: <code>${ip}</code>\n` +
+        `📍 Vị trí khách: <b>${loc}</b>\n` +
+        `📱 Thiết bị: ${dev}\n` +
+        `🔑 Link cấp: <code>${order.licenseLink}</code>\n` +
+        `📦 Kho còn: <b>${remainingStock} mã</b>\n` +
+        `━━━━━━━━━━━━━━━━━━━━`;
 
       sendTelegramMessage(msg);
 
@@ -1934,8 +2023,15 @@
     }
 
     // Khi thanh toán hoàn tất qua API Pay
-    function triggerPaymentSuccess(txData) {
+    async function triggerPaymentSuccess(txData) {
       stopPaymentPolling();
+
+      // 0. Đảm bảo modal chính hiển thị
+      const modal = document.getElementById('paymentModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.setProperty('display', 'flex', 'important');
+      }
 
       // 1. CHUYỂN NGAY SANG BƯỚC THÀNH CÔNG VÀ HIỆN LINK KÍCH HOẠT TỨC THÌ (0.0 GIÂY)
       const stepQR = document.getElementById('modalStepQR');
@@ -1965,28 +2061,41 @@
       const finalOrderIdEl = document.getElementById('finalOrderId');
       if (finalOrderIdEl) finalOrderIdEl.innerText = custOrderId;
 
-      // 3. Tự động bốc mã license từ kho crm_inventory nếu có
-      let inventory = [];
+      // 3. Nhận license từ kho server tập trung (FIFO + TỰ MUA từ bot nếu hết kho)
+      const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:8080' : '';
+      let claimResult = null;
       try {
-        inventory = JSON.parse(localStorage.getItem('crm_inventory') || '[]');
-      } catch(e) {}
-
-      // Lọc các mã sẵn sàng và xếp theo thứ tự ID tăng dần (FIFO: Link 1 -> Link 2 -> Link 3...)
-      let availableItems = inventory.filter(i => i && i.status === 'Sẵn sàng' && !i.link.includes('GM-STOCK-') && !i.link.includes('GM-KEY-')).sort((a,b) => (a.id || 0) - (b.id || 0));
-      let availableItem = availableItems[0];
-      let hasRealLink = !!availableItem;
-      let licenseLink = hasRealLink ? availableItem.link : '';
-
-      if (hasRealLink) {
-        const targetInInventory = inventory.find(i => i.id === availableItem.id);
-        if (targetInInventory) {
-          targetInInventory.status = 'Đã cấp';
-          targetInInventory.assignedTo = `${custName} (${custOrderId})`;
-        }
-        try {
-          localStorage.setItem('crm_inventory', JSON.stringify(inventory));
-        } catch(e) {}
+        const claimResponse = await fetch(`${apiBase}/api/licenses/auto-claim`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: custName,
+            orderId: custOrderId,
+            phone: custPhone,
+            email: custEmail
+          })
+        });
+        claimResult = await claimResponse.json();
+      } catch (e) {
+        console.warn('License auto-claim warning:', e);
       }
+
+      const licenseLink = claimResult && claimResult.status === 'success' ? claimResult.licenseLink : '';
+      const hasRealLink = Boolean(licenseLink);
+      const remainingStock = claimResult && Number.isFinite(Number(claimResult.available)) ? Number(claimResult.available) : 0;
+
+      // Cập nhật cache cục bộ chỉ để Admin hiện ngay khi cùng trình duyệt; server vẫn là nguồn chính.
+      try {
+        let cachedInventory = JSON.parse(localStorage.getItem('crm_inventory') || '[]');
+        if (hasRealLink) {
+          const cachedItem = cachedInventory.find(i => i && i.link === licenseLink);
+          if (cachedItem) {
+            cachedItem.status = 'Đã cấp';
+            cachedItem.assignedTo = `${custName} (${custOrderId})`;
+          }
+          localStorage.setItem('crm_inventory', JSON.stringify(cachedInventory));
+        }
+      } catch (e) {}
 
       // 3.1 Cập nhật hiển thị màn hình Thành công: CÓ LINK hay HẾT LINK
       const hasLinkView = document.getElementById('successHasLinkView');
@@ -2001,17 +2110,22 @@
         if (finalEmailNotice) finalEmailNotice.classList.remove('hidden');
         if (finalLicenseEl) finalLicenseEl.innerText = licenseLink;
         if (directBtn) directBtn.href = licenseLink;
+        const sentEmailDisplay = document.getElementById('sentEmailDisplay');
+        if (sentEmailDisplay) sentEmailDisplay.innerText = custEmail;
       } else {
-        // Trường hợp hết link: Hiện hướng dẫn nhận link qua Zalo ngay
+        // Trường hợp hết link: Hiện thông báo Admin sẽ gửi link tới Zalo hoặc Gmail bạn trong ít phút
         if (hasLinkView) hasLinkView.classList.add('hidden');
         if (pendingLinkView) pendingLinkView.classList.remove('hidden');
         if (finalEmailNotice) finalEmailNotice.classList.remove('hidden');
-        
+
         const pendingPhoneEl = document.getElementById('pendingCustomerPhone');
         if (pendingPhoneEl) pendingPhoneEl.innerText = custPhone;
+        const pendingEmailEl = document.getElementById('pendingCustomerEmail');
+        if (pendingEmailEl) pendingEmailEl.innerText = custEmail;
+
         const pendingZaloBtn = document.getElementById('btnClaimViaZalo');
         if (pendingZaloBtn) {
-          const zaloMsg = encodeURIComponent(`Chào shop, mình vừa thanh toán 90.000đ đơn hàng ${custOrderId} (SĐT: ${custPhone}). Gửi giúp mình link kích hoạt Gemini Pro 18 Tháng nhé!`);
+          const zaloMsg = encodeURIComponent(`Chào shop, mình vừa thanh toán 90.000đ đơn hàng ${custOrderId} (SĐT: ${custPhone}, Gmail: ${custEmail}). Gửi giúp mình link kích hoạt Gemini Pro 18 Tháng nhé!`);
           pendingZaloBtn.href = `https://zalo.me/0567960777?text=${zaloMsg}`;
         }
       }
@@ -2025,16 +2139,16 @@
         amount: '90.000đ',
         memo: custMemo,
         time: new Date().toLocaleString('vi-VN'),
-        ip: visitorData.ip,
-        location: visitorData.location,
-        device: visitorData.device,
-        referrer: visitorData.referrer,
+        ip: (typeof visitorData !== 'undefined' && visitorData && visitorData.ip) ? visitorData.ip : '127.0.0.1',
+        location: (typeof visitorData !== 'undefined' && visitorData && visitorData.location) ? visitorData.location : 'Việt Nam',
+        device: (typeof visitorData !== 'undefined' && visitorData && visitorData.device) ? visitorData.device : 'Điện thoại/PC',
+        referrer: (typeof visitorData !== 'undefined' && visitorData && visitorData.referrer) ? visitorData.referrer : 'Trực tiếp',
         licenseLink: licenseLink,
         status: hasRealLink ? 'Đã thanh toán (MBBank)' : 'Đã thanh toán (Chờ cấp link)',
         paymentTxId: (txData && txData.id) ? txData.id : ('APIPAY-' + Math.floor(100000 + Math.random() * 900000)),
         paymentSource: (txData && txData.source) ? txData.source : 'API Pay VietQR MBBank',
-        emailStatus: 'Chưa gửi Gmail (Chờ gửi thủ công)',
-        adminNote: hasRealLink ? '' : '⚠️ Kho hết link - Cần vào bot mua: https://t.me/shopxoainon_bot'
+        emailStatus: hasRealLink ? 'Đã gửi Gmail' : 'Hết link (Chờ Admin gửi Zalo/Gmail)',
+        adminNote: hasRealLink ? ((claimResult && claimResult.source === 'auto_buy') ? '🤖 Tự mua từ bot @shopxoainon_bot' : '') : `⚠️ ${(claimResult && claimResult.message) || 'Kho hết link - Admin gửi thủ công qua Zalo/Gmail'}`
       };
 
       // 4. Lưu đơn hàng vào localStorage và Backend Server Database (orders.json)
@@ -2055,15 +2169,17 @@
 
       // 5. Tự động bắn thông báo Telegram
       try {
-        const remainingStock = inventory.filter(i => i.status === 'Sẵn sàng').length;
+        const remainingStock = Number.isFinite(Number(claimResult && claimResult.available)) ? Number(claimResult.available) : 0;
         notifyTelegramCustomerOrder(newOrder, remainingStock, !hasRealLink);
       } catch(e) {}
 
       // 6. Đồng bộ Webhook nếu có
       postOrderToWebhook(newOrder);
 
-      // 7. Theo yêu cầu thiết kế mới: ĐẦU TIÊN CHƯA GỬI LINK VÀO GMAIL TỰ ĐỘNG
-      // sendCustomerActivationEmail(newOrder, licenseLink);
+      // 7. Khi còn link: Tự động gửi link kích hoạt về Gmail khách
+      if (hasRealLink && licenseLink) {
+        sendCustomerActivationEmail(newOrder, licenseLink);
+      }
 
       if (typeof confetti === 'function') {
         try { confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } }); } catch(e) {}
@@ -2268,17 +2384,21 @@
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'payment_success',
+            action: 'new_order',
             orderId: order.orderId,
+            time: order.time || new Date().toLocaleString('vi-VN'),
             name: order.name,
             phone: order.phone,
             email: order.email,
-            amount: CONFIG.amount,
+            product: order.package || 'Google Gemini Pro 18 Tháng',
+            amount: order.amount || '90.000 VNĐ',
             memo: order.memo,
-            ip: visitorData.ip,
-            location: visitorData.location,
-            device: visitorData.device,
-            referrer: visitorData.referrer
+            licenseLink: order.licenseLink || '',
+            ip: (typeof visitorData !== 'undefined' && visitorData && visitorData.ip) ? visitorData.ip : '127.0.0.1',
+            location: (typeof visitorData !== 'undefined' && visitorData && visitorData.location) ? visitorData.location : 'Việt Nam',
+            device: (typeof visitorData !== 'undefined' && visitorData && visitorData.device) ? visitorData.device : 'Điện thoại/PC',
+            referrer: (typeof visitorData !== 'undefined' && visitorData && visitorData.referrer) ? visitorData.referrer : 'Trực tiếp',
+            status: order.status || 'Đã thanh toán (MBBank)'
           })
         });
       } catch(e) {}
@@ -2368,52 +2488,86 @@
 
       buyerIndex = (buyerIndex + 1) % liveBuyers.length;
 
-      // Mỗi lần có khách mua mới, có 35% khả năng giảm bớt 1 suất trợ giá (tạo FOMO thật)
-      if (Math.random() < 0.35) {
-        decreaseFomoSlot();
+      // Mỗi lần có khách mua mới, tự động tăng số lượng tài khoản đã bán
+      if (Math.random() < 0.6) {
+        incrementSoldCount(1);
       }
     }
 
-    // 2. GIẢM DẦN SUẤT TRỢ GIÁ (TẠO SỨC ÉP KHAN HIẾM CỰC MẠNH)
-    let fomoSlots = 12;
-    try { fomoSlots = parseInt(sessionStorage.getItem('gemini_fomo_slots') || '12', 10); } catch(e) {}
-    if (isNaN(fomoSlots) || fomoSlots < 3) fomoSlots = 12;
+    // 2. BÁO ĐỘNG LÊN GIÁ (200 ĐƠN SẼ LÊN GIÁ 129K, FOMO CHẠY TỪ 150 LÊN 195 THÔI)
+    const TARGET_SLOTS = 200;      // Mốc lên giá: 200 đơn
+    const MAX_FOMO_SLOTS = 195;    // FOMO chạy từ 150 lên tối đa 195 đơn
+    const INITIAL_SOLD = 150;      // Bắt đầu từ 150 đơn
+    let soldCount = INITIAL_SOLD;
+
+    try {
+      const saved = parseInt(localStorage.getItem('gemini_sold_count') || '0', 10);
+      if (!isNaN(saved) && saved >= INITIAL_SOLD) {
+        soldCount = Math.min(MAX_FOMO_SLOTS, saved);
+      }
+    } catch(e) {}
 
     function renderFomoSlotsUI() {
+      if (soldCount < INITIAL_SOLD) soldCount = INITIAL_SOLD;
+      if (soldCount > MAX_FOMO_SLOTS) soldCount = MAX_FOMO_SLOTS;
+
+      const remainingSlots = Math.max(5, TARGET_SLOTS - soldCount);
+      const progressPercent = ((soldCount / TARGET_SLOTS) * 100).toFixed(1);
+
       const slotsEl = document.getElementById('fomoSlots');
+      const topSoldEl = document.getElementById('topSoldSlots');
       const heroSlotsEl = document.getElementById('heroRemainingSlots');
       const mobileSlotsEl = document.getElementById('mobileFomoSlots');
       const mirrorSlotsEl = document.getElementById('heroTopSlotsMirror');
+      const mirrorSoldEl = document.getElementById('heroMirrorSoldCount');
       const activatedEl = document.getElementById('heroActivatedCount');
+      const alertSoldEl = document.getElementById('alertBoxSoldCount');
+      const alertRemEl = document.getElementById('alertBoxRemainingSlots');
+      const redAlertSoldEl = document.getElementById('redAlertSoldCount');
+      const redAlertRemEl = document.getElementById('redAlertRemainingSlots');
       const progressBar = document.getElementById('heroProgressBar');
       const badgeEl = document.getElementById('heroRemainingBadge');
 
-      const activatedCount = 1500 - fomoSlots;
-      const progressPercent = ((activatedCount / 1500) * 100).toFixed(1);
+      if (slotsEl) slotsEl.innerText = `${remainingSlots} suất`;
+      if (topSoldEl) topSoldEl.innerText = `${soldCount}`;
+      if (heroSlotsEl) heroSlotsEl.innerText = `${remainingSlots} suất`;
+      if (mobileSlotsEl) mobileSlotsEl.innerText = `${remainingSlots} suất`;
+      if (mirrorSlotsEl) mirrorSlotsEl.innerText = `${remainingSlots} suất`;
+      if (mirrorSoldEl) mirrorSoldEl.innerText = `${soldCount}`;
+      if (alertSoldEl) alertSoldEl.innerText = `${soldCount}`;
+      if (alertRemEl) alertRemEl.innerText = `${remainingSlots} suất`;
+      if (redAlertSoldEl) redAlertSoldEl.innerText = `${soldCount}`;
+      if (redAlertRemEl) redAlertRemEl.innerText = `${remainingSlots}`;
 
-      if (slotsEl) slotsEl.innerText = `${fomoSlots} suất`;
-      if (heroSlotsEl) heroSlotsEl.innerText = `${fomoSlots} suất`;
-      if (mobileSlotsEl) mobileSlotsEl.innerText = `${fomoSlots} suất`;
-      if (mirrorSlotsEl) mirrorSlotsEl.innerText = `${fomoSlots} suất`;
       if (activatedEl) {
-        activatedEl.innerText = `${activatedCount.toLocaleString('vi-VN')}/1.500 tài khoản`;
+        activatedEl.innerText = `${soldCount}/200 đơn`;
       }
       if (progressBar) {
         progressBar.style.width = `${progressPercent}%`;
       }
-      if (badgeEl && fomoSlots <= 5) {
-        badgeEl.innerHTML = `⚠️ BÁO ĐỘNG ĐỎ: Chỉ còn <span id="heroRemainingSlots">${fomoSlots} suất</span> trợ giá cuối!`;
-        badgeEl.className = 'text-red-700 bg-red-100 px-2 py-0.5 rounded font-black animate-pulse border border-red-300';
+      if (badgeEl) {
+        badgeEl.innerHTML = `🔥 CHUẨN BỊ LÊN 129K: Còn <span id="heroRemainingSlots" class="underline font-black">${remainingSlots} suất</span> giá 90K!`;
+        badgeEl.className = 'text-red-950 bg-yellow-300 px-2.5 py-1 rounded-lg font-black animate-pulse border-2 border-red-500 shadow-xs';
       }
     }
 
-    function decreaseFomoSlot() {
-      if (fomoSlots > 3) {
-        fomoSlots--;
-        try { sessionStorage.setItem('gemini_fomo_slots', fomoSlots.toString()); } catch(e) {}
+    const vnLocations = ['Hà Nội', 'TP.HCM', 'Đà Nẵng', 'Hải Phòng', 'Cần Thơ', 'Bình Dương', 'Đồng Nai', 'Nha Trang', 'Quảng Ninh', 'Vũng Tàu', 'Huế'];
+
+    function incrementSoldCount(amount = 1) {
+      if (soldCount < MAX_FOMO_SLOTS) {
+        soldCount += amount;
+        try { localStorage.setItem('gemini_sold_count', soldCount.toString()); } catch(e) {}
         renderFomoSlotsUI();
 
-        // Hiệu ứng chớp nháy màu vàng giật giật tạo chú ý cho suất ưu đãi
+        // Cập nhật dòng nhật ký IP máy vừa kết nối
+        const activityText = document.getElementById('recentActivityText');
+        if (activityText) {
+          const loc = vnLocations[Math.floor(Math.random() * vnLocations.length)];
+          const ipPart = Math.floor(Math.random() * 200) + 15;
+          activityText.innerText = `Vừa có IP máy ${ipPart}.xxx (${loc}) kết nối & kích hoạt thành công đơn thứ ${soldCount}/200`;
+        }
+
+        // Hiệu ứng chớp nháy màu vàng giật giật tạo chú ý
         const slotsEl = document.getElementById('fomoSlots');
         if (slotsEl) {
           slotsEl.classList.add('scale-125', 'bg-red-500', 'text-white');
@@ -2421,7 +2575,33 @@
             slotsEl.classList.remove('scale-125', 'bg-red-500', 'text-white');
           }, 600);
         }
+
+        const actEl = document.getElementById('heroActivatedCount');
+        if (actEl) {
+          actEl.classList.add('text-red-600', 'scale-110');
+          setTimeout(() => {
+            actEl.classList.remove('text-red-600', 'scale-110');
+          }, 600);
+        }
       }
+    }
+
+    // Tự động kết nối server để lấy số lượng thực tế theo IP (tối đa 195 đơn)
+    function syncFomoStatsWithServer() {
+      try {
+        fetch('/api/fomo-stats')
+          .then(r => r.json())
+          .then(data => {
+            if (data && data.soldCount) {
+              const serverSold = Math.min(MAX_FOMO_SLOTS, Math.max(INITIAL_SOLD, data.soldCount));
+              if (serverSold > soldCount) {
+                soldCount = serverSold;
+                try { localStorage.setItem('gemini_sold_count', soldCount.toString()); } catch(e) {}
+                renderFomoSlotsUI();
+              }
+            }
+          }).catch(() => {});
+      } catch(e) {}
     }
 
     // 3. SỐ LƯỢNG NGƯỜI ĐANG XEM THỜI GIAN THỰC (BIẾN ĐỘNG TỰ NHIÊN)
@@ -2437,8 +2617,10 @@
 
     // KHỞI ĐỘNG CÁC ĐỘNG CƠ FOMO
     renderFomoSlotsUI();
+    syncFomoStatsWithServer();
     setInterval(updateLiveViewers, 4500);
-    setInterval(decreaseFomoSlot, 28000); // Giảm suất mỗi 28 giây
+    setInterval(incrementSoldCount, 25000); // Tự động tăng dần từ từ mỗi 25 giây
+    setInterval(syncFomoStatsWithServer, 15000); // Đồng bộ IP máy mới từ server mỗi 15 giây
     setInterval(showLiveBuyerNotification, 8500); // Popup khách mua mỗi 8.5s
     setTimeout(showLiveBuyerNotification, 2500); // Popup đầu tiên sau 2.5s khi vào web
   </script>
