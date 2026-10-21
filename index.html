@@ -2478,18 +2478,27 @@
       }
     }
 
-    // 2. BÁO ĐỘNG LÊN GIÁ (200 ĐƠN SẼ LÊN GIÁ 129K, FOMO CHẠY TỪ 150 LÊN 195 THÔI)
+    // 2. BÁO ĐỘNG LÊN GIÁ (LÚC ĐẦU 150/200 ĐƠN RỒI TĂNG TỪ TỪ LÊN TỐI ĐA 195)
     const TARGET_SLOTS = 200;      // Mốc lên giá: 200 đơn
     const MAX_FOMO_SLOTS = 195;    // FOMO chạy từ 150 lên tối đa 195 đơn
-    const INITIAL_SOLD = 150;      // Bắt đầu từ 150 đơn
+    const INITIAL_SOLD = 150;      // Luôn bắt đầu từ 150 đơn
     let soldCount = INITIAL_SOLD;
 
     try {
-      const saved = parseInt(localStorage.getItem('gemini_sold_count') || '0', 10);
-      if (!isNaN(saved) && saved >= INITIAL_SOLD) {
-        soldCount = Math.min(MAX_FOMO_SLOTS, saved);
+      // Xóa triệt để cache localStorage cũ từng bị kẹt ở mốc 195
+      localStorage.removeItem('gemini_sold_count');
+
+      // Trong cùng một phiên lướt web (sessionStorage), cho phép tăng từ từ từ 150 lên 195
+      const saved = parseInt(sessionStorage.getItem('gemini_sold_count') || '0', 10);
+      if (!isNaN(saved) && saved >= INITIAL_SOLD && saved <= MAX_FOMO_SLOTS) {
+        soldCount = saved;
+      } else {
+        soldCount = INITIAL_SOLD;
+        sessionStorage.setItem('gemini_sold_count', INITIAL_SOLD.toString());
       }
-    } catch(e) {}
+    } catch(e) {
+      soldCount = INITIAL_SOLD;
+    }
 
     function renderFomoSlotsUI() {
       if (soldCount < INITIAL_SOLD) soldCount = INITIAL_SOLD;
@@ -2539,8 +2548,8 @@
 
     function incrementSoldCount(amount = 1) {
       if (soldCount < MAX_FOMO_SLOTS) {
-        soldCount += amount;
-        try { localStorage.setItem('gemini_sold_count', soldCount.toString()); } catch(e) {}
+        soldCount = Math.min(MAX_FOMO_SLOTS, soldCount + amount);
+        try { sessionStorage.setItem('gemini_sold_count', soldCount.toString()); } catch(e) {}
         renderFomoSlotsUI();
 
         // Cập nhật dòng nhật ký IP máy vừa kết nối
@@ -2580,7 +2589,7 @@
               const serverSold = Math.min(MAX_FOMO_SLOTS, Math.max(INITIAL_SOLD, data.soldCount));
               if (serverSold > soldCount) {
                 soldCount = serverSold;
-                try { localStorage.setItem('gemini_sold_count', soldCount.toString()); } catch(e) {}
+                try { sessionStorage.setItem('gemini_sold_count', soldCount.toString()); } catch(e) {}
                 renderFomoSlotsUI();
               }
             }
@@ -2603,8 +2612,8 @@
     renderFomoSlotsUI();
     syncFomoStatsWithServer();
     setInterval(updateLiveViewers, 4500);
-    setInterval(incrementSoldCount, 25000); // Tự động tăng dần từ từ mỗi 25 giây
-    setInterval(syncFomoStatsWithServer, 15000); // Đồng bộ IP máy mới từ server mỗi 15 giây
+    setInterval(incrementSoldCount, 20000); // Tự động tăng dần từ từ mỗi 20 giây
+    setInterval(syncFomoStatsWithServer, 30000); // Đồng bộ IP máy mới từ server mỗi 30 giây
     setInterval(showLiveBuyerNotification, 8500); // Popup khách mua mỗi 8.5s
     setTimeout(showLiveBuyerNotification, 2500); // Popup đầu tiên sau 2.5s khi vào web
   </script>

@@ -255,55 +255,34 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             except Exception as e:
                 return self.send_json({"status": "error", "message": str(e), "is_authorized": False}, 500)
 
-        # 10. API: Báo động lên giá & Đếm số tài khoản đã bán theo IP (Mốc 200 đơn lên giá 129K, FOMO chạy từ 150 lên 195)
+        # 10. API: Báo động lên giá (Mốc 200 đơn lên giá 129K, FOMO chạy từ 150 lên 195)
         if path == "/api/fomo-stats" or path == "/api/sold-stats":
             client_ip = self.headers.get("X-Forwarded-For")
             if client_ip:
                 client_ip = client_ip.split(",")[0].strip()
             else:
                 client_ip = self.client_address[0]
-            
-            stats = read_json_file("sold_stats.json", {
+
+            # Khởi điểm đúng 150 đơn, cộng thêm số đơn thanh toán thật từ orders.json (tối đa 195)
+            orders = read_json_file("orders.json", [])
+            paid_count = len([o for o in orders if ("đã thanh toán" in (o.get("status") or "").lower() or "thành công" in (o.get("status") or "").lower())])
+            current_sold = min(195, max(150, 150 + paid_count))
+            remaining = max(5, 200 - current_sold)
+
+            # Đồng bộ lại sold_stats.json ở mốc chuẩn
+            write_json_file("sold_stats.json", {
                 "baseCount": 150,
                 "targetCount": 200,
                 "maxFomo": 195,
-                "currentSold": 150,
+                "currentSold": current_sold,
                 "currentPrice": "90.000đ",
-                "nextPrice": "129.000đ",
-                "visitors": {}
+                "nextPrice": "129.000đ"
             })
-            
-            if "visitors" not in stats or not isinstance(stats["visitors"], dict):
-                stats["visitors"] = {}
-            if "currentSold" not in stats:
-                stats["currentSold"] = 150
-            if stats["currentSold"] < 150:
-                stats["currentSold"] = 150
-            stats["targetCount"] = 200
-            stats["maxFomo"] = 195
 
-            now_ts = datetime.now().timestamp()
-            # Ghi nhận IP máy mới hoặc nếu cùng IP truy cập lại sau 40 giây thì tăng từ từ (tối đa chỉ chạm 195)
-            last_seen = stats["visitors"].get(client_ip, 0)
-            if client_ip not in stats["visitors"]:
-                stats["visitors"][client_ip] = now_ts
-                if stats["currentSold"] < 195:
-                    stats["currentSold"] += 1
-                write_json_file("sold_stats.json", stats)
-            elif (now_ts - last_seen) > 40:
-                stats["visitors"][client_ip] = now_ts
-                if stats["currentSold"] < 195:
-                    stats["currentSold"] += 1
-                write_json_file("sold_stats.json", stats)
-
-            if stats["currentSold"] > 195:
-                stats["currentSold"] = 195
-                write_json_file("sold_stats.json", stats)
-
-            remaining = max(5, 200 - stats["currentSold"])
             return self.send_json({
                 "status": "success",
-                "soldCount": stats["currentSold"],
+                "soldCount": current_sold,
+                "baseCount": 150,
                 "targetCount": 200,
                 "maxFomo": 195,
                 "remainingSlots": remaining,
