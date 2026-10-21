@@ -2624,20 +2624,34 @@
       } catch(e) {}
     }
 
-    function deleteSingleOrder(orderId) {
+    async function deleteSingleOrder(orderId) {
       if (confirm(`Bạn có chắc muốn xóa đơn hàng ${orderId}?`)) {
         let orders = getOrders().filter(o => o.orderId !== orderId);
         localStorage.setItem('crm_orders', JSON.stringify(orders));
         renderOrders();
-        showToast(`Đã xóa đơn hàng ${orderId}!`);
+        try {
+          await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', orderId: orderId })
+          });
+        } catch(e) {}
+        showToast(`✓ Đã xóa đơn hàng ${orderId}!`);
       }
     }
 
-    function clearAllOrders() {
+    async function clearAllOrders() {
       if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử đơn hàng trong bảng?')) {
         localStorage.setItem('crm_orders', JSON.stringify([]));
         renderOrders();
-        showToast('Đã xóa sạch toàn bộ lịch sử đơn hàng!');
+        try {
+          await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'clear' })
+          });
+        } catch(e) {}
+        showToast('✓ Đã xóa sạch toàn bộ lịch sử đơn hàng!');
       }
     }
 
@@ -4185,19 +4199,26 @@
       if (pinInput) pinInput.value = '';
     }
 
+    function renderDashboardStats() {
+      const orders = getOrders();
+      try { renderDailySalesStats(orders); } catch(e) {}
+    }
+
     async function syncOrdersFromBackend() {
       try {
         const res = await fetch('/api/orders');
         if (res.ok) {
           const serverOrders = await res.json();
-          if (Array.isArray(serverOrders) && serverOrders.length > 0) {
-            let localOrders = [];
-            try { localOrders = JSON.parse(localStorage.getItem('crm_orders') || '[]'); } catch(e) {}
-            const map = new Map();
-            serverOrders.forEach(o => map.set(o.orderId, o));
-            localOrders.forEach(o => { if (!map.has(o.orderId)) map.set(o.orderId, o); });
-            const merged = Array.from(map.values());
-            localStorage.setItem('crm_orders', JSON.stringify(merged));
+          if (Array.isArray(serverOrders)) {
+            if (serverOrders.length > 0) {
+              let localOrders = [];
+              try { localOrders = JSON.parse(localStorage.getItem('crm_orders') || '[]'); } catch(e) {}
+              const map = new Map();
+              serverOrders.forEach(o => map.set(o.orderId, o));
+              localOrders.forEach(o => { if (!map.has(o.orderId)) map.set(o.orderId, o); });
+              const merged = Array.from(map.values());
+              localStorage.setItem('crm_orders', JSON.stringify(merged));
+            }
             renderOrders();
             renderDashboardStats();
           }

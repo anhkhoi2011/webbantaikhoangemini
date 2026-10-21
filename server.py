@@ -512,8 +512,20 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             write_json_file("bank_transactions.json", [])
             return self.send_json({"status": "success", "message": "Transactions cleared"})
 
-        # 3. API: Lưu đơn hàng mới & Tự động bắn thông báo Telegram
+        # 3. API: Lưu đơn hàng mới / Xóa đơn & Tự động bắn thông báo Telegram
         if path == "/api/orders":
+            action = str(body.get("action") or "").strip().lower()
+            if action == "delete":
+                del_id = str(body.get("orderId") or "").strip()
+                orders = read_json_file("orders.json", [])
+                orders = [o for o in orders if o.get("orderId") != del_id]
+                write_json_file("orders.json", orders)
+                return self.send_json({"status": "success", "orders": orders})
+
+            if action == "clear":
+                write_json_file("orders.json", [])
+                return self.send_json({"status": "success", "orders": []})
+
             orders = read_json_file("orders.json", [])
             order_id = body.get("orderId", f"#GEM-{int(datetime.now().timestamp()) % 10000:04d}")
             body["orderId"] = order_id
