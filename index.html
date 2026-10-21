@@ -2419,6 +2419,7 @@
         utmSource: (typeof visitorData !== 'undefined' && visitorData && visitorData.utmSource) ? visitorData.utmSource : '',
         utmCampaign: (typeof visitorData !== 'undefined' && visitorData && visitorData.utmCampaign) ? visitorData.utmCampaign : '',
         isFromAd: (typeof visitorData !== 'undefined' && visitorData && visitorData.isFromAd) ? visitorData.isFromAd : false,
+        paidNotified: true,
         licenseLink: licenseLink,
         status: hasRealLink ? 'Đã thanh toán (MBBank)' : 'Đã thanh toán (Chờ cấp link)',
         paymentTxId: (txData && txData.id) ? txData.id : ('APIPAY-' + Math.floor(100000 + Math.random() * 900000)),
