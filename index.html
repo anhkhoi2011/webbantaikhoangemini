@@ -235,6 +235,24 @@
       40%, 80% { transform: translateX(4px); }
     }
     .shake-error { animation: urgentShake 0.4s ease-in-out; }
+    @keyframes formHighlightPulse {
+      0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.75); transform: scale(1); }
+      30% { box-shadow: 0 0 0 16px rgba(225, 29, 72, 0.2); transform: scale(1.018); }
+      60% { box-shadow: 0 0 0 24px rgba(225, 29, 72, 0); transform: scale(1); }
+      100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); transform: scale(1); }
+    }
+    .form-highlight-active {
+      animation: formHighlightPulse 1.2s ease-in-out 3 !important;
+      border: 3px solid #e11d48 !important;
+      outline: 4px solid #fecdd3 !important;
+      box-shadow: 0 0 45px rgba(225, 29, 72, 0.45) !important;
+      background: linear-gradient(to bottom, #fffdf2, #fff1f2) !important;
+    }
+    .input-focus-glow {
+      border-color: #2563eb !important;
+      box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.35) !important;
+      background-color: #fefce8 !important;
+    }
     @media (max-width: 1023px) {
       body { padding-bottom: 76px; }
     }
@@ -254,7 +272,7 @@
       <span class="hidden sm:inline text-white/90">Kết thúc sau:</span>
       <span id="topTimer" class="font-mono bg-slate-950/80 px-2 py-0.5 rounded-md text-yellow-300 font-extrabold tracking-wider border border-yellow-400/50 shadow-inner">14:20</span>
     </span>
-    <button type="button" onclick="scrollToOrderForm()" class="hidden lg:inline-flex items-center gap-1 bg-yellow-300 hover:bg-yellow-200 text-red-950 text-[11px] font-black px-2.5 py-0.5 rounded-full shadow transition cursor-pointer">
+    <button type="button" onclick="handleCtaClick('top_bar')" class="hidden sm:inline-flex items-center gap-1 bg-yellow-300 hover:bg-yellow-200 text-red-950 text-[11px] font-black px-2.5 py-0.5 rounded-full shadow transition cursor-pointer active:scale-95">
       <span>Giữ suất ngay</span>
       <span>→</span>
     </button>
@@ -313,6 +331,20 @@
         Mở khóa trọn bộ đặc quyền cao cấp nhất của Google trên chính Gmail của bạn: <strong>Gemini 4 Argon</strong> (Frontier Reasoning), <strong>Gemini 3.8 Flash</strong>, <strong>Bộ nhớ 5 TB²</strong>, <strong>Google Antigravity IDE</strong>, <strong>Nano Banana Pro</strong> và <strong>Colab</strong>.
       </p>
 
+      <!-- KHỐI NÚT KÊU GỌI HÀNH ĐỘNG ĐẦU TRANG (TỐI ƯU ĐẶC BIỆT CHO ĐIỆN THOẠI) -->
+      <div class="pt-2 pb-1 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 max-w-lg mx-auto w-full px-1">
+        <button type="button" onclick="handleCtaClick('hero_top_main_cta')" class="cta-glow-pulse w-full sm:w-auto flex-1 py-3.5 px-5 rounded-2xl font-black text-sm sm:text-base text-white bg-gradient-to-r from-red-600 via-rose-600 to-orange-500 hover:from-red-700 hover:to-orange-600 active:scale-[0.98] transition shadow-xl flex items-center justify-center gap-2 cursor-pointer border-2 border-yellow-300">
+          <span class="animate-pulse text-base">🔥</span>
+          <span>GIỮ SUẤT NGAY - CHỈ 90.000đ</span>
+          <span class="bg-yellow-300 text-red-950 text-[11px] px-2 py-0.5 rounded-md font-black shadow-2xs">TIẾT KIỆM 99%</span>
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <a href="https://zalo.me/0567960777" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto py-3 px-4 rounded-2xl font-bold text-xs sm:text-sm text-blue-800 bg-white hover:bg-blue-50 border-2 border-blue-200 flex items-center justify-center gap-1.5 transition shadow-xs cursor-pointer shrink-0">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>💬 Zalo 24/7: 0567.960.777</span>
+        </a>
+      </div>
+
       <!-- Thanh Live Social Proof & FOMO Bar ngay dưới tiêu đề -->
       <div class="max-w-3xl mx-auto bg-gradient-to-r from-amber-50 via-red-50 to-orange-50 border border-red-200/90 rounded-2xl p-2.5 sm:px-4 sm:py-2.5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs shadow-xs">
         <div class="flex items-center gap-2 font-bold text-slate-800">
@@ -322,9 +354,15 @@
           </span>
           <span>Đang có <strong id="heroViewerMirror" class="text-red-600 font-mono underline">38 người</strong> cùng xem ưu đãi này</span>
         </div>
-        <div class="text-[11px] sm:text-xs font-black text-red-700 bg-white px-3 py-1.5 rounded-xl border-2 border-red-400 shadow-sm flex items-center gap-1.5 flex-wrap">
-          <span class="bg-red-600 text-yellow-300 px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-black uppercase animate-pulse">🔥 CHUẨN BỊ LÊN GIÁ 129K</span>
-          <span>Giới hạn 200 đơn (Đã bán <span id="heroMirrorSoldCount" class="font-mono font-black text-red-600">150</span>/200) • Còn <span id="heroTopSlotsMirror" class="underline font-black text-red-600">50 suất</span> giá 90K cuối cùng!</span>
+        <div class="text-[11px] sm:text-xs font-black text-red-700 bg-white px-3 py-1.5 rounded-xl border-2 border-red-400 shadow-sm flex items-center justify-between gap-2 flex-wrap w-full sm:w-auto">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="bg-red-600 text-yellow-300 px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-black uppercase animate-pulse">🔥 CHUẨN BỊ LÊN GIÁ 129K</span>
+            <span>Giới hạn 200 đơn • Còn <span id="heroTopSlotsMirror" class="underline font-black text-red-600">50 suất</span> giá 90K!</span>
+          </div>
+          <button type="button" onclick="handleCtaClick('hero_fomo_strip_cta')" class="ml-auto bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white px-3 py-1 rounded-lg text-[11px] font-black shadow-xs transition cursor-pointer flex items-center gap-1 active:scale-95">
+            <span>Giữ suất ngay</span>
+            <span>↓</span>
+          </button>
         </div>
       </div>
     </div>
@@ -360,9 +398,10 @@
                 </span>
                 <span class="text-[11px] font-semibold text-slate-400 hidden sm:inline">(~8.802.000đ / 18 tháng)</span>
               </div>
-              <div class="badge-fomo-pulse bg-gradient-to-r from-red-600 to-orange-600 text-white text-[11px] sm:text-xs font-black px-3 py-1 rounded-full shadow-md w-fit">
-                GIẢM SỐC 99% (Tiết kiệm 8.712.000đ)
-              </div>
+              <button type="button" onclick="handleCtaClick('badge_giam_soc_99')" class="badge-fomo-pulse bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 active:scale-95 text-white text-[11px] sm:text-xs font-black px-3.5 py-1.5 rounded-full shadow-md w-fit cursor-pointer flex items-center gap-1.5 border border-yellow-300/40 transition">
+                <span>GIẢM SỐC 99% (Tiết kiệm 8.712.000đ)</span>
+                <span class="bg-yellow-300 text-red-950 text-[10px] px-1.5 py-0.5 rounded-md font-black shadow-2xs">👉 BẤM GIỮ SUẤT</span>
+              </button>
             </div>
 
             <div class="pt-0.5 flex items-center justify-between flex-wrap gap-2.5">
@@ -400,6 +439,16 @@
                 </span>
               </div>
             </div>
+
+            <!-- NÚT BẤM GIỮ SUẤT NGAY 90K BÊN TRONG BẢNG GIÁ (TỐI ƯU ĐẶC BIỆT CHO ĐIỆN THOẠI) -->
+            <div class="pt-2">
+              <button type="button" onclick="handleCtaClick('pricing_card_main_cta')" class="cta-glow-pulse w-full py-3.5 px-4 rounded-2xl font-black text-sm sm:text-base text-white bg-gradient-to-r from-red-600 via-rose-600 to-orange-500 hover:from-red-700 hover:to-orange-600 active:scale-[0.98] transition shadow-xl flex items-center justify-center gap-2 cursor-pointer border-2 border-yellow-300">
+                <span class="animate-pulse">🔥</span>
+                <span>GIỮ SUẤT NGAY - CHỈ 90.000đ (BẤM ĐĂNG KÝ)</span>
+                <span class="bg-yellow-300 text-red-950 text-[11px] px-2 py-0.5 rounded-md font-black shadow-2xs">CÒN <span id="cardBtnSlots">50</span> SUẤT</span>
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+            </div>
           </div>
 
           <!-- HỘP BÁO ĐỘNG LÊN GIÁ KHI BÁN ĐỦ 200 ĐƠN (BỰ & NỔI TRỘI FOMO CỰC MẠNH) -->
@@ -435,9 +484,10 @@
                   <strong id="alertBoxSoldCount" class="font-mono text-lg sm:text-xl text-yellow-300 font-black underline">150</strong>
                   <span class="text-white/80">/ 200 đơn</span>
                 </div>
-                <div class="bg-yellow-300 text-red-950 px-3.5 py-1.5 rounded-xl font-black text-xs sm:text-sm shadow-md animate-pulse">
-                  ⚡ CHỈ CÒN ĐÚNG <span id="alertBoxRemainingSlots" class="text-base font-black underline">50 SUẤT</span> GIÁ 90.000đ!
-                </div>
+                <button type="button" onclick="handleCtaClick('warning_box_cta')" class="bg-yellow-300 hover:bg-yellow-200 active:scale-95 text-red-950 px-3.5 py-1.5 rounded-xl font-black text-xs sm:text-sm shadow-md animate-pulse cursor-pointer border border-yellow-400 flex items-center gap-1.5 transition">
+                  <span>⚡ CHỈ CÒN ĐÚNG <span id="alertBoxRemainingSlots" class="text-base font-black underline">50 SUẤT</span> GIÁ 90.000đ!</span>
+                  <span class="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded font-black">👉 Giữ suất</span>
+                </button>
               </div>
             </div>
           </div>
@@ -479,8 +529,17 @@
       </div>
 
       <!-- CỘT PHẢI: FORM ĐĂNG KÝ MUA SIÊU DỄ DÙNG -->
-      <div class="lg:col-span-5 p-4 sm:p-7 md:p-8 bg-gradient-to-b from-slate-50 to-blue-50/30 flex flex-col justify-between">
+      <div id="orderFormCard" class="lg:col-span-5 p-4 sm:p-7 md:p-8 bg-gradient-to-b from-slate-50 to-blue-50/30 flex flex-col justify-between transition-all duration-500 rounded-b-3xl lg:rounded-b-none lg:rounded-r-3xl">
         <div class="space-y-4">
+          <!-- Banner làm nổi khi bấm các nút Giữ suất -->
+          <div id="formHighlightBanner" class="hidden p-3 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-orange-500 text-white font-black text-xs sm:text-sm shadow-xl flex items-center justify-between gap-2 border-2 border-yellow-300 animate-bounce">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">🔥</span>
+              <span>BẠN ĐÃ ĐƯỢC GIỮ SUẤT 90.000đ! VUI LÒNG ĐIỀN 3 THÔNG TIN:</span>
+            </div>
+            <span class="bg-yellow-300 text-red-950 text-[10px] px-2 py-0.5 rounded-md font-black shrink-0">ƯU ĐÃI 18T</span>
+          </div>
+
           <div class="border-b border-slate-200 pb-3">
             <div class="flex items-center justify-between flex-wrap gap-2">
               <span class="text-[11px] sm:text-xs font-extrabold text-blue-700 uppercase tracking-wide">⚡ Giữ Suất Trợ Giá 90.000đ</span>
@@ -1419,15 +1478,56 @@
       if (box) box.classList.add('hidden');
     }
 
-    function scrollToOrderForm() {
-      const section = document.getElementById('orderFormSection');
-      if (section) {
-        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // XỬ LÝ SỰ KIỆN KHI BẤM NÚT GIỮ SUẤT NGAY / CTA
+    function handleCtaClick(source = 'general_cta') {
+      // 1. Gán và bắn Meta Pixel Event 'InitiateCheckout' (chuẩn quảng cáo Facebook)
+      try {
+        trackPixelEvent('InitiateCheckout', {
+          content_name: 'Bấm nút Giữ Suất Ngay (Landing Page)',
+          content_category: 'Google Gemini Pro 18 Tháng',
+          button_source: source,
+          value: 90000,
+          currency: 'VND'
+        });
+      } catch(e) {}
+
+      // 2. Cuộn mượt màn hình tới ngay Form đăng ký (đặc biệt chuẩn xác trên điện thoại)
+      const formCard = document.getElementById('orderFormCard') || document.getElementById('orderForm') || document.getElementById('orderFormSection');
+      if (formCard) {
+        formCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
+
+      // 3. Làm nổi bật Form đăng ký (Hiệu ứng phát sáng Glowing Pulse + Banner nhắc nhở)
+      if (formCard) {
+        formCard.classList.remove('form-highlight-active');
+        void formCard.offsetWidth; // Force re-flow để trigger lại animation nếu bấm nhiều lần
+        formCard.classList.add('form-highlight-active');
+      }
+
+      const banner = document.getElementById('formHighlightBanner');
+      if (banner) {
+        banner.classList.remove('hidden');
+      }
+
       setTimeout(() => {
-        const nameEl = document.getElementById('custName');
-        if (nameEl) nameEl.focus();
-      }, 450);
+        const nameInput = document.getElementById('custName');
+        if (nameInput) {
+          nameInput.focus();
+          nameInput.classList.add('input-focus-glow');
+          setTimeout(() => {
+            nameInput.classList.remove('input-focus-glow');
+          }, 3500);
+        }
+      }, 400);
+
+      // Tự động thu gọn hiệu ứng sau 6 giây
+      setTimeout(() => {
+        if (formCard) formCard.classList.remove('form-highlight-active');
+      }, 6000);
+    }
+
+    function scrollToOrderForm() {
+      handleCtaClick('scroll_to_form');
     }
 
     function appendGmailDomain() {
@@ -2832,6 +2932,9 @@
       const redAlertRemEl = document.getElementById('redAlertRemainingSlots');
       const progressBar = document.getElementById('heroProgressBar');
       const badgeEl = document.getElementById('heroRemainingBadge');
+
+      const cardBtnSlotsEl = document.getElementById('cardBtnSlots');
+      if (cardBtnSlotsEl) cardBtnSlotsEl.innerText = `${remainingSlots}`;
 
       if (slotsEl) slotsEl.innerText = `${remainingSlots} suất`;
       if (topSoldEl) topSoldEl.innerText = `${soldCount}`;
