@@ -25,7 +25,7 @@ const BOT_CONFIG = {
   TELEGRAM_CHAT_ID: "-1004413665683", 
 
   // Tên thương hiệu hiển thị trong email:
-  BRAND_NAME: "Google Gemini Pro Enterprise Vietnam",
+  BRAND_NAME: "TRẠM CÔNG NGHỆ - Gemini Pro",
   HOTLINE: "0567.960.777",
   ZALO_SUPPORT: "https://zalo.me/0567960777"
 };
