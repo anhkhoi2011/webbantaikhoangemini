@@ -1136,7 +1136,8 @@
             <span>Mã Đơn Hàng:</span>
             <span id="finalOrderId" class="font-mono font-black text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-300">#8291</span>
           </div>
-          <h3 id="successTitleText" class="text-xl sm:text-2xl font-black text-slate-900">Xác Nhận Thanh Toán 90.000đ Thành Công!</h3>
+          <h3 id="successTitleText" class="text-xl sm:text-2xl font-black text-slate-900">Xác Nhận Thanh Toán <span id="successPaymentAmountText">90.000đ</span> Thành Công!</h3>
+          <div id="successCouponNotice" class="hidden mt-1 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-xs font-bold"></div>
           <p id="successSubText" class="text-xs font-bold text-emerald-700">Gói Google Gemini Pro 18 Tháng + 5TB Cloud chính chủ.</p>
         </div>
 
@@ -1272,7 +1273,7 @@
                   Admin sẽ gửi link tới Zalo hoặc Gmail bạn trong ít phút!
                 </h4>
                 <p class="text-xs text-slate-600 font-medium mt-0.5">
-                  Đơn hàng 90.000đ của bạn đã được hệ thống ghi nhận thành công 100%
+                  Đơn hàng <span id="pendingSuccessAmt" class="font-extrabold text-slate-900">90.000đ</span> của bạn đã được hệ thống ghi nhận thành công 100%
                 </p>
               </div>
             </div>
@@ -1283,7 +1284,7 @@
                 <span>Đã nhận thanh toán • Kỹ thuật viên đang kích hoạt link bản quyền</span>
               </div>
               <p class="text-slate-700 text-xs sm:text-sm font-semibold">
-                Do số lượng khách đăng ký khuyến mãi 90K rất đông, <strong class="text-blue-700 font-black">Admin sẽ gửi link kích hoạt tới Zalo hoặc Gmail của bạn trong ít phút!</strong>
+                Do số lượng khách đăng ký kích hoạt rất đông, <strong class="text-blue-700 font-black">Admin sẽ gửi link kích hoạt tới Zalo hoặc Gmail của bạn trong ít phút!</strong>
               </p>
             </div>
 
@@ -2615,11 +2616,47 @@
       }
 
       // 2. Điền thông tin an toàn (tránh lỗi null)
+      if ((!currentOrder || !currentOrder.amount || !currentOrder.orderId) && localStorage.getItem('crm_pending_order')) {
+        try {
+          const pending = JSON.parse(localStorage.getItem('crm_pending_order'));
+          if (pending && typeof pending === 'object') {
+            currentOrder = Object.assign({}, pending, currentOrder || {});
+          }
+        } catch(e) {}
+      }
       const custEmail = (currentOrder && currentOrder.email) ? currentOrder.email : '';
       const custPhone = (currentOrder && currentOrder.phone) ? currentOrder.phone : '';
       const custName = (currentOrder && currentOrder.name) ? currentOrder.name : 'Quý khách';
       const custOrderId = (currentOrder && currentOrder.orderId) ? currentOrder.orderId : ('#' + Math.floor(1000 + Math.random() * 9000));
       const custMemo = (currentOrder && currentOrder.memo) ? currentOrder.memo : `PRO18T ${custPhone}`;
+
+      // Xác định số tiền thực tế khách thanh toán (hỗ trợ mã giảm giá 69k hoặc các mức khác)
+      let finalAmtStr = '90.000đ';
+      let finalAmtRaw = 90000;
+
+      if (currentOrder && currentOrder.amount) {
+        finalAmtStr = currentOrder.amount;
+        finalAmtRaw = currentOrder.amountRaw || 90000;
+      } else if (typeof currentOrderAmount !== 'undefined' && currentOrderAmount) {
+        finalAmtRaw = currentOrderAmount;
+        finalAmtStr = `${finalAmtRaw.toLocaleString('vi-VN')}đ`;
+      }
+
+      // Nếu có txData từ ngân hàng MBBank/APIPay
+      if (txData && txData.amount) {
+        const txAmt = Number(txData.amount);
+        if (txAmt > 0) {
+          finalAmtRaw = txAmt;
+          finalAmtStr = `${finalAmtRaw.toLocaleString('vi-VN')}đ`;
+          if (currentOrder) {
+            currentOrder.amount = finalAmtStr;
+            currentOrder.amountRaw = finalAmtRaw;
+          }
+        }
+      }
+
+      const couponCode = (currentOrder && currentOrder.couponCode) ? currentOrder.couponCode : (typeof appliedCoupon !== 'undefined' && appliedCoupon ? appliedCoupon.code : '');
+      const discountAmt = (currentOrder && currentOrder.discountAmount) ? currentOrder.discountAmount : (typeof appliedCoupon !== 'undefined' && appliedCoupon ? appliedCoupon.discountAmount : 0);
 
       const finalEmailEl = document.getElementById('finalEmail');
       if (finalEmailEl) finalEmailEl.innerText = custEmail;
@@ -2629,6 +2666,33 @@
 
       const finalOrderIdEl = document.getElementById('finalOrderId');
       if (finalOrderIdEl) finalOrderIdEl.innerText = custOrderId;
+
+      // Cập nhật tiêu đề xác nhận đúng số tiền khách thanh toán
+      const successTitleText = document.getElementById('successTitleText');
+      if (successTitleText) {
+        successTitleText.innerText = `Xác Nhận Thanh Toán ${finalAmtStr} Thành Công!`;
+      }
+      const successPaymentAmountText = document.getElementById('successPaymentAmountText');
+      if (successPaymentAmountText) {
+        successPaymentAmountText.innerText = finalAmtStr;
+      }
+      const pendingSuccessAmt = document.getElementById('pendingSuccessAmt');
+      if (pendingSuccessAmt) {
+        pendingSuccessAmt.innerText = finalAmtStr;
+      }
+      const pendingOrderAmtNotice = document.getElementById('pendingOrderAmtNotice');
+      if (pendingOrderAmtNotice) {
+        pendingOrderAmtNotice.innerHTML = `Đơn hàng <strong class="text-slate-900 font-extrabold">${finalAmtStr}</strong> của bạn đã được hệ thống ghi nhận thành công 100%`;
+      }
+      const successCouponNotice = document.getElementById('successCouponNotice');
+      if (successCouponNotice) {
+        if (couponCode) {
+          successCouponNotice.innerText = `🏷️ Đã áp mã voucher: ${couponCode} (-${Number(discountAmt).toLocaleString('vi-VN')}đ)`;
+          successCouponNotice.classList.remove('hidden');
+        } else {
+          successCouponNotice.classList.add('hidden');
+        }
+      }
 
       // 3. Nhận license từ kho server tập trung (FIFO + TỰ MUA từ bot nếu hết kho)
       let claimResult = null;
@@ -2695,15 +2759,12 @@
 
         const pendingZaloBtn = document.getElementById('btnClaimViaZalo');
         if (pendingZaloBtn) {
-          const zaloMsg = encodeURIComponent(`Chào shop, mình vừa thanh toán ${order.amount || '90.000đ'} đơn hàng ${custOrderId} (SĐT: ${custPhone}, Gmail: ${custEmail}). Gửi giúp mình link kích hoạt Gemini Pro 18 Tháng nhé!`);
+          const zaloMsg = encodeURIComponent(`Chào shop, mình vừa thanh toán ${finalAmtStr} đơn hàng ${custOrderId} (SĐT: ${custPhone}, Gmail: ${custEmail}). Gửi giúp mình link kích hoạt Gemini Pro 18 Tháng nhé!`);
           pendingZaloBtn.href = `https://zalo.me/0567960777?text=${zaloMsg}`;
         }
       }
 
-      const finalAmtStr = (currentOrder && currentOrder.amount) ? currentOrder.amount : '90.000đ';
-      const finalAmtRaw = (currentOrder && currentOrder.amountRaw) ? currentOrder.amountRaw : 90000;
-      const couponCode = (currentOrder && currentOrder.couponCode) ? currentOrder.couponCode : '';
-      const discountAmt = (currentOrder && currentOrder.discountAmount) ? currentOrder.discountAmount : 0;
+      // finalAmtStr, finalAmtRaw, couponCode, discountAmt đã được khởi tạo và cập nhật ở trên
 
       // Bắn sự kiện Meta Pixel: Purchase (Thanh toán thành công)
       trackPixelEvent('Purchase', {

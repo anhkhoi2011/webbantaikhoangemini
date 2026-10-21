@@ -1,10 +1,10 @@
 {
-  "totalVisits": 3,
-  "todayVisits": 3,
+  "totalVisits": 4,
+  "todayVisits": 4,
   "lastDate": "22/10/2026",
   "devices": {
     "mobile": 2,
-    "desktop": 1,
+    "desktop": 2,
     "other": 0
   },
   "sources": {
@@ -12,10 +12,20 @@
     "tiktok": 0,
     "google": 1,
     "zalo": 0,
-    "direct": 1,
+    "direct": 2,
     "other": 0
   },
   "visits": [
+    {
+      "time": "02:09:28 22/10/2026",
+      "ip": "42.118.137.52",
+      "location": "Ho Chi Minh City, Viet Nam",
+      "device": "Máy tính",
+      "browser": "Google Chrome",
+      "referrer": "Truy cập trực tiếp",
+      "fullUrl": "https://geminigiare.io.vn/",
+      "rawReferrer": "(Trực tiếp / Bookmark)"
+    },
     {
       "time": "01:36:43 22/10/2026",
       "ip": "171.244.30.22",

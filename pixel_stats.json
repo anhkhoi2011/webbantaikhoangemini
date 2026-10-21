@@ -3,13 +3,80 @@
   "enabled": true,
   "stats": {
     "PageView": 158,
-    "ViewContent": 146,
-    "Lead": 49,
-    "InitiateCheckout": 48,
+    "ViewContent": 147,
+    "Lead": 51,
+    "InitiateCheckout": 50,
     "Purchase": 24,
-    "totalEvents": 425
+    "totalEvents": 430
   },
   "recentEvents": [
+    {
+      "event": "Lead",
+      "time": "02:10:30 22/10/2026",
+      "url": "https://geminigiare.io.vn/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Đăng Ký Gemini Pro 18T",
+        "value": 69000,
+        "currency": "VND"
+      }
+    },
+    {
+      "event": "InitiateCheckout",
+      "time": "02:10:30 22/10/2026",
+      "url": "https://geminigiare.io.vn/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Google Gemini Pro 18 Tháng",
+        "value": 69000,
+        "currency": "VND",
+        "num_items": 1
+      }
+    },
+    {
+      "event": "InitiateCheckout",
+      "time": "02:10:01 22/10/2026",
+      "url": "https://geminigiare.io.vn/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Google Gemini Pro 18 Tháng",
+        "value": 90000,
+        "currency": "VND",
+        "num_items": 1
+      }
+    },
+    {
+      "event": "Lead",
+      "time": "02:10:01 22/10/2026",
+      "url": "https://geminigiare.io.vn/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Đăng Ký Gemini Pro 18T",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
+    {
+      "event": "ViewContent",
+      "time": "02:09:28 22/10/2026",
+      "url": "https://geminigiare.io.vn/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Google Gemini Pro 18 Tháng",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
     {
       "event": "InitiateCheckout",
       "time": "01:07:18 22/10/2026",
@@ -231,5 +298,5 @@
       "params": {}
     }
   ],
-  "updatedAt": "22/10/2026 01:07:19"
+  "updatedAt": "22/10/2026 02:10:30"
 }

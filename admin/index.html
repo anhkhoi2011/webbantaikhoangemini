@@ -3956,7 +3956,16 @@
       if (cardOrders) cardOrders.innerText = `${todayOrders} đơn`;
 
       const cardRev = document.getElementById('todayCardRevenue');
-      if (cardRev) cardRev.innerHTML = `Doanh thu: <strong>${(todayOrders * 90000).toLocaleString('vi-VN')}đ</strong>`;
+      const todayOrdersList = orders.filter(o => o.time && (o.time.includes(todayDateStr) || o.time.includes('Vừa xong')));
+      const todayRevVal = todayOrdersList.reduce((sum, o) => {
+        let val = 0;
+        if (typeof o.amountRaw === 'number') val = o.amountRaw;
+        else if (typeof o.amount === 'number') val = o.amount;
+        else if (typeof o.amount === 'string') val = parseInt(o.amount.replace(/[^0-9]/g, '')) || 0;
+        if (val === 0) val = 90000;
+        return sum + val;
+      }, 0);
+      if (cardRev) cardRev.innerHTML = `Doanh thu: <strong>${todayRevVal.toLocaleString('vi-VN')}đ</strong>`;
 
       const todayCR = todayVisits > 0 ? ((todayOrders / todayVisits) * 100).toFixed(1) : '0.0';
       const cardCR = document.getElementById('todayCardCR');
@@ -5178,7 +5187,16 @@
       const todayVisits = (serverVisitsData && typeof serverVisitsData.todayVisits === 'number') ? Math.max(serverVisitsData.todayVisits, localTodayVisits) : localTodayVisits;
       const totalVisits = (serverVisitsData && typeof serverVisitsData.totalVisits === 'number') ? Math.max(serverVisitsData.totalVisits, visits.length) : visits.length;
       const todayOrders = orders.filter(o => o.time && (o.time.includes(todayDateStr) || o.time.includes('Vừa xong'))).length;
-      const todayRevenue = (todayOrders * 90000).toLocaleString('vi-VN') + ' VNĐ';
+      const todayOrdersList = orders.filter(o => o.time && (o.time.includes(todayDateStr) || o.time.includes('Vừa xong')));
+      const todayRevenueVal = todayOrdersList.reduce((sum, o) => {
+        let val = 0;
+        if (typeof o.amountRaw === 'number') val = o.amountRaw;
+        else if (typeof o.amount === 'number') val = o.amount;
+        else if (typeof o.amount === 'string') val = parseInt(o.amount.replace(/[^0-9]/g, '')) || 0;
+        if (val === 0) val = 90000;
+        return sum + val;
+      }, 0);
+      const todayRevenue = todayRevenueVal.toLocaleString('vi-VN') + ' VNĐ';
       const conversionRate = todayVisits > 0 ? ((todayOrders / todayVisits) * 100).toFixed(1) + '%' : '0.0%';
 
       const msg = `📊 <b>BÁO CÁO NGÀY (${todayDateStr})</b>\n` +
