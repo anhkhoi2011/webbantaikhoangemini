@@ -2,10 +2,10 @@
   "baseCount": 150,
   "targetCount": 200,
   "maxFomo": 195,
-  "currentSold": 151,
+  "currentSold": 170,
   "currentPrice": "90.000đ",
   "nextPrice": "129.000đ",
   "visitors": {
-    "127.0.0.1": 1792565088.19071
+    "127.0.0.1": 1792566160.425333
   }
 }
