@@ -404,7 +404,8 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 try:
                     import apipay_bridge
                     res = apipay_bridge.check_payment_status(public_id)
-                    if res.get("paid"):
+                    paid_amount = parse_money(res.get("amount") or (res.get("transaction") or {}).get("amount"), 0)
+                    if res.get("paid") and (not expected_amount or not paid_amount or paid_amount >= expected_amount):
                         updated_order = mark_order_paid(order_id, public_id, res.get("transaction"), "APIPay Cloud PR")
                         return self.send_json({
                             "paid": True,
@@ -420,7 +421,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             if clean_phone or clean_memo:
                 try:
                     import apipay_bridge
-                    res = apipay_bridge.check_recent_payment_requests(memo, phone)
+                    res = apipay_bridge.check_recent_payment_requests(memo, phone, expected_amount or parse_money(query.get("amount", [0])[0], 0))
                     if res.get("paid"):
                         pr_tx = res.get("transaction") or {}
                         pr_pub = pr_tx.get("publicId") or public_id
@@ -1413,7 +1414,9 @@ def run():
         while True:
             try:
                 import apipay_bridge
-                apipay_bridge.sync_apipay_webhook_url("https://imposed-eligibility-ana-dirt.trycloudflare.com/api/webhook")
+                public_webhook = os.environ.get("PUBLIC_WEBHOOK_URL", "").strip()
+                if public_webhook:
+                    apipay_bridge.sync_apipay_webhook_url(public_webhook.rstrip("/") + "/api/webhook")
             except Exception:
                 pass
             time.sleep(300)

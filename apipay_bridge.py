@@ -143,7 +143,13 @@ def check_recent_payment_requests(memo=None, phone=None, amount=None):
         now_utc = datetime.now(timezone.utc)
         with urllib.request.urlopen(req, context=ctx, timeout=8) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-            prs = data.get("data", {}).get("data", [])
+            payload = data.get("data", {})
+            if isinstance(payload, dict):
+                prs = payload.get("data", payload.get("items", []))
+            elif isinstance(payload, list):
+                prs = payload
+            else:
+                prs = []
             for pr in prs:
                 st = (pr.get("status") or "").upper()
                 is_paid = st in ["PAID", "COMPLETED", "SUCCESS"]
@@ -154,12 +160,18 @@ def check_recent_payment_requests(memo=None, phone=None, amount=None):
                         try:
                             created_dt = datetime.fromisoformat(created_at_str.replace("Z", "+00:00"))
                             diff_sec = (now_utc - created_dt).total_seconds()
-                            if diff_sec > 1200:
+                            if diff_sec > 24 * 60 * 60:
                                 continue
                         except Exception:
                             pass
 
                     content = (pr.get("content") or "").replace(" ", "").upper()
+                    try:
+                        pr_amount = int(float(str(pr.get("amount") or 0).replace(",", "")))
+                    except Exception:
+                        pr_amount = 0
+                    if amount and pr_amount and pr_amount < int(amount):
+                        continue
                     # Khớp theo memo hoặc phone
                     if (clean_phone and len(clean_phone) >= 9 and clean_phone in content) or (clean_memo and clean_memo in content):
                         return {
@@ -193,12 +205,14 @@ def get_qr_base64(memo="PRO18T", amount=None):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-def sync_apipay_webhook_url(target_url="https://imposed-eligibility-ana-dirt.trycloudflare.com/api/webhook"):
+def sync_apipay_webhook_url(target_url=None):
     """
     Tự động đồng bộ URL Webhook trên ApiPay Cloud.
     Đảm bảo Webhook của ApiPay luôn gửi về đúng backend server đang chạy (không bị chết link).
     """
     try:
+        if not target_url:
+            return {"status": "skipped", "message": "PUBLIC_WEBHOOK_URL chưa được cấu hình"}
         cfg = load_config()
         headers = get_headers(cfg["accessKey"], cfg["secretKey"])
         req = urllib.request.Request("https://app.apipay.vn/v1/client/webhooks", headers=headers)

@@ -2397,14 +2397,11 @@
       }
     }
 
-    const CLOUD_BACKEND_URL = 'https://guarantees-lexmark-lcd-counsel.trycloudflare.com';
+    const CLOUD_BACKEND_URL = window.__CRM_BACKEND_URL || '';
 
     function getAdminApiBase() {
       if (window.location.protocol === 'file:') return 'http://localhost:8080';
-      const host = (window.location.hostname || '').toLowerCase();
-      if (host.includes('geminigiare') || host.includes('github.io') || host.includes('vercel.app')) {
-        return CLOUD_BACKEND_URL;
-      }
+      // Ưu tiên backend cùng origin; tunnel cố định có thể hết hạn hoặc đổi URL.
       return '';
     }
 
