@@ -17,7 +17,7 @@
     "pollIntervalSeconds": 3,
     "testMode": false,
     "enabled": true,
-    "googleSheetWebhookUrl": "https://script.google.com/macros/s/AKfycbwQVm_KhLjuNICWRP8b5fvSzmZr86UC9Ov-NAA8CGCeHJKDmTLY_UXS1y2ijh-TpqQg/exec",
+    "googleSheetWebhookUrl": "https://script.google.com/macros/s/AKfycbyn1IIEyU6SX9ywlIRasV1GlhJSg0Sj6crMX3HqEJxyNXPji8tasMTV74pQu4tkuNSp/exec",
     "googleSheetUrl": "https://docs.google.com/spreadsheets/d/17JXfu0NcYQ2sJ9AQn8ZR-gOIYDQBgTquT4bu9pM6QrE/edit?gid=0#gid=0",
     "appsScriptProjectUrl": "https://script.google.com/u/0/home/projects/1xnhMbdNvNLmW0PB6BNDq88vyUM53Akf435nkfQ9Wi9JlTX4ogzrDGa_U/edit",
     "telegramBotToken": "8924743387:AAHmuHUEUyK2XtRL4N6dUEbHf98xmj1wE2c",
