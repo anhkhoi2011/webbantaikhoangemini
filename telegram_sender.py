@@ -128,39 +128,6 @@ def format_ad_tracking_lines(order):
 
     return "\n".join(lines)
 
-def get_qr_opened_template(order):
-    order_id = order.get("orderId", "#GEM-" + datetime.now().strftime("%H%M"))
-    name = order.get("name", "Khách hàng")
-    phone = order.get("phone", "Chưa nhập")
-    email = order.get("email", "Chưa nhập")
-    amount = order.get("amount", "90.000đ")
-    memo = order.get("memo", f"PRO18T {phone}")
-    ip = order.get("ip") or "127.0.0.1"
-    location = order.get("location") or "Việt Nam"
-    device = order.get("device") or "Thiết bị di động/PC"
-    time_str = order.get("time", datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
-    domain = extract_domain_from_order(order)
-    domain_hdr = f"🌐 <b>Tên miền chốt đơn:</b> <code>{domain}</code>\n" if domain else ""
-    ad_info = format_ad_tracking_lines(order)
-    coupon_str = f"\n🏷️ <b>Mã Voucher:</b> <code>{order.get('couponCode')}</code>" if order.get("couponCode") else ""
-
-    return f"""⏳ <b>KHÁCH ĐANG MỞ MÃ QR CHỜ THANH TOÁN</b>
-━━━━━━━━━━━━━━━━━━━━
-{domain_hdr}📦 <b>Mã đơn:</b> <code>{order_id}</code>
-👤 <b>Khách hàng:</b> <b>{name}</b>
-📱 <b>SĐT Zalo:</b> <code>{phone}</code>
-✉️ <b>Gmail:</b> <code>{email}</code>
-💰 <b>Gói:</b> Gemini Pro 18 Tháng (5TB Cloud)
-💵 <b>Số tiền:</b> <b>{amount}</b> (MBBank){coupon_str}
-📝 <b>Cú pháp CK:</b> <code>{memo}</code>
-🌐 <b>Địa chỉ IP:</b> <code>{ip}</code>
-📍 <b>Vị trí khách:</b> <b>{location}</b>
-💻 <b>Thiết bị:</b> {device}
-{ad_info}
-⏰ <b>Thời gian:</b> {time_str}
-━━━━━━━━━━━━━━━━━━━━
-👀 <i>Hệ thống API Pay đang tự động kiểm tra số dư MBBank...</i>"""
-
 def get_payment_success_template(order):
     order_id = order.get("orderId", "#GEM-" + datetime.now().strftime("%H%M"))
     name = order.get("name", "Khách hàng")

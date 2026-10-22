@@ -2423,9 +2423,6 @@
             listeningEl.innerHTML = `<span class="text-amber-700 font-bold">⏳ Chưa ghi nhận GD "${currentOrder.memo}" (${orderAmtStr}). Nếu vừa chuyển, vui lòng chờ 5-10s để ngân hàng đồng bộ!</span>`;
           }
           showToast(`Chưa nhận diện GD "${currentOrder.memo}". Đang tiếp tục quét tự động 3s/lần!`, 4000);
-          try {
-            sendTelegramMessage(`⚡ <b>KHÁCH BÁO ĐÃ CHUYỂN TIỀN</b>\n• Đơn hàng: <b>${currentOrder.orderId}</b>\n• Họ tên: <b>${currentOrder.name}</b>\n• SĐT (Zalo): <b>${currentOrder.phone}</b>\n• Gmail: <b>${currentOrder.email}</b>\n• Nội dung: <code>${currentOrder.memo}</code>\n• Số tiền: <b>${orderAmtStr}</b>\n<i>👉 Vui lòng kiểm tra app MBBank và duyệt cấp quyền nếu nhận được tiền!</i>`);
-          } catch(err) {}
         }
       } catch(e) {
         showToast("Đang kiểm tra kết nối API Pay, vui lòng thử lại sau vài giây.", 3500);
@@ -2515,9 +2512,14 @@
           `🔗 <b>Link truy cập:</b> <code>${fullUrl}</code>\n`;
       }
 
+      const dom = order.domain || (window.location.hostname || window.location.host || '').toLowerCase();
+      const domHdr = dom ? `🌐 <b>Tên miền chốt đơn:</b> <code>${dom}</code>\n` : '';
+      const couponStr = order.couponCode ? `🏷️ <b>Mã Voucher:</b> <code>${order.couponCode}</code>\n` : '';
+
       if (isOutOfStock || !order.licenseLink) {
         const alertMsg = `🚨 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN (${order.amount || '90.000 VNĐ'})</b>\n` +
           `━━━━━━━━━━━━━━━━━━━━\n` +
+          domHdr +
           `📦 Mã đơn: <code>${order.orderId}</code> • ${timeStr}\n` +
           `👤 Khách: <b>${order.name}</b> | <code>${cleanPhone}</code>\n` +
           `✉️ Gmail: <code>${order.email}</code>\n` +
@@ -2525,6 +2527,7 @@
           `🌐 Địa chỉ IP: <code>${ip}</code>\n` +
           `📍 Vị trí khách: <b>${loc}</b>\n` +
           `📱 Thiết bị: ${dev}\n` +
+          couponStr +
           adSourceInfo +
           `━━━━━━━━━━━━━━━━━━━━\n` +
           `⚠️ <b>KHO ĐÃ HẾT LINK! VUI LÒNG MUA LINK GẤP:</b>\n` +
@@ -2536,6 +2539,7 @@
 
       const msg = `🟢 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN (${order.amount || '90.000 VNĐ'})</b>\n` +
         `━━━━━━━━━━━━━━━━━━━━\n` +
+        domHdr +
         `📦 Mã đơn: <code>${order.orderId}</code> • ${timeStr}\n` +
         `👤 Khách: <b>${order.name}</b> | <code>${cleanPhone}</code>\n` +
         `✉️ Gmail: <code>${order.email}</code>\n` +
@@ -2543,6 +2547,7 @@
         `🌐 Địa chỉ IP: <code>${ip}</code>\n` +
         `📍 Vị trí khách: <b>${loc}</b>\n` +
         `📱 Thiết bị: ${dev}\n` +
+        couponStr +
         adSourceInfo +
         `🔑 Link cấp: <code>${order.licenseLink}</code>\n` +
         `📦 Kho còn: <b>${remainingStock} mã</b>\n` +
