@@ -14,7 +14,7 @@ server {
 
     # 2. Hỗ trợ toàn bộ API /api/... chuyển đến api.php
     location /api/ {
-        try_files "" /api.php?$query_string;
+        rewrite ^/api/(.*)$ /api.php last;
     }
 
     # Không cho tải dữ liệu/token/mã nguồn nội bộ trực tiếp
