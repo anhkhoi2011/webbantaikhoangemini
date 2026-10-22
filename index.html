@@ -266,7 +266,7 @@
       <span class="w-2 h-2 rounded-full bg-yellow-300 animate-ping"></span>
       FLASH SALE ĐỢT CUỐI
     </span>
-    <span><strong class="bg-red-600 text-yellow-300 px-2 py-0.5 rounded uppercase font-black tracking-wide animate-pulse">🔥 CHUẨN BỊ LÊN GIÁ 129K!</strong> Đã bán <span id="topSoldSlots" class="font-mono underline font-black">150</span>/200 đơn • Còn đúng <span id="fomoSlots" class="bg-yellow-300 text-red-950 px-2 py-0.5 rounded-md font-black shadow-sm transition-transform duration-300 inline-block">50 suất</span> trợ giá <strong>90.000đ</strong></span>
+    <span><strong class="bg-red-600 text-yellow-300 px-2 py-0.5 rounded uppercase font-black tracking-wide animate-pulse">🔥 CHUẨN BỊ LÊN GIÁ <span id="topNextPriceDisplay">129K</span>!</strong> Đã bán <span id="topSoldSlots" class="font-mono underline font-black">150</span>/200 đơn • Còn đúng <span id="fomoSlots" class="bg-yellow-300 text-red-950 px-2 py-0.5 rounded-md font-black shadow-sm transition-transform duration-300 inline-block">50 suất</span> trợ giá <strong id="topPriceDisplay">90.000đ</strong></span>
     <span class="hidden sm:inline opacity-75">•</span>
     <span class="inline-flex items-center gap-1">
       <span class="hidden sm:inline text-white/90">Kết thúc sau:</span>
@@ -382,10 +382,10 @@
                 <span class="text-xl sm:text-2xl font-black text-slate-400 line-through decoration-red-600 decoration-2 whitespace-nowrap">
                   489.000đ <span class="text-xs sm:text-sm font-bold text-slate-400 no-underline">/ tháng</span>
                 </span>
-                <span class="text-[11px] font-semibold text-slate-400 hidden sm:inline">(~8.802.000đ / 18 tháng)</span>
+                <span class="text-[11px] font-semibold text-slate-400 hidden sm:inline">(~<span id="heroOriginalPriceDisplay">8.802.000đ</span> / 18 tháng)</span>
               </div>
               <button type="button" onclick="handleCtaClick('badge_giam_soc_99')" class="badge-fomo-pulse bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 active:scale-95 text-white text-[11px] sm:text-xs font-black px-3.5 py-1.5 rounded-full shadow-md w-fit cursor-pointer flex items-center gap-1.5 border border-yellow-300/40 transition">
-                <span>GIẢM SỐC 99% (Tiết kiệm 8.712.000đ)</span>
+                <span id="heroDiscountBadgeText">GIẢM SỐC 99% (Tiết kiệm 8.712.000đ)</span>
                 <span class="bg-yellow-300 text-red-950 text-[10px] px-1.5 py-0.5 rounded-md font-black shadow-2xs">👉 BẤM GIỮ SUẤT</span>
               </button>
             </div>
@@ -394,15 +394,15 @@
               <div>
                 <span class="text-[11px] sm:text-xs font-extrabold text-emerald-800 uppercase block">Ưu đãi trọn gói 18 tháng hôm nay:</span>
                 <div class="flex items-center flex-wrap gap-2 sm:gap-2.5 mt-0.5">
-                  <span class="text-4xl sm:text-5xl font-black text-emerald-600 tracking-tight">90.000đ</span>
+                  <span id="heroPriceDisplay" class="text-4xl sm:text-5xl font-black text-emerald-600 tracking-tight">90.000đ</span>
                   <span class="text-xs sm:text-sm font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">/ 18 tháng</span>
                   <span class="text-xs sm:text-sm font-extrabold text-blue-700 bg-blue-100 border border-blue-200 px-3 py-1 rounded-xl shadow-2xs whitespace-nowrap inline-flex items-center gap-1">
-                    <span>Chỉ ~5.000đ / tháng</span>
+                    <span id="heroPerMonthText">Chỉ ~5.000đ / tháng</span>
                   </span>
                 </div>
                 <!-- TAG FOMO CHUẨN BỊ LÊN GIÁ 129K TRỰC DIỆN -->
                 <div class="mt-2 text-xs font-black text-red-600 flex items-center gap-1.5 animate-pulse">
-                  <span class="bg-red-600 text-yellow-300 text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-2xs">
+                  <span id="heroNextPriceBadge" class="bg-red-600 text-yellow-300 text-[10px] sm:text-xs font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-2xs">
                     🔥 CHUẨN BỊ LÊN GIÁ 129K
                   </span>
                 </div>
@@ -430,7 +430,7 @@
             <div class="pt-2">
               <button type="button" onclick="handleCtaClick('pricing_card_main_cta')" class="cta-glow-pulse w-full py-3.5 px-4 rounded-2xl font-black text-sm sm:text-base text-white bg-gradient-to-r from-red-600 via-rose-600 to-orange-500 hover:from-red-700 hover:to-orange-600 active:scale-[0.98] transition shadow-xl flex items-center justify-center gap-2 cursor-pointer border-2 border-yellow-300">
                 <span class="animate-pulse">🔥</span>
-                <span>GIỮ SUẤT NGAY - CHỈ 90.000đ (BẤM ĐĂNG KÝ)</span>
+                <span id="heroCtaText">GIỮ SUẤT NGAY - CHỈ 90.000đ (BẤM ĐĂNG KÝ)</span>
                 <span class="bg-yellow-300 text-red-950 text-[11px] px-2 py-0.5 rounded-md font-black shadow-2xs">CÒN <span id="cardBtnSlots">50</span> SUẤT</span>
                 <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
               </button>
@@ -456,9 +456,9 @@
               <!-- DÒNG CHỮ CHUẨN BỊ LÊN GIÁ 129K SIÊU BỰ NỔI TRỘI -->
               <div class="pt-1">
                 <div class="text-2xl sm:text-3xl md:text-4xl lg:text-[34px] font-black text-yellow-300 tracking-tight leading-tight uppercase drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] flex items-center gap-2 flex-wrap">
-                  <span class="animate-pulse">🔥 CHUẨN BỊ LÊN GIÁ 129K!</span>
+                  <span id="alertBoxNextPriceHeader" class="animate-pulse">🔥 CHUẨN BỊ LÊN GIÁ 129K!</span>
                 </div>
-                <p class="text-xs sm:text-sm font-bold text-white/95 mt-1 leading-snug">
+                <p id="alertBoxNextPriceSub" class="text-xs sm:text-sm font-bold text-white/95 mt-1 leading-snug">
                   Hệ thống sẽ <strong class="text-yellow-200 underline">TỰ ĐỘNG TĂNG LÊN 129.000đ</strong> ngay khi chạm mốc 200 đơn!
                 </p>
               </div>
@@ -471,7 +471,7 @@
                   <span class="text-white/80">/ 200 đơn</span>
                 </div>
                 <button type="button" onclick="handleCtaClick('warning_box_cta')" class="bg-yellow-300 hover:bg-yellow-200 active:scale-95 text-red-950 px-3.5 py-1.5 rounded-xl font-black text-xs sm:text-sm shadow-md animate-pulse cursor-pointer border border-yellow-400 flex items-center gap-1.5 transition">
-                  <span>⚡ CHỈ CÒN ĐÚNG <span id="alertBoxRemainingSlots" class="text-base font-black underline">50 SUẤT</span> GIÁ 90.000đ!</span>
+                  <span id="alertBoxRemainingSlotsText">⚡ CHỈ CÒN ĐÚNG <span id="alertBoxRemainingSlots" class="text-base font-black underline">50 SUẤT</span> GIÁ 90.000đ!</span>
                   <span class="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded font-black">👉 Giữ suất</span>
                 </button>
               </div>
@@ -521,14 +521,14 @@
           <div id="formHighlightBanner" class="hidden p-3 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-orange-500 text-white font-black text-xs sm:text-sm shadow-xl flex items-center justify-between gap-2 border-2 border-yellow-300 animate-bounce">
             <div class="flex items-center gap-2">
               <span class="text-lg">🔥</span>
-              <span>BẠN ĐÃ ĐƯỢC GIỮ SUẤT 90.000đ! VUI LÒNG ĐIỀN 3 THÔNG TIN:</span>
+              <span id="formHighlightBannerText">BẠN ĐÃ ĐƯỢC GIỮ SUẤT 90.000đ! VUI LÒNG ĐIỀN 3 THÔNG TIN:</span>
             </div>
             <span class="bg-yellow-300 text-red-950 text-[10px] px-2 py-0.5 rounded-md font-black shrink-0">ƯU ĐÃI 18T</span>
           </div>
 
           <div class="border-b border-slate-200 pb-3">
             <div class="flex items-center justify-between flex-wrap gap-2">
-              <span class="text-[11px] sm:text-xs font-extrabold text-blue-700 uppercase tracking-wide">⚡ Giữ Suất Trợ Giá 90.000đ</span>
+              <span id="formBadgePriceText" class="text-[11px] sm:text-xs font-extrabold text-blue-700 uppercase tracking-wide">⚡ Giữ Suất Trợ Giá 90.000đ</span>
               <span class="inline-flex items-center gap-1.5 bg-emerald-100/90 text-emerald-900 text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-300 shadow-2xs">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
                 <span><span id="liveViewerCount" class="font-black text-emerald-950 font-mono">38</span> người đang đặt</span>
@@ -956,20 +956,20 @@
       <div class="space-y-3 text-center lg:text-left max-w-xl">
         <span class="text-[11px] sm:text-xs font-black text-yellow-300 tracking-wider uppercase bg-yellow-400/20 px-3 py-1 rounded-full border border-yellow-300/30 inline-block">BÀI TOÁN KINH TẾ SIÊU HỜI</span>
         <h3 class="text-xl sm:text-3xl font-black leading-tight">Giá gốc Google Store: <span class="line-through text-slate-400 decoration-red-500">489.000đ / tháng</span></h3>
-        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+        <p id="roiFaqPriceText" class="text-xs sm:text-sm text-slate-300 leading-relaxed">
           Mua trực tiếp gói Google One AI Premium (Gemini Advanced 5TB) tại Google tốn 489.000đ mỗi tháng (~8.802.000đ cho 18 tháng). Đăng ký ưu đãi hôm nay trọn gói 18 tháng chỉ <strong>90.000đ</strong> giúp bạn tiết kiệm ngay <strong>99% chi phí</strong>.
         </p>
         <div class="pt-1">
           <button type="button" onclick="scrollToOrderForm()" class="px-5 py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg transition cursor-pointer inline-flex items-center gap-2">
-            <span>⚡ Giữ Suất Trợ Giá 90.000đ Ngay</span>
+            <span id="roiCtaPriceText">⚡ Giữ Suất Trợ Giá 90.000đ Ngay</span>
             <span>→</span>
           </button>
         </div>
       </div>
       <div class="bg-white/10 backdrop-blur-md p-5 sm:p-6 rounded-2xl text-center shrink-0 border-2 border-emerald-400/40 w-full lg:w-auto min-w-[260px] shadow-inner">
         <div class="text-xs font-extrabold text-yellow-300 uppercase tracking-wide">BẠN TIẾT KIỆM TRỌN VẸN</div>
-        <div class="text-3xl sm:text-5xl font-black text-emerald-400 mt-1">8.712.000đ</div>
-        <div class="text-xs text-white/90 mt-2 bg-black/30 py-1.5 px-3 rounded-xl border border-white/10">
+        <div id="roiSavingsDisplay" class="text-3xl sm:text-5xl font-black text-emerald-400 mt-1">8.712.000đ</div>
+        <div id="roiBottomPriceText" class="text-xs text-white/90 mt-2 bg-black/30 py-1.5 px-3 rounded-xl border border-white/10">
           Chỉ trả đúng <strong class="text-yellow-300 text-sm">90.000đ</strong> cho cả 18 tháng!
         </div>
       </div>
@@ -1018,7 +1018,7 @@
         </div>
         <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5 hover:border-blue-300 transition duration-200">
           <div class="font-bold text-slate-900 text-sm">❓ Tại sao mức giá nâng cấp Gemini lại rẻ hơn Google Store đến 95%?</div>
-          <p class="text-slate-600 leading-relaxed">Thay vì trả 489.000đ/tháng (gần 9 triệu/18 tháng), Trạm Công Nghệ hỗ trợ chi phí thông qua cơ chế chia sẻ nhóm Google One Family / Enterprise Shared bản quyền, giúp tối ưu hóa chi phí chỉ còn 5.000đ/tháng (90.000đ trọn gói 18 tháng).</p>
+          <p id="faqPriceExplainText" class="text-slate-600 leading-relaxed">Thay vì trả 489.000đ/tháng (gần 9 triệu/18 tháng), Trạm Công Nghệ hỗ trợ chi phí thông qua cơ chế chia sẻ nhóm Google One Family / Enterprise Shared bản quyền, giúp tối ưu hóa chi phí chỉ còn 5.000đ/tháng (90.000đ trọn gói 18 tháng).</p>
         </div>
         <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5 hover:border-blue-300 transition duration-200">
           <div class="font-bold text-slate-900 text-sm">❓ Quét mã QR xong thì nhận link kích hoạt như thế nào?</div>
@@ -1381,9 +1381,9 @@
   <div class="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-white/95 backdrop-blur-md border-t-2 border-red-500 px-3 py-2 shadow-[0_-8px_25px_rgba(15,23,42,0.12)] flex items-center justify-between gap-2">
     <div class="min-w-0">
       <div class="flex items-center gap-1.5">
-        <span class="text-base font-black text-emerald-600 leading-none">90.000đ</span>
+        <span id="mobileStickyPrice" class="text-base font-black text-emerald-600 leading-none">90.000đ</span>
         <span class="text-[10px] text-slate-400 line-through font-bold">489K/th</span>
-        <span class="bg-gradient-to-r from-red-600 to-rose-600 text-yellow-300 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-md border border-yellow-300 shadow-xs animate-pulse">
+        <span id="mobileStickyFomo" class="bg-gradient-to-r from-red-600 to-rose-600 text-yellow-300 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-md border border-yellow-300 shadow-xs animate-pulse">
           🔥 CHUẨN BỊ LÊN 129K (Còn <span id="mobileFomoSlots">50 suất</span> 90K / Tối đa 200 đơn)
         </span>
       </div>
@@ -1605,9 +1605,10 @@
       if (btnSubmit) btnSubmit.innerText = `MỞ MÃ QR THANH TOÁN (${formatVnd(currentOrderAmount)})`;
 
       const subtext = document.getElementById('orderHoldSlotsSubtext');
-      if (subtext) subtext.innerText = `⚡ Hệ thống tự động giữ suất 90.000đ trong 10 phút sau khi mở QR!`;
+      const baseAmt = (typeof CONFIG !== 'undefined' && CONFIG.amount) ? CONFIG.amount : 90000;
+      if (subtext) subtext.innerText = `⚡ Hệ thống tự động giữ suất ${formatVnd(baseAmt)} trong 10 phút sau khi mở QR!`;
 
-      showToast('Đã hủy mã voucher, quay lại mức giá gốc 90.000đ');
+      showToast(`Đã hủy mã voucher, quay lại mức giá ${formatVnd(baseAmt)}`);
     }
 
     async function applyCoupon() {
@@ -1668,7 +1669,7 @@
               msg.classList.remove('hidden');
             }
             if (tag) tag.classList.add('hidden');
-            if (btnSubmit) btnSubmit.innerText = `MỞ MÃ QR THANH TOÁN (90.000đ)`;
+            if (btnSubmit) btnSubmit.innerText = `MỞ MÃ QR THANH TOÁN (${formatVnd(currentOrderAmount)})`;
             showToast(data.message || 'Mã voucher không hợp lệ!', 3500);
           }
         } else {
@@ -1702,15 +1703,27 @@
       }
     }
 
-    // Cấu hình ngân hàng thanh toán VietQR
+    // Cấu hình ngân hàng thanh toán VietQR (Tự động đồng bộ từ CRM Cấu hình giá)
     const CONFIG = {
       bankBin: "970422", // MBBank
       accountNo: "VQRQAMRMQ5816", // VietQR PRO MBBank tự động nhận diện 100% trong 03 giây
       physicalAccountNo: "517041996",
       accountName: "NGUYEN TRAN HAN",
       amount: 90000,
+      packageName: "Gemini Pro 18 Tháng (5TB Cloud)",
+      originalPrice: 8802000,
+      nextPrice: 129000,
       googleAppsScriptUrl: "https://script.google.com/macros/s/AKfycbxBCAtlOD-v0bqTJSsjjiksBccuJSlBnybznPsxOHj6f8rkT44cUlnF__i6Ms14U2uS/exec"
     };
+
+    // Đọc ngay cấu hình giá lưu trong cache để tránh chớp giật giao diện (zero-flicker)
+    try {
+      const _cachedPricing = JSON.parse(localStorage.getItem('crm_payment_config') || localStorage.getItem('crm_payment_api_config') || '{}');
+      if (_cachedPricing.packagePrice) CONFIG.amount = Number(_cachedPricing.packagePrice);
+      if (_cachedPricing.packageName) CONFIG.packageName = _cachedPricing.packageName;
+      if (_cachedPricing.originalPrice) CONFIG.originalPrice = Number(_cachedPricing.originalPrice);
+      if (_cachedPricing.nextPrice) CONFIG.nextPrice = Number(_cachedPricing.nextPrice);
+    } catch(e) {}
 
     // ==========================================
     // META PIXEL (FACEBOOK ADS) TRACKING ENGINE
@@ -2277,7 +2290,7 @@
 
       const listeningEl = document.getElementById('listeningText');
       if (listeningEl) {
-        const amtStr = (currentOrder && currentOrder.amount) ? currentOrder.amount : '90.000đ';
+        const amtStr = (currentOrder && currentOrder.amount) ? currentOrder.amount : ((typeof CONFIG !== 'undefined' && CONFIG.amount) ? formatVnd(CONFIG.amount) : '90.000đ');
         listeningEl.innerHTML = `Đang chờ bạn quét mã QR ${amtStr} từ App Ngân Hàng...`;
       }
 
@@ -2377,7 +2390,7 @@
       }
 
       const orderAmt = (currentOrder && currentOrder.amountRaw) ? currentOrder.amountRaw : CONFIG.amount;
-      const orderAmtStr = (currentOrder && currentOrder.amount) ? currentOrder.amount : '90.000đ';
+      const orderAmtStr = (currentOrder && currentOrder.amount) ? currentOrder.amount : formatVnd(orderAmt);
 
       try {
         const result = await queryPaymentApi(currentOrder.memo, currentOrder.phone, orderAmt);
@@ -2409,7 +2422,7 @@
       if (btn) btn.disabled = true;
 
       const orderAmt = (currentOrder && currentOrder.amountRaw) ? currentOrder.amountRaw : CONFIG.amount;
-      const orderAmtStr = (currentOrder && currentOrder.amount) ? currentOrder.amount : '90.000đ';
+      const orderAmtStr = (currentOrder && currentOrder.amount) ? currentOrder.amount : formatVnd(orderAmt);
 
       try {
         const result = await queryPaymentApi(currentOrder.memo, currentOrder.phone, orderAmt);
@@ -2517,7 +2530,7 @@
       const couponStr = order.couponCode ? `🏷️ <b>Mã Voucher:</b> <code>${order.couponCode}</code>\n` : '';
 
       if (isOutOfStock || !order.licenseLink) {
-        const alertMsg = `🚨 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN (${order.amount || '90.000 VNĐ'})</b>\n` +
+        const alertMsg = `🚨 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN (${order.amount || formatVnd(CONFIG.amount)})</b>\n` +
           `━━━━━━━━━━━━━━━━━━━━\n` +
           domHdr +
           `📦 Mã đơn: <code>${order.orderId}</code> • ${timeStr}\n` +
@@ -2537,7 +2550,7 @@
         return;
       }
 
-      const msg = `🟢 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN (${order.amount || '90.000 VNĐ'})</b>\n` +
+      const msg = `🟢 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN (${order.amount || formatVnd(CONFIG.amount)})</b>\n` +
         `━━━━━━━━━━━━━━━━━━━━\n` +
         domHdr +
         `📦 Mã đơn: <code>${order.orderId}</code> • ${timeStr}\n` +
@@ -2636,8 +2649,8 @@
       const custMemo = (currentOrder && currentOrder.memo) ? currentOrder.memo : `PRO18T ${custPhone}`;
 
       // Xác định số tiền thực tế khách thanh toán (hỗ trợ mã giảm giá 69k hoặc các mức khác)
-      let finalAmtStr = '90.000đ';
-      let finalAmtRaw = 90000;
+      let finalAmtStr = (typeof CONFIG !== 'undefined' && CONFIG.amount) ? formatVnd(CONFIG.amount) : '90.000đ';
+      let finalAmtRaw = (typeof CONFIG !== 'undefined' && CONFIG.amount) ? CONFIG.amount : 90000;
 
       if (currentOrder && currentOrder.amount) {
         finalAmtStr = currentOrder.amount;
@@ -3048,8 +3061,8 @@
             name: order.name,
             phone: order.phone,
             email: order.email,
-            product: order.package || 'Google Gemini Pro 18 Tháng',
-            amount: order.amount || '90.000 VNĐ',
+            product: order.package || (CONFIG.packageName || 'Google Gemini Pro 18 Tháng'),
+            amount: order.amount || formatVnd(CONFIG.amount),
             memo: order.memo,
             licenseLink: order.licenseLink || '',
             ip: (typeof visitorData !== 'undefined' && visitorData && visitorData.ip) ? visitorData.ip : '127.0.0.1',
@@ -3104,6 +3117,150 @@
     // HỆ THỐNG KÍCH THÍCH FOMO & SỨC SỐNG TOÀN DIỆN
     // ==========================================
 
+    // ==========================================
+    // ĐỘNG CƠ ĐỒNG BỘ GIÁ BÁN THỜI GIAN THỰC TỪ CRM (REAL-TIME DYNAMIC PRICING)
+    // ==========================================
+    function applyDynamicPricing(cfg) {
+      if (!cfg || typeof cfg !== 'object') return;
+      const packagePrice = Number(cfg.packagePrice) || CONFIG.amount || 90000;
+      const originalPrice = Number(cfg.originalPrice) || CONFIG.originalPrice || 8802000;
+      const nextPrice = Number(cfg.nextPrice) || CONFIG.nextPrice || 129000;
+      const packageName = (cfg.packageName || CONFIG.packageName || 'Gemini Pro 18 Tháng (5TB Cloud)').trim();
+
+      CONFIG.amount = packagePrice;
+      CONFIG.originalPrice = originalPrice;
+      CONFIG.nextPrice = nextPrice;
+      CONFIG.packageName = packageName;
+
+      // Nếu khách chưa áp dụng voucher thì cập nhật giá đơn hàng hiện tại
+      if (!appliedCoupon) {
+        currentOrderAmount = packagePrice;
+      }
+
+      const priceStr = formatVnd(packagePrice);
+      const priceShort = (Math.round(packagePrice / 1000)) + 'K';
+      const origStr = formatVnd(originalPrice);
+      const nextStr = formatVnd(nextPrice);
+      const nextShort = (Math.round(nextPrice / 1000)) + 'K';
+      const savingsStr = formatVnd(Math.max(0, originalPrice - packagePrice));
+      const discountPct = originalPrice > packagePrice ? Math.round((1 - (packagePrice / originalPrice)) * 100) : 99;
+      const monthlyCost = formatVnd(Math.round(packagePrice / 18)) + ' / tháng';
+      const currentSlots = (typeof fomoRemainingSlots !== 'undefined') ? fomoRemainingSlots : 50;
+
+      // 1. Top Bar
+      const topP = document.getElementById('topPriceDisplay');
+      if (topP) topP.innerText = priceStr;
+      const topN = document.getElementById('topNextPriceDisplay');
+      if (topN) topN.innerText = nextShort;
+
+      // 2. Hero Pricing Card
+      const heroOrig = document.getElementById('heroOriginalPriceDisplay');
+      if (heroOrig) heroOrig.innerText = origStr;
+      const heroDisc = document.getElementById('heroDiscountBadgeText');
+      if (heroDisc) heroDisc.innerText = `GIẢM SỐC ${discountPct}% (Tiết kiệm ${savingsStr})`;
+      const heroP = document.getElementById('heroPriceDisplay');
+      if (heroP) heroP.innerText = priceStr;
+      const heroMonth = document.getElementById('heroPerMonthText');
+      if (heroMonth) heroMonth.innerText = `Chỉ ~${monthlyCost}`;
+      const heroNextBadge = document.getElementById('heroNextPriceBadge');
+      if (heroNextBadge) heroNextBadge.innerText = `🔥 CHUẨN BỊ LÊN GIÁ ${nextShort}`;
+      const heroRemBadge = document.getElementById('heroRemainingBadge');
+      if (heroRemBadge) heroRemBadge.innerHTML = `🚨 Còn <span id="heroRemainingSlots">${currentSlots} suất</span> (Sắp lên ${nextShort})!`;
+      const heroCta = document.getElementById('heroCtaText');
+      if (heroCta) heroCta.innerText = `GIỮ SUẤT NGAY - CHỈ ${priceStr} (BẤM ĐĂNG KÝ)`;
+
+      // 3. Alert Box (Hộp báo động đỏ)
+      const alertHeader = document.getElementById('alertBoxNextPriceHeader');
+      if (alertHeader) alertHeader.innerText = `🔥 CHUẨN BỊ LÊN GIÁ ${nextShort}!`;
+      const alertSub = document.getElementById('alertBoxNextPriceSub');
+      if (alertSub) alertSub.innerHTML = `Hệ thống sẽ <strong class="text-yellow-200 underline">TỰ ĐỘNG TĂNG LÊN ${nextStr}</strong> ngay khi chạm mốc 200 đơn!`;
+      const alertRem = document.getElementById('alertBoxRemainingSlotsText');
+      if (alertRem) alertRem.innerHTML = `⚡ CHỈ CÒN ĐÚNG <span id="alertBoxRemainingSlots" class="text-base font-black underline">${currentSlots} SUẤT</span> GIÁ ${priceStr}!`;
+
+      // 4. Form Đăng Ký
+      const formHighlight = document.getElementById('formHighlightBannerText');
+      if (formHighlight) formHighlight.innerText = `BẠN ĐÃ ĐƯỢC GIỮ SUẤT ${priceStr}! VUI LÒNG ĐIỀN 3 THÔNG TIN:`;
+      const formBadge = document.getElementById('formBadgePriceText');
+      if (formBadge) formBadge.innerText = `⚡ Giữ Suất Trợ Giá ${priceStr}`;
+      const btnSubmit = document.getElementById('btnSubmitOrderText');
+      if (btnSubmit && !appliedCoupon) {
+        btnSubmit.innerText = `MỞ MÃ QR THANH TOÁN (${priceStr})`;
+      }
+      const orderHold = document.getElementById('orderHoldSlotsSubtext');
+      if (orderHold) orderHold.innerText = `⚡ Hệ thống tự động giữ suất ${priceStr} trong 10 phút sau khi mở QR!`;
+
+      // 5. Bài toán kinh tế ROI
+      const roiFaq = document.getElementById('roiFaqPriceText');
+      if (roiFaq) {
+        roiFaq.innerHTML = `Mua trực tiếp gói Google One AI Premium (Gemini Advanced 5TB) tại Google tốn 489.000đ mỗi tháng (~${origStr} cho 18 tháng). Đăng ký ưu đãi hôm nay trọn gói 18 tháng chỉ <strong>${priceStr}</strong> giúp bạn tiết kiệm ngay <strong>${discountPct}% chi phí</strong>.`;
+      }
+      const roiCta = document.getElementById('roiCtaPriceText');
+      if (roiCta) roiCta.innerText = `⚡ Giữ Suất Trợ Giá ${priceStr} Ngay`;
+      const roiSavings = document.getElementById('roiSavingsDisplay');
+      if (roiSavings) roiSavings.innerText = savingsStr;
+      const roiBottom = document.getElementById('roiBottomPriceText');
+      if (roiBottom) {
+        roiBottom.innerHTML = `Chỉ trả đúng <strong class="text-yellow-300 text-sm">${priceStr}</strong> cho cả 18 tháng!`;
+      }
+
+      // 6. FAQ
+      const faqExplain = document.getElementById('faqPriceExplainText');
+      if (faqExplain) {
+        faqExplain.innerHTML = `Thay vì trả 489.000đ/tháng (gần 9 triệu/18 tháng), Trạm Công Nghệ hỗ trợ chi phí thông qua cơ chế chia sẻ nhóm Google One Family / Enterprise Shared bản quyền, giúp tối ưu hóa chi phí chỉ còn ${monthlyCost} (${priceStr} trọn gói 18 tháng).`;
+      }
+
+      // 7. Mobile Sticky Bar
+      const mobileP = document.getElementById('mobileStickyPrice');
+      if (mobileP) mobileP.innerText = priceStr;
+      const mobileF = document.getElementById('mobileStickyFomo');
+      if (mobileF) {
+        mobileF.innerHTML = `🔥 CHUẨN BỊ LÊN ${nextShort} (Còn <span id="mobileFomoSlots">${currentSlots} suất</span> ${priceShort} / Tối đa 200 đơn)`;
+      }
+    }
+
+    async function initDynamicPricing() {
+      // B1: Đọc nhanh từ cache cục bộ (Instant Sync 0ms)
+      try {
+        const cachedRaw = localStorage.getItem('crm_payment_config') || localStorage.getItem('crm_payment_api_config');
+        if (cachedRaw) {
+          const cachedObj = JSON.parse(cachedRaw);
+          if (cachedObj && typeof cachedObj === 'object') {
+            applyDynamicPricing(cachedObj);
+          }
+        }
+      } catch(e) {}
+
+      // B2: Đồng bộ trực tiếp từ backend API server
+      try {
+        const res = await smartApiFetch('/api/payment-config');
+        if (res && res.ok) {
+          const serverCfg = await res.json();
+          if (serverCfg && typeof serverCfg === 'object') {
+            applyDynamicPricing(serverCfg);
+            try {
+              localStorage.setItem('crm_payment_config', JSON.stringify({
+                packagePrice: serverCfg.packagePrice || 90000,
+                originalPrice: serverCfg.originalPrice || 8802000,
+                nextPrice: serverCfg.nextPrice || 129000,
+                packageName: serverCfg.packageName || 'Gemini Pro 18 Tháng (5TB Cloud)'
+              }));
+            } catch(err) {}
+          }
+        }
+      } catch(e) {}
+    }
+
+    // Lắng nghe thay đổi giá từ Admin tab khác (Live tab sync)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'crm_payment_config' || e.key === 'crm_payment_api_config') {
+        try {
+          const updated = JSON.parse(e.newValue);
+          if (updated) applyDynamicPricing(updated);
+        } catch(err) {}
+      }
+    });
+
+
     // 1. LIVE BUYERS TICKER (THÔNG BÁO KHÁCH VỪA MUA CHÂN THẬT)
     const liveBuyers = [
       { name: "Anh Minh Tuấn (Quận 1, TP.HCM)", action: "Vừa kích hoạt Gemini Pro & Google One 5TB", time: "2 giây trước" },
@@ -3129,11 +3286,12 @@
       const timeEl = document.getElementById('buyerTime');
 
       if (nameEl) nameEl.innerText = buyer.name;
-      if (actionEl) actionEl.innerText = buyer.action;
+      const actText = (buyer.action || '').replace('90.000đ', formatVnd(CONFIG.amount));
+      if (actionEl) actionEl.innerText = actText;
       if (timeEl) timeEl.innerText = `• ${buyer.time}`;
       const recentLine = document.getElementById('recentActivityLine');
       if (recentLine) {
-        recentLine.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0"></span><span><strong>${buyer.name}</strong> ${buyer.action.toLowerCase()} (${buyer.time})</span>`;
+        recentLine.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0"></span><span><strong>${buyer.name}</strong> ${actText.toLowerCase()} (${buyer.time})</span>`;
       }
 
       toast.classList.remove('translate-y-36', 'opacity-0');
@@ -3286,6 +3444,7 @@
     }
 
     // KHỞI ĐỘNG CÁC ĐỘNG CƠ FOMO
+    initDynamicPricing();
     renderFomoSlotsUI();
     syncFomoStatsWithServer();
     setInterval(updateLiveViewers, 4500);

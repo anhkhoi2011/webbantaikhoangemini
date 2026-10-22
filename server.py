@@ -39,7 +39,17 @@ COUPONS_LOCK = threading.Lock()
 VISITS_FILE = "visits.json"
 VISITS_LOCK = threading.Lock()
 
-def calculate_coupon_discount(coupon, base_price=90000):
+def get_current_package_price():
+    cfg = read_json_file("payment_config.json", {})
+    try:
+        p = int(cfg.get("packagePrice") or 90000)
+        return p if p > 0 else 90000
+    except Exception:
+        return 90000
+
+def calculate_coupon_discount(coupon, base_price=None):
+    if base_price is None or base_price <= 0:
+        base_price = get_current_package_price()
     dtype = coupon.get("discountType", "fixed")
     final_price = base_price
     discount_amount = 0
@@ -240,13 +250,14 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             if max_uses > 0 and used_count >= max_uses:
                 return self.send_json({"valid": False, "message": f"Mã voucher '{code}' đã hết lượt sử dụng ({used_count}/{max_uses})!"})
 
-            discount_amount, final_price = calculate_coupon_discount(found, 90000)
+            base_price = get_current_package_price()
+            discount_amount, final_price = calculate_coupon_discount(found, base_price)
             return self.send_json({
                 "valid": True,
                 "code": found.get("code"),
                 "discountAmount": discount_amount,
                 "finalPrice": final_price,
-                "originalPrice": 90000,
+                "originalPrice": base_price,
                 "maxUses": max_uses,
                 "usedCount": used_count,
                 "remainingUses": max_uses - used_count if max_uses > 0 else 9999,
@@ -635,10 +646,12 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             except Exception as e:
                 return self.send_json({"status": "error", "message": str(e)}, 500)
 
-        # 1. API: Lưu cấu hình cổng thanh toán
+        # 1. API: Lưu cấu hình cổng thanh toán & giá bán gói
         if path == "/api/payment-config":
-            write_json_file("payment_config.json", body)
-            return self.send_json({"status": "success", "message": "Payment config saved"})
+            current_cfg = read_json_file("payment_config.json", {})
+            current_cfg.update(body)
+            write_json_file("payment_config.json", current_cfg)
+            return self.send_json({"status": "success", "message": "Payment and pricing config saved", "config": current_cfg})
 
         # 1.1 API: Lưu cấu hình Meta Pixel (ID: 762402019586629)
         if path == "/api/pixel-config":
@@ -1019,7 +1032,8 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 is_valid_tx = (amt > 0) or (status_raw in ["PAID", "COMPLETED", "SUCCESS"]) or ("PRO18T" in desc.upper())
 
                 if is_valid_tx:
-                    actual_amt = amt if amt > 0 else 90000
+                    pkg_price = get_current_package_price()
+                    actual_amt = amt if amt > 0 else pkg_price
                     tx_record = {
                         "id": str(it.get("id") or it.get("publicId") or f"TX_{int(datetime.now().timestamp()) % 1000000:06d}"),
                         "amount": actual_amt,
@@ -1090,7 +1104,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
         if path == "/api/simulate-payment":
             phone = body.get("phone", "0901234567")
             memo = body.get("memo", f"PRO18T {phone}")
-            amount = int(body.get("amount", 90000))
+            amount = int(body.get("amount") or get_current_package_price())
             sim_tx = {
                 "id": f"SIM_{int(datetime.now().timestamp()) % 1000000:06d}",
                 "amount": amount,
@@ -1109,7 +1123,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             try:
                 import apipay_bridge
                 phone = body.get("phone", "0901234567")
-                amount = int(body.get("amount", 90000))
+                amount = int(body.get("amount") or get_current_package_price())
                 memo = body.get("memo", f"PRO18T {phone}")
                 res = apipay_bridge.create_payment_request(phone, amount, memo)
                 return self.send_json(res)
@@ -1241,13 +1255,14 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             if max_uses > 0 and used_count >= max_uses:
                 return self.send_json({"valid": False, "message": f"Mã voucher '{code}' đã hết lượt sử dụng ({used_count}/{max_uses})!"})
 
-            discount_amount, final_price = calculate_coupon_discount(found, 90000)
+            base_price = get_current_package_price()
+            discount_amount, final_price = calculate_coupon_discount(found, base_price)
             return self.send_json({
                 "valid": True,
                 "code": found.get("code"),
                 "discountAmount": discount_amount,
                 "finalPrice": final_price,
-                "originalPrice": 90000,
+                "originalPrice": base_price,
                 "maxUses": max_uses,
                 "usedCount": used_count,
                 "remainingUses": max_uses - used_count if max_uses > 0 else 9999,

@@ -67,8 +67,10 @@ def test_connection():
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-def create_payment_request(phone, amount=90000, memo=None):
+def create_payment_request(phone, amount=None, memo=None):
     cfg = load_config()
+    if amount is None or amount <= 0:
+        amount = cfg.get("packagePrice", 90000)
     if not memo:
         memo = f"PRO18T {phone}"
     headers = get_headers(cfg["accessKey"], cfg["secretKey"])
@@ -122,12 +124,14 @@ def check_payment_status(public_id):
     except Exception as e:
         return {"status": "error", "paid": False, "message": str(e)}
 
-def check_recent_payment_requests(memo=None, phone=None, amount=90000):
+def check_recent_payment_requests(memo=None, phone=None, amount=None):
     """
     Tra cứu danh sách Payment Requests gần nhất trên ApiPay Cloud.
     Nếu có bất kỳ Payment Request nào khớp với memo hoặc phone có trạng thái COMPLETED hoặc PAID thì trả về True ngay!
     """
     cfg = load_config()
+    if amount is None or amount <= 0:
+        amount = cfg.get("packagePrice", 90000)
     headers = get_headers(cfg["accessKey"], cfg["secretKey"])
     url = "https://app.apipay.vn/v1/client/payment-requests"
     req = urllib.request.Request(url, headers=headers)
@@ -158,8 +162,10 @@ def check_recent_payment_requests(memo=None, phone=None, amount=90000):
     except Exception as e:
         return {"status": "error", "paid": False, "message": str(e)}
 
-def get_qr_base64(memo="PRO18T", amount=90000):
+def get_qr_base64(memo="PRO18T", amount=None):
     cfg = load_config()
+    if amount is None or amount <= 0:
+        amount = cfg.get("packagePrice", 90000)
     bank_bin = cfg.get("bankBin", "970422")
     acc_no = cfg.get("vaNumber", cfg.get("accountNo", "VQRQAMRMQ5816"))
     acc_name = cfg.get("accountName", "NGUYEN TRAN HAN")

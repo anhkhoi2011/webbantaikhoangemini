@@ -1,4 +1,8 @@
 {
+    "packagePrice": 90000,
+    "originalPrice": 8802000,
+    "nextPrice": 129000,
+    "packageName": "Gemini Pro 18 Tháng (5TB Cloud)",
     "provider": "apipay",
     "accessKey": "5a03a2c11ed56ea65b7e7e11107f638ec8acfb95165a6a50225c91a477a157c2",
     "secretKey": "LK00NYGOmyz8i7MhhNOD/gz0YcMBjUS4+DfD/l1zXmKcKXo1v5ScvycSlu8DcngsKUSLWJzF+fS+eysDi0B3gQ==",
