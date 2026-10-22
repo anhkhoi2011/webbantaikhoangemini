@@ -5360,6 +5360,7 @@
       const toggle = document.getElementById('pixelEnabledToggle');
       const pixelId = input ? input.value.trim() : DEFAULT_META_PIXEL_ID;
       const enabled = toggle ? toggle.checked : true;
+      localStorage.setItem('crm_pixel_runtime_config', JSON.stringify({ pixelId, enabled }));
 
       try {
         const res = await adminApiFetch('/api/pixel-config', {

@@ -44,8 +44,33 @@
     t.src=v;s=b.getElementsByTagName(e)[0];
     s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '762402019586629');
-    fbq('track', 'PageView');
+    window.__META_PIXEL_ID = '762402019586629';
+    window.__META_PIXEL_ENABLED = true;
+    try {
+      const cachedPixel = JSON.parse(localStorage.getItem('crm_pixel_runtime_config') || '{}');
+      if (cachedPixel.pixelId) window.__META_PIXEL_ID = String(cachedPixel.pixelId);
+      if (cachedPixel.enabled === false) window.__META_PIXEL_ENABLED = false;
+    } catch (e) {}
+    window.__initMetaPixel = function (pixelId, enabled) {
+      if (window.__metaPixelInitialized) return;
+      window.__META_PIXEL_ID = pixelId || window.__META_PIXEL_ID;
+      window.__META_PIXEL_ENABLED = enabled !== false;
+      if (!window.__META_PIXEL_ENABLED) return;
+      window.__metaPixelInitialized = true;
+      fbq('init', window.__META_PIXEL_ID);
+      fbq('track', 'PageView');
+    };
+    const pixelFallbackTimer = setTimeout(() => {
+      if (window.__META_PIXEL_ENABLED) window.__initMetaPixel(window.__META_PIXEL_ID, true);
+    }, 1200);
+    fetch('/api/pixel-config').then(r => r.ok ? r.json() : null).then(cfg => {
+      if (!cfg || !cfg.pixelId) return;
+      localStorage.setItem('crm_pixel_runtime_config', JSON.stringify(cfg));
+      clearTimeout(pixelFallbackTimer);
+      window.__META_PIXEL_ID = String(cfg.pixelId);
+      window.__META_PIXEL_ENABLED = cfg.enabled !== false;
+      window.__initMetaPixel(window.__META_PIXEL_ID, window.__META_PIXEL_ENABLED);
+    }).catch(() => {});
   </script>
   <noscript>
     <img height="1" width="1" style="display:none"
@@ -1728,11 +1753,12 @@
     // ==========================================
     // META PIXEL (FACEBOOK ADS) TRACKING ENGINE
     // ==========================================
-    const META_PIXEL_ID = '762402019586629';
+    const META_PIXEL_ID = window.__META_PIXEL_ID || '762402019586629';
 
     function trackPixelEvent(eventName, params = {}) {
       try {
-        if (typeof window.fbq === 'function') {
+        if (window.__META_PIXEL_ENABLED === false) return;
+        if (window.__META_PIXEL_ENABLED !== false && typeof window.fbq === 'function') {
           window.fbq('track', eventName, params);
         }
         // Ghi nhận vào localStorage để đồng bộ sang Admin dashboard
