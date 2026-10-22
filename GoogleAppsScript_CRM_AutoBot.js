@@ -46,6 +46,21 @@ function doGet(e) {
   const phone = String((e.parameter && e.parameter.phone) || "").replace(/\D/g, "").replace(/^84/, "0");
   const requestedAmount = Number(String((e.parameter && e.parameter.amount) || "0").replace(/\D/g, "")) || 0;
   try {
+    const ss = getSpreadsheet();
+    const txSheet = ss.getSheetByName("GIAO_DICH");
+    if (txSheet && txSheet.getLastRow() > 1) {
+      const rows = txSheet.getRange(2, 1, txSheet.getLastRow() - 1, 6).getValues();
+      for (const row of rows) {
+        const content = String(row[2] || "").replace(/\s+/g, "").toUpperCase();
+        const amount = Number(row[1]) || 0;
+        const status = String(row[3] || "").toUpperCase();
+        if (["PAID", "COMPLETED", "SUCCESS", "CREDIT"].indexOf(status) < 0) continue;
+        if (requestedAmount && amount && amount < requestedAmount) continue;
+        if ((memo && content.indexOf(memo) >= 0) || (phone && content.indexOf(phone) >= 0)) {
+          return jsonOutput_({ paid: true, message: "Payment verified via API Pay webhook", transaction: { id: row[0], amount: amount, description: row[2], status: row[3], time: row[4] }, source: "Google Apps Script webhook" });
+        }
+      }
+    }
     const auth = Utilities.base64Encode(APIPAY_ACCESS_KEY + ":" + APIPAY_SECRET_KEY);
     const response = UrlFetchApp.fetch("https://app.apipay.vn/v1/client/payment-requests", {
       method: "get", muteHttpExceptions: true,
@@ -205,6 +220,27 @@ function doPost(e) {
   try {
     const data = JSON.parse(e.postData.contents);
     const ss = getSpreadsheet();
+
+    // KIỂU API PAY WEBHOOK: lưu giao dịch vào Google Sheet để website tĩnh tra cứu.
+    let incoming = [];
+    if (Array.isArray(data)) incoming = data;
+    else if (Array.isArray(data.transactions)) incoming = data.transactions;
+    else if (Array.isArray(data.records)) incoming = data.records;
+    else if (data.data && Array.isArray(data.data)) incoming = data.data;
+    else if (data.data && typeof data.data === "object") incoming = [data.data];
+    else if (data.amount || data.creditAmount || data.transferAmount || data.content || data.description) incoming = [data];
+    if (incoming.length) {
+      let txSheet = ss.getSheetByName("GIAO_DICH");
+      if (!txSheet) { txSheet = ss.insertSheet("GIAO_DICH"); txSheet.appendRow(["ID", "Số tiền", "Nội dung", "Trạng thái", "Thời gian", "Raw"]); }
+      for (const tx of incoming) {
+        const rawAmount = tx.amount || tx.creditAmount || tx.transferAmount || 0;
+        const amount = Number(String(rawAmount).replace(/\D/g, "")) || 0;
+        const content = tx.content || tx.description || tx.memo || tx.comment || "";
+        const status = String(tx.status || "COMPLETED").toUpperCase();
+        if (amount > 0 || content) txSheet.appendRow([String(tx.id || tx.publicId || Utilities.getUuid()), amount, content, status, tx.time || tx.transactionDateTime || new Date(), JSON.stringify(tx)]);
+      }
+      return jsonOutput_({ status: "success", message: "API Pay webhook stored", count: incoming.length });
+    }
 
     // KIỂU 0: KHỞI TẠO TIÊU ĐỀ BẢNG (INIT HEADERS)
     if (data.action === "init_headers" || data.action === "create_headers") {
