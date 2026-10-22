@@ -269,10 +269,14 @@ function doPost(e) {
       // Luôn ghi đúng sheet TRUY_CAP, không dùng sheet đang mở làm dự phòng.
       let sheetTraffic = ss.getSheetByName("TRUY_CAP");
       if (!sheetTraffic) sheetTraffic = ss.insertSheet("TRUY_CAP");
+      const trafficHeaders = ["Thời Gian", "IP Khách", "Tỉnh Thành", "Thiết Bị", "Trình Duyệt", "Nguồn Giới Thiệu", "Trang Truy Cập", "FB Click ID", "UTM Source", "UTM Campaign", "Tên Miền"];
       if (sheetTraffic.getLastRow() === 0) {
-        sheetTraffic.appendRow(["Thời Gian", "IP Khách", "Tỉnh Thành", "Thiết Bị", "Trình Duyệt", "Nguồn Giới Thiệu", "Trang Truy Cập", "FB Click ID", "UTM Source", "UTM Campaign", "Tên Miền"]);
+        sheetTraffic.appendRow(trafficHeaders);
         sheetTraffic.getRange(1, 1, 1, 11).setBackground("#334155").setFontColor("#ffffff").setFontWeight("bold");
         sheetTraffic.setFrozenRows(1);
+      } else if (sheetTraffic.getLastColumn() < trafficHeaders.length || String(sheetTraffic.getRange(1, 1).getValue()) !== trafficHeaders[0]) {
+        sheetTraffic.getRange(1, 1, 1, trafficHeaders.length).setValues([trafficHeaders]);
+        sheetTraffic.getRange(1, 1, 1, trafficHeaders.length).setBackground("#334155").setFontColor("#ffffff").setFontWeight("bold");
       }
       sheetTraffic.appendRow([
         Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm:ss"), data.ip || "Không rõ",
