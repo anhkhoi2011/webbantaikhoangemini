@@ -14,7 +14,7 @@ server {
 
     # 2. Hỗ trợ toàn bộ API /api/... chuyển đến api.php
     location /api/ {
-        try_files $uri $uri/ /api.php?$query_string;
+        try_files "" /api.php?$query_string;
     }
 
     # Không cho tải dữ liệu/token/mã nguồn nội bộ trực tiếp
@@ -31,7 +31,8 @@ server {
     # 4. Xử lý PHP (nếu hosting chạy PHP-FPM)
     location ~ \.php$ {
         include fastcgi_params;
-        # fastcgi_pass unix:/run/php/php8.1-fpm.sock; # Bỏ comment dòng này hoặc dòng dưới tuỳ cấu hình hosting
+        # Chọn đúng một dòng fastcgi_pass theo máy chủ PHP-FPM của bạn.
+        fastcgi_pass unix:/run/php/php8.1-fpm.sock;
         # fastcgi_pass 127.0.0.1:9000;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
