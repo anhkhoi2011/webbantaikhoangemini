@@ -44,6 +44,10 @@ ADMIN_TOKENS = {}
 ADMIN_TOKEN_TTL = 8 * 60 * 60
 DEFAULT_ADMIN_HASH = "c5bc82fc5c9d4553a39af5ea2f18257e2ba60b2822fdf93725abcd4451c0bada"
 
+def allowed_origins():
+    raw = os.environ.get("ALLOWED_ORIGINS", "https://geminigiare.io.vn,https://www.geminigiare.io.vn,https://webbantaikhoangemini.n2.tinhgon.xyz")
+    return {item.strip().rstrip("/") for item in raw.split(",") if item.strip()}
+
 def _admin_hash():
     return os.environ.get("ADMIN_PASSWORD_HASH", DEFAULT_ADMIN_HASH)
 
@@ -225,7 +229,10 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
 
     def end_headers(self):
         # Thiết lập CORS toàn diện cho phép gọi API mượt mà
-        self.send_header("Access-Control-Allow-Origin", "*")
+        origin = self.headers.get("Origin", "").rstrip("/")
+        if origin and origin in allowed_origins():
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
         super().end_headers()
@@ -1414,7 +1421,7 @@ def run():
         while True:
             try:
                 import apipay_bridge
-                public_webhook = os.environ.get("PUBLIC_WEBHOOK_URL", "").strip()
+                public_webhook = os.environ.get("PUBLIC_WEBHOOK_URL", "https://geminigiare.io.vn").strip()
                 if public_webhook:
                     apipay_bridge.sync_apipay_webhook_url(public_webhook.rstrip("/") + "/api/webhook")
             except Exception:

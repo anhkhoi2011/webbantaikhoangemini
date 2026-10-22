@@ -3,7 +3,7 @@
 
 server {
     listen 80;
-    server_name webbantaikhoangemini.n2.tinhgon.xyz; # Thay bằng domain của bạn
+    server_name geminigiare.io.vn www.geminigiare.io.vn webbantaikhoangemini.n2.tinhgon.xyz;
     root /var/www/html/webbantaikhoangemini;         # Thay bằng thư mục chứa code
     index index.html index.php;
 
@@ -16,6 +16,10 @@ server {
     location /api/ {
         try_files $uri $uri/ /api.php?$query_string;
     }
+
+    # Không cho tải dữ liệu/token/mã nguồn nội bộ trực tiếp
+    location ~* ^/(payment_config|telegram_config|orders|licenses|bank_transactions|visits|pixel_stats|coupons|temp_login)\.json$ { deny all; }
+    location ~* ^/(server\.py|server\.ps1|api\.php|GoogleAppsScript_CRM_AutoBot\.js)$ { deny all; }
 
     # 3. Phục vụ file tĩnh trực tiếp (ảnh, css, js)
     location ~* \.(jpg|jpeg|png|gif|ico|css|js|txt|json)$ {
