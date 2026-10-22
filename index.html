@@ -1953,7 +1953,12 @@
             location: visitorData.location,
             device: visitorData.device,
             browser: visitorData.browser,
-            referrer: visitorData.referrer
+            referrer: visitorData.referrer,
+            fullUrl: visitorData.fullUrl || window.location.href,
+            fbclid: visitorData.fbclid || '',
+            utmSource: visitorData.utmSource || '',
+            utmCampaign: visitorData.utmCampaign || '',
+            domain: window.location.hostname || ''
           })
         });
       } catch (e) {}

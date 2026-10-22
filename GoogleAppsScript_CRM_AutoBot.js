@@ -266,14 +266,19 @@ function doPost(e) {
 
     // KIỂU 1: GHI NHẬN LƯỢT TRUY CẬP (TRAFFIC ANALYTICS)
     if (data.action === "track_visit") {
-      const sheetTraffic = ss.getSheetByName("TRUY_CAP") || ss.getActiveSheet();
+      // Luôn ghi đúng sheet TRUY_CAP, không dùng sheet đang mở làm dự phòng.
+      let sheetTraffic = ss.getSheetByName("TRUY_CAP");
+      if (!sheetTraffic) sheetTraffic = ss.insertSheet("TRUY_CAP");
+      if (sheetTraffic.getLastRow() === 0) {
+        sheetTraffic.appendRow(["Thời Gian", "IP Khách", "Tỉnh Thành", "Thiết Bị", "Trình Duyệt", "Nguồn Giới Thiệu", "Trang Truy Cập", "FB Click ID", "UTM Source", "UTM Campaign", "Tên Miền"]);
+        sheetTraffic.getRange(1, 1, 1, 11).setBackground("#334155").setFontColor("#ffffff").setFontWeight("bold");
+        sheetTraffic.setFrozenRows(1);
+      }
       sheetTraffic.appendRow([
-        Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm:ss"),
-        data.ip || "Không rõ",
-        data.location || "Việt Nam",
-        data.device || "Không rõ",
-        data.browser || "Không rõ",
-        data.referrer || "Truy cập trực tiếp"
+        Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm:ss"), data.ip || "Không rõ",
+        data.location || "Việt Nam", data.device || "Không rõ", data.browser || "Không rõ",
+        data.referrer || "Truy cập trực tiếp", data.fullUrl || "", data.fbclid || "",
+        data.utmSource || "", data.utmCampaign || "", data.domain || ""
       ]);
       return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Traffic logged" }))
         .setMimeType(ContentService.MimeType.JSON);
