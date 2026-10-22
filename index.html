@@ -1432,15 +1432,13 @@
 
   <!-- 10. JAVASCRIPT XỬ LÝ ĐẶT HÀNG & BẮT IP NGẦM CHO ADMIN CRM -->
   <script>
-    const CLOUD_BACKEND_URL = 'https://guarantees-lexmark-lcd-counsel.trycloudflare.com';
+    const CLOUD_BACKEND_URL = 'https://imposed-eligibility-ana-dirt.trycloudflare.com';
 
     function getApiBase() {
       if (window.location.protocol === 'file:') return 'http://localhost:8080';
       const host = (window.location.hostname || '').toLowerCase();
-      if (host.includes('geminigiare') || host.includes('github.io') || host.includes('vercel.app')) {
-        return CLOUD_BACKEND_URL;
-      }
-      return '';
+      if (host === 'localhost' || host === '127.0.0.1') return '';
+      return CLOUD_BACKEND_URL;
     }
 
     const apiBase = getApiBase();
@@ -1875,6 +1873,7 @@
           location: visitorData.location || 'Việt Nam',
           device: visitorData.device || 'Thiết bị di động/PC',
           browser: visitorData.browser || 'Trình duyệt Web',
+          domain: (window.location.hostname || window.location.host || '').toLowerCase(),
           referrer: visitorData.referrer || 'Truy cập trực tiếp',
           fullUrl: window.location.href,
           rawReferrer: document.referrer || '(Trực tiếp / Bookmark)',
@@ -2169,6 +2168,7 @@
             couponCode: couponCode,
             discountAmount: discountAmount,
             memo: memo,
+            domain: (window.location.hostname || window.location.host || '').toLowerCase(),
             time: new Date().toLocaleString('vi-VN'),
             ip: (visitorData && visitorData.ip) ? visitorData.ip : '127.0.0.1',
             location: (visitorData && visitorData.location) ? visitorData.location : 'Việt Nam',
@@ -2785,6 +2785,7 @@
         couponCode: couponCode,
         discountAmount: discountAmt,
         memo: custMemo,
+        domain: (window.location.hostname || window.location.host || '').toLowerCase(),
         time: new Date().toLocaleString('vi-VN'),
         ip: (typeof visitorData !== 'undefined' && visitorData && visitorData.ip) ? visitorData.ip : '127.0.0.1',
         location: (typeof visitorData !== 'undefined' && visitorData && visitorData.location) ? visitorData.location : 'Việt Nam',

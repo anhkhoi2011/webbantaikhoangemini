@@ -2692,6 +2692,7 @@
                (o.phone && o.phone.toLowerCase().includes(s)) ||
                (o.email && o.email.toLowerCase().includes(s)) ||
                (o.ip && o.ip.toLowerCase().includes(s)) ||
+               (o.domain && o.domain.toLowerCase().includes(s)) ||
                (o.time && o.time.toLowerCase().includes(s)) ||
                (o.status && o.status.toLowerCase().includes(s)) ||
                (o.adminNote && o.adminNote.toLowerCase().includes(s));
@@ -2715,6 +2716,13 @@
             <span class="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-1 rounded-md border border-blue-200 text-xs">
               ${ord.orderId || ('#' + (9000 - idx))}
             </span>
+            ${(ord.domain || extractDomain(ord)) ? `
+              <div class="mt-1">
+                <span class="inline-flex items-center gap-0.5 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200 font-mono">
+                  🌐 ${(ord.domain || extractDomain(ord))}
+                </span>
+              </div>
+            ` : ''}
           </td>
           <td class="py-3.5 px-3.5">
             <div class="flex items-center gap-2">
@@ -3614,6 +3622,7 @@
           } catch(e) {}
         }
         if (!isWithinRange) return;
+        if (currentDomainFilter !== 'ALL' && extractDomain(v) !== currentDomainFilter) return;
 
         const ref = (v.referrer || '').toLowerCase();
         if (ref.includes('x') || ref.includes('twitter')) {
@@ -3756,20 +3765,22 @@
         const dayStr = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
         const dayLabel = i === 0 ? `⚡ HÔM NAY (${dayStr})` : (i === 1 ? `Hôm qua (${dayStr})` : dayStr);
 
-        // Đếm số lượt truy cập thật trong ngày này
+        // Đếm số lượt truy cập thật trong ngày này (Hỗ trợ lọc Tên Miền)
         const realVisitsForDay = visits.filter(v => {
           if (!v.time) return false;
           const matchDate = v.time.includes(dayStr);
           if (!matchDate) return false;
+          if (currentDomainFilter !== 'ALL' && extractDomain(v) !== currentDomainFilter) return false;
           if (currentSourceFilter !== 'ALL') {
             return (v.referrer || '').toLowerCase().includes(currentSourceFilter.toLowerCase());
           }
           return true;
         }).length;
 
-        // Đếm số đơn hàng thật trong ngày này
+        // Đếm số đơn hàng thật trong ngày này (Hỗ trợ lọc Tên Miền)
         const realOrdersForDay = orders.filter(o => {
           if (!o.time) return false;
+          if (currentDomainFilter !== 'ALL' && extractDomain(o) !== currentDomainFilter) return false;
           return o.time.includes(dayStr);
         }).length;
 
@@ -3836,6 +3847,12 @@
       tbody.innerHTML = '';
 
       let filtered = visits.filter(v => {
+        // Lọc theo Tên Miền
+        if (currentDomainFilter !== 'ALL' && extractDomain(v) !== currentDomainFilter) {
+          return false;
+        }
+
+        // Lọc theo Nguồn Truy Cập
         if (currentSourceFilter !== 'ALL') {
           const vRef = (v.referrer || '').toLowerCase();
           const target = currentSourceFilter.toLowerCase();
@@ -3866,7 +3883,7 @@
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400 font-bold">Không có nhật ký truy cập nào phù hợp với bộ lọc</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-slate-400 font-bold">Không có nhật ký truy cập nào phù hợp với bộ lọc tên miền / nguồn</td></tr>`;
         return;
       }
 
@@ -3875,6 +3892,19 @@
         const isRecent = idx === 0;
         tr.className = `transition-colors ${isRecent ? 'bg-emerald-50/80 font-bold' : 'hover:bg-slate-50'}`;
         const refText = v.referrer || 'Truy cập trực tiếp';
+
+        // Phân loại Huy Hiệu Tên Miền (Domain Badge)
+        const dom = extractDomain(v);
+        let domainBadge = '';
+        if (dom.includes('geminigiare')) {
+          domainBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 font-mono shadow-2xs hover:scale-105 transition cursor-pointer" onclick="filterTrafficByDomain('${dom}')" title="Bấm để lọc theo tên miền ${dom}">🌐 ${dom}</span>`;
+        } else if (dom.includes('tinhgon') || dom.includes('tinhngon') || dom.includes('webbantaikhoan')) {
+          domainBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-cyan-100 text-cyan-900 border border-cyan-300 font-mono shadow-2xs hover:scale-105 transition cursor-pointer" onclick="filterTrafficByDomain('${dom}')" title="Bấm để lọc theo tên miền ${dom}">🌐 ${dom}</span>`;
+        } else if (dom.includes('trycloudflare')) {
+          domainBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300 font-mono shadow-2xs hover:scale-105 transition cursor-pointer" onclick="filterTrafficByDomain('${dom}')" title="Bấm để lọc theo Cloud Tunnel">☁️ Cloud Tunnel</span>`;
+        } else {
+          domainBadge = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-800 border border-slate-300 font-mono shadow-2xs hover:scale-105 transition cursor-pointer" onclick="filterTrafficByDomain('${dom}')" title="Bấm để lọc theo tên miền ${dom}">🌐 ${dom}</span>`;
+        }
 
         let badgeHtml = '';
         const lowerRef = refText.toLowerCase();
@@ -3900,6 +3930,9 @@
         tr.innerHTML = `
           <td class="py-2.5 px-3 text-slate-700 whitespace-nowrap">
             <span class="font-mono font-bold">${v.time}</span>
+          </td>
+          <td class="py-2.5 px-3 whitespace-nowrap">
+            ${domainBadge}
           </td>
           <td class="py-2.5 px-3 font-bold text-slate-900 font-mono">${v.ip}</td>
           <td class="py-2.5 px-3 font-sans font-bold text-blue-800">${v.location || 'Việt Nam'}</td>
@@ -3936,10 +3969,17 @@
       }
     }
 
-    // Render Traffic Tổng Thể
+    // Render Traffic Tổng Thể (Tích hợp Multi-Domain Analytics)
     function renderTraffic() {
-      const visits = getVisits();
-      const orders = getOrders();
+      try { renderDomainFilterBar(); } catch(e) { console.warn('renderDomainFilterBar warning:', e); }
+      let visits = getVisits();
+      let orders = getOrders();
+
+      // Nếu đang chọn một tên miền cụ thể, lọc ngay lập tức
+      if (currentDomainFilter !== 'ALL') {
+        visits = visits.filter(v => extractDomain(v) === currentDomainFilter);
+        orders = orders.filter(o => extractDomain(o) === currentDomainFilter);
+      }
       const todayDateStr = new Date().toLocaleDateString('vi-VN');
       const localTodayVisits = visits.filter(v => v.time && v.time.includes(todayDateStr)).length;
       const todayVisits = (serverVisitsData && typeof serverVisitsData.todayVisits === 'number') ? Math.max(serverVisitsData.todayVisits, localTodayVisits) : localTodayVisits;

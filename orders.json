@@ -26,7 +26,8 @@
     "paymentSource": "APIPay Webhook",
     "licenseLink": "",
     "couponCounted": true,
-    "paidNotified": true
+    "paidNotified": true,
+    "domain": "geminigiare.io.vn"
   },
   {
     "orderId": "#7010",
@@ -50,7 +51,8 @@
     "utmSource": "",
     "utmCampaign": "",
     "status": "Chờ thanh toán (Đang mở QR)",
-    "buyerIp": "42.118.137.52"
+    "buyerIp": "42.118.137.52",
+    "domain": "geminigiare.io.vn"
   },
   {
     "orderId": "#6046",
@@ -73,7 +75,8 @@
     "fbclid": "",
     "utmSource": "",
     "utmCampaign": "",
-    "status": "Chờ thanh toán (Đang mở QR)"
+    "status": "Chờ thanh toán (Đang mở QR)",
+    "domain": "geminigiare.io.vn"
   },
   {
     "orderId": "#5188",
@@ -97,7 +100,8 @@
     "utmSource": "",
     "utmCampaign": "",
     "status": "Chờ thanh toán (Đang mở QR)",
-    "qrNotified": true
+    "qrNotified": true,
+    "domain": "geminigiare.io.vn"
   },
   {
     "orderId": "#6047",
@@ -116,7 +120,8 @@
     "fbclid": "IwAR2V8qJkPz9X_7Lm6O9eN1qR",
     "utmSource": "facebook",
     "utmCampaign": "gemini_pro_90k",
-    "status": "Chá» thanh toÃ¡n (Äang má»Ÿ QR)"
+    "status": "Chá» thanh toÃ¡n (Äang má»Ÿ QR)",
+    "domain": "geminigiare.io.vn"
   },
   {
     "orderId": "#7694",
@@ -132,7 +137,8 @@
     "device": "MÃ¡y tÃ­nh",
     "referrer": "Truy cáº­p trá»±c tiáº¿p",
     "status": "Chá» thanh toÃ¡n (Äang má»Ÿ QR)",
-    "qrNotified": true
+    "qrNotified": true,
+    "domain": "geminigiare.io.vn"
   },
   {
     "orderId": "#4464",
@@ -147,6 +153,7 @@
     "location": "Viá»‡t Nam",
     "device": "MÃ¡y tÃ­nh",
     "referrer": "Truy cáº­p trá»±c tiáº¿p",
-    "status": "Chá» thanh toÃ¡n (Äang má»Ÿ QR)"
+    "status": "Chá» thanh toÃ¡n (Äang má»Ÿ QR)",
+    "domain": "geminigiare.io.vn"
   }
 ]

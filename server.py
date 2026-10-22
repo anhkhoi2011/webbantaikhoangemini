@@ -769,14 +769,33 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                     sources["other"] = sources.get("other", 0) + 1
                     ref_label = body.get("referrer") or "Khác"
 
+                # Trích xuất và phân loại Tên Miền (Multi-Domain Tracking)
+                domain = str(body.get("domain") or "").strip().lower()
+                full_url_str = body.get("fullUrl") or ""
+                if not domain and full_url_str:
+                    try:
+                        p_dom = urllib.parse.urlparse(full_url_str)
+                        domain = (p_dom.hostname or p_dom.netloc or "").strip().lower()
+                    except Exception:
+                        domain = ""
+                if not domain:
+                    host_hdr = self.headers.get("Host", "")
+                    domain = host_hdr.split(":")[0].strip().lower() if host_hdr else ""
+                if not domain:
+                    domain = "Khác"
+
+                domains_map = visits_data.setdefault("domains", {})
+                domains_map[domain] = domains_map.get(domain, 0) + 1
+
                 visit_entry = {
                     "time": body.get("time") or datetime.now().strftime("%H:%M:%S %d/%m/%Y"),
                     "ip": ip,
                     "location": body.get("location") or "Việt Nam",
                     "device": device,
                     "browser": body.get("browser") or "Trình duyệt Web",
+                    "domain": domain,
                     "referrer": ref_label,
-                    "fullUrl": body.get("fullUrl") or "",
+                    "fullUrl": full_url_str,
                     "rawReferrer": body.get("rawReferrer") or ""
                 }
 
@@ -855,6 +874,21 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 ua = self.headers.get("User-Agent", "")
                 body["device"] = "Điện thoại" if ("Mobile" in ua or "Android" in ua or "iPhone" in ua) else "Máy tính PC"
             
+            # Tự động trích xuất Tên Miền Đặt Hàng (Domain Tracking)
+            order_domain = str(body.get("domain") or "").strip().lower()
+            if not order_domain and body.get("fullUrl"):
+                try:
+                    p_ord = urllib.parse.urlparse(body["fullUrl"])
+                    order_domain = (p_ord.hostname or p_ord.netloc or "").strip().lower()
+                except Exception:
+                    order_domain = ""
+            if not order_domain:
+                host_hdr = self.headers.get("Host", "")
+                order_domain = host_hdr.split(":")[0].strip().lower() if host_hdr else ""
+            if not order_domain:
+                order_domain = "geminigiare.io.vn"
+            body["domain"] = order_domain
+
             # Cập nhật nếu trùng mã đơn, ngược lại thêm mới
             existing_order = None
             found = False
@@ -911,6 +945,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                     if webhook and "SAMPLE" not in webhook:
                         req_data = json.dumps({
                             "action": "new_order",
+                            "domain": order_data.get("domain") or "",
                             "time": order_data.get("time") or datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
                             "orderId": order_data.get("orderId"),
                             "product": order_data.get("package") or "Google Gemini Pro 18 Tháng",

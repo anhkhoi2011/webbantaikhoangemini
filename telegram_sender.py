@@ -76,6 +76,20 @@ def send_telegram_raw(html_text, bot_token=None, chat_id=None):
 # 4 MẪU TIN NHẮN CHUẨN ĐẸP, GỌN GÀNG, CHUYÊN NGHIỆP
 # ==========================================
 
+def extract_domain_from_order(order):
+    """Trích xuất tên miền website mà khách hàng đã đặt hàng."""
+    domain = (order.get("domain") or "").strip().lower()
+    if not domain:
+        url = order.get("fullUrl") or order.get("url") or ""
+        if url:
+            try:
+                import urllib.parse
+                parsed = urllib.parse.urlparse(url)
+                domain = (parsed.hostname or parsed.netloc or "").strip().lower()
+            except Exception:
+                domain = ""
+    return domain
+
 def format_ad_tracking_lines(order):
     """
     Tạo khối thông tin nguồn quảng cáo và link chi tiết rõ ràng gửi về Telegram.
@@ -108,7 +122,7 @@ def format_ad_tracking_lines(order):
         elif raw_ref:
             lines.append(f"🔗 <b>Link giới thiệu:</b> <code>{raw_ref}</code>")
     else:
-        lines.append(f"🌐 <b>Nguồn truy cập:</b> {referrer or 'Trực tiếp / Bookmark'}")
+        lines.append(f"🧭 <b>Nguồn truy cập:</b> {referrer or 'Trực tiếp / Bookmark'}")
         if full_url:
             lines.append(f"🔗 <b>Link truy cập:</b> <code>{full_url}</code>")
 
@@ -125,12 +139,14 @@ def get_qr_opened_template(order):
     location = order.get("location") or "Việt Nam"
     device = order.get("device") or "Thiết bị di động/PC"
     time_str = order.get("time", datetime.now().strftime("%d/%m/%Y %H:%M:%S"))
+    domain = extract_domain_from_order(order)
+    domain_hdr = f"🌐 <b>Tên miền chốt đơn:</b> <code>{domain}</code>\n" if domain else ""
     ad_info = format_ad_tracking_lines(order)
     coupon_str = f"\n🏷️ <b>Mã Voucher:</b> <code>{order.get('couponCode')}</code>" if order.get("couponCode") else ""
 
     return f"""⏳ <b>KHÁCH ĐANG MỞ MÃ QR CHỜ THANH TOÁN</b>
 ━━━━━━━━━━━━━━━━━━━━
-📦 <b>Mã đơn:</b> <code>{order_id}</code>
+{domain_hdr}📦 <b>Mã đơn:</b> <code>{order_id}</code>
 👤 <b>Khách hàng:</b> <b>{name}</b>
 📱 <b>SĐT Zalo:</b> <code>{phone}</code>
 ✉️ <b>Gmail:</b> <code>{email}</code>
@@ -157,13 +173,15 @@ def get_payment_success_template(order):
     location = order.get("location") or "Việt Nam"
     device = order.get("device") or "Thiết bị di động/PC"
     time_str = order.get("time", datetime.now().strftime("%H:%M %d/%m/%Y"))
+    domain = extract_domain_from_order(order)
+    domain_hdr = f"🌐 <b>Tên miền chốt đơn:</b> <code>{domain}</code>\n" if domain else ""
     ad_info = format_ad_tracking_lines(order)
     coupon_str = f"🏷️ <b>Mã Voucher:</b> <code>{order.get('couponCode')}</code>\n" if order.get("couponCode") else ""
 
     if not license_link:
         return f"""🚨 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN ({amount})</b>
 ━━━━━━━━━━━━━━━━━━━━
-📦 <b>Mã đơn:</b> <code>{order_id}</code> • {time_str}
+{domain_hdr}📦 <b>Mã đơn:</b> <code>{order_id}</code> • {time_str}
 👤 <b>Khách:</b> <b>{name}</b> | <code>{phone}</code>
 ✉️ <b>Gmail:</b> <code>{email}</code>
 📝 <b>Nội dung CK:</b> <code>{memo}</code>
@@ -178,7 +196,7 @@ def get_payment_success_template(order):
 
     return f"""🟢 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN ({amount})</b>
 ━━━━━━━━━━━━━━━━━━━━
-📦 <b>Mã đơn:</b> <code>{order_id}</code> • {time_str}
+{domain_hdr}📦 <b>Mã đơn:</b> <code>{order_id}</code> • {time_str}
 👤 <b>Khách:</b> <b>{name}</b> | <code>{phone}</code>
 ✉️ <b>Gmail:</b> <code>{email}</code>
 📝 <b>Nội dung:</b> <code>{memo}</code>
