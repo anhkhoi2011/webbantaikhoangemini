@@ -3,13 +3,67 @@
   "enabled": true,
   "stats": {
     "PageView": 158,
-    "ViewContent": 196,
-    "Lead": 51,
-    "InitiateCheckout": 50,
-    "Purchase": 24,
-    "totalEvents": 479
+    "ViewContent": 197,
+    "Lead": 52,
+    "InitiateCheckout": 51,
+    "Purchase": 25,
+    "totalEvents": 483
   },
   "recentEvents": [
+    {
+      "event": "Purchase",
+      "time": "16:16:59 22/10/2026",
+      "url": "https://webbantaikhoangemini.n2.tinhgon.xyz/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Google Gemini Pro 18 Tháng",
+        "value": 90000,
+        "currency": "VND",
+        "transaction_id": "#5167"
+      }
+    },
+    {
+      "event": "Lead",
+      "time": "16:16:53 22/10/2026",
+      "url": "https://webbantaikhoangemini.n2.tinhgon.xyz/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Đăng Ký Gemini Pro 18T",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
+    {
+      "event": "InitiateCheckout",
+      "time": "16:16:53 22/10/2026",
+      "url": "https://webbantaikhoangemini.n2.tinhgon.xyz/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Google Gemini Pro 18 Tháng",
+        "value": 90000,
+        "currency": "VND",
+        "num_items": 1
+      }
+    },
+    {
+      "event": "ViewContent",
+      "time": "16:16:40 22/10/2026",
+      "url": "https://webbantaikhoangemini.n2.tinhgon.xyz/",
+      "fbclid": "",
+      "utmSource": "",
+      "utmCampaign": "",
+      "params": {
+        "content_name": "Google Gemini Pro 18 Tháng",
+        "value": 90000,
+        "currency": "VND"
+      }
+    },
     {
       "event": "ViewContent",
       "time": "03:51:52 22/10/2026",
@@ -935,5 +989,5 @@
       "params": {}
     }
   ],
-  "updatedAt": "22/10/2026 10:51:41"
+  "updatedAt": "22/10/2026 16:17:01"
 }

@@ -124,6 +124,67 @@ def next_license_id(items):
 def license_stock_count(items):
     return sum(1 for item in items if item.get("status") == "Sẵn sàng")
 
+def mark_order_paid(order_id, tx_id=None, tx_data=None, source="API Pay"):
+    if not order_id:
+        return None
+    orders = read_json_file("orders.json", [])
+    matched_order = None
+    for o in orders:
+        if o.get("orderId") == order_id:
+            matched_order = o
+            break
+    if not matched_order:
+        return None
+
+    st = (matched_order.get("status") or "").lower()
+    is_already_paid = "đã thanh toán" in st or "da thanh toan" in st
+    if is_already_paid and matched_order.get("paidNotified"):
+        return matched_order
+
+    matched_order["paymentTxId"] = tx_id or matched_order.get("paymentTxId") or f"TX_{int(datetime.now().timestamp()) % 1000000:06d}"
+    matched_order["paymentSource"] = source
+
+    if not matched_order.get("licenseLink"):
+        with LICENSE_LOCK:
+            lics = read_licenses()
+            free_lic = next((l for l in lics if l.get("status") == "Sẵn sàng"), None)
+            if free_lic:
+                free_lic["status"] = "Đã cấp"
+                free_lic["assignedTo"] = f"{matched_order.get('name')} ({matched_order.get('orderId')})"
+                write_json_file(LICENSES_FILE, lics)
+                matched_order["licenseLink"] = free_lic.get("link", "")
+                matched_order["status"] = "Đã thanh toán (MBBank)"
+            else:
+                matched_order["licenseLink"] = ""
+                matched_order["status"] = "Đã thanh toán (Chờ cấp link)"
+    else:
+        matched_order["status"] = "Đã thanh toán (MBBank)"
+
+    if matched_order.get("couponCode") and not matched_order.get("couponCounted"):
+        matched_order["couponCounted"] = True
+        c_code = (matched_order.get("couponCode") or "").strip().upper()
+        with COUPONS_LOCK:
+            coupons = read_json_file(COUPONS_FILE, [])
+            for c in coupons:
+                if (c.get("code") or "").upper() == c_code:
+                    c["usedCount"] = int(c.get("usedCount") or 0) + 1
+                    break
+            write_json_file(COUPONS_FILE, coupons)
+
+    write_json_file("orders.json", orders)
+
+    if not matched_order.get("paidNotified"):
+        matched_order["paidNotified"] = True
+        write_json_file("orders.json", orders)
+        try:
+            import telegram_sender
+            telegram_sender.send_payment_success_notification(matched_order)
+        except Exception as e:
+            sys.stdout.write(f"[TELEGRAM ERROR] {e}\n")
+            sys.stdout.flush()
+
+    return matched_order
+
 class GeminiCRMHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=BASE_DIR, **kwargs)
@@ -296,10 +357,12 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                     import apipay_bridge
                     res = apipay_bridge.check_payment_status(public_id)
                     if res.get("paid"):
+                        updated_order = mark_order_paid(order_id, public_id, res.get("transaction"), "APIPay Cloud PR")
                         return self.send_json({
                             "paid": True,
                             "message": "Payment verified via APIPay Cloud",
                             "transaction": res.get("transaction"),
+                            "order": updated_order,
                             "source": "APIPay Cloud"
                         })
                 except Exception as e:
@@ -311,43 +374,69 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                     import apipay_bridge
                     res = apipay_bridge.check_recent_payment_requests(memo, phone)
                     if res.get("paid"):
+                        pr_tx = res.get("transaction") or {}
+                        pr_pub = pr_tx.get("publicId") or public_id
+                        updated_order = mark_order_paid(order_id, pr_pub, pr_tx, "APIPay Cloud Recent PR")
                         return self.send_json({
                             "paid": True,
                             "message": "Payment verified via APIPay Cloud Recent",
-                            "transaction": res.get("transaction"),
+                            "transaction": pr_tx,
+                            "order": updated_order,
                             "source": "APIPay Cloud Recent"
                         })
                 except Exception as e:
                     pass
 
-            # 4.3 Kiểm tra đối soát trong nhật ký giao dịch ngân hàng
+            # 4.3 Kiểm tra đối soát trong nhật ký giao dịch ngân hàng (bank_transactions.json)
+            # Chỉ khớp giao dịch chưa bị đơn khác nhận, không nhận nhầm giao dịch cũ
             txs = read_json_file("bank_transactions.json", [])
+            tx_updated = False
             for tx in txs:
+                # Nếu giao dịch đã được đơn khác sử dụng thì bỏ qua (1 giao dịch = 1 đơn duy nhất)
+                used_by = tx.get("used_by_order")
+                if used_by and used_by != order_id:
+                    continue
+
                 desc = (tx.get("description") or tx.get("memo") or "").upper().replace(" ", "")
-                if (clean_phone and clean_phone in desc) or (clean_memo and clean_memo in desc):
+                is_match = False
+                if clean_memo and clean_memo in desc:
+                    is_match = True
+                elif clean_phone and len(clean_phone) >= 9 and clean_phone in desc:
+                    is_match = True
+
+                if is_match:
+                    if order_id and not tx.get("used_by_order"):
+                        tx["used_by_order"] = order_id
+                        tx_updated = True
+                    if tx_updated:
+                        write_json_file("bank_transactions.json", txs)
+                    updated_order = mark_order_paid(order_id, tx.get("id"), tx, tx.get("source", "Live Bank Stream"))
                     return self.send_json({
                         "paid": True,
                         "message": "Payment verified via Live Bank Feed",
                         "transaction": tx,
+                        "order": updated_order,
                         "source": tx.get("source", "Live Bank Stream")
                     })
 
-            # 4.4 Kiểm tra trong orders.json (trường hợp Admin duyệt thủ công hoặc đơn đã kích hoạt)
-            orders = read_json_file("orders.json", [])
-            for order in orders:
-                st = (order.get("status") or "").lower()
-                is_paid = "đã thanh toán" in st or "da thanh toan" in st or "thành công" in st or "thanh cong" in st
-                if is_paid:
+            # 4.4 Kiểm tra trong orders.json (CHỈ KHỚP ĐÚNG orderId NÀY NẾU ĐÃ ĐƯỢC DUYỆT HOẶC WEBHOOK XÁC NHẬN)
+            # TUYỆT ĐỐI KHÔNG KHỚP THEO SỐ ĐIỆN THOẠI ĐỂ TRÁNH LỖI KHÁCH CŨ TẠO ĐƠN MỚI BỊ NHẬN NHẦM
+            if order_id:
+                orders = read_json_file("orders.json", [])
+                for order in orders:
                     o_id = (order.get("orderId") or "").strip()
-                    o_phone = (order.get("phone") or "").replace("+84", "0").replace(" ", "")
-                    o_memo = (order.get("memo") or "").replace(" ", "").upper()
-                    if (order_id and order_id == o_id) or (clean_phone and clean_phone == o_phone) or (clean_memo and clean_memo == o_memo):
-                        return self.send_json({
-                            "paid": True,
-                            "message": "Payment verified via Order Database",
-                            "transaction": order,
-                            "source": "Order Database"
-                        })
+                    if order_id == o_id:
+                        st = (order.get("status") or "").lower()
+                        is_paid = "đã thanh toán" in st or "da thanh toan" in st or "thành công" in st or "thanh cong" in st
+                        if is_paid:
+                            return self.send_json({
+                                "paid": True,
+                                "message": "Payment verified via Order Database",
+                                "transaction": order,
+                                "order": order,
+                                "source": "Order Database"
+                            })
+                        break
 
             return self.send_json({"paid": False, "message": "Chờ quét mã thanh toán..."})
 
@@ -1058,41 +1147,8 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                                 break
 
                     if matched_order:
-                        matched_order["paymentTxId"] = tx_record["id"]
-                        matched_order["paymentSource"] = "APIPay Webhook"
-                        # Cấp license
-                        with LICENSE_LOCK:
-                            lics = read_licenses()
-                            free_lic = next((l for l in lics if l.get("status") == "Sẵn sàng"), None)
-                            if free_lic:
-                                free_lic["status"] = "Đã cấp"
-                                free_lic["assignedTo"] = f"{matched_order.get('name')} ({matched_order.get('orderId')})"
-                                write_json_file(LICENSES_FILE, lics)
-                                matched_order["licenseLink"] = free_lic.get("link", "")
-                                matched_order["status"] = "Đã thanh toán (MBBank)"
-                            else:
-                                matched_order["licenseLink"] = ""
-                                matched_order["status"] = "Đã thanh toán (Chờ cấp link)"
-
-                        # Tăng số lượt dùng voucher khi webhook nhận tiền thành công
-                        if matched_order.get("couponCode") and not matched_order.get("couponCounted"):
-                            matched_order["couponCounted"] = True
-                            c_code = (matched_order.get("couponCode") or "").strip().upper()
-                            with COUPONS_LOCK:
-                                coupons = read_json_file(COUPONS_FILE, [])
-                                for c in coupons:
-                                    if (c.get("code") or "").upper() == c_code:
-                                        c["usedCount"] = int(c.get("usedCount") or 0) + 1
-                                        break
-                                write_json_file(COUPONS_FILE, coupons)
-
-                        # Bắn Telegram báo đơn hàng đã thanh toán thành công
-                        try:
-                            import telegram_sender
-                            matched_order["paidNotified"] = True
-                            telegram_sender.send_telegram_raw(telegram_sender.get_payment_success_template(matched_order))
-                        except Exception as e:
-                            sys.stderr.write(f"Telegram webhook notify error: {e}\n")
+                        tx_record["used_by_order"] = matched_order.get("orderId")
+                        mark_order_paid(matched_order.get("orderId"), tx_record["id"], tx_record, "APIPay Webhook")
                         orders_updated = True
 
             write_json_file("bank_transactions.json", current_txs[:150])
@@ -1279,6 +1335,18 @@ def run():
     print(f"  Trang bán hàng : http://localhost:{PORT}/")
     print(f"  Trang Quản trị : http://localhost:{PORT}/admin (Mật khẩu: Khoi@123)")
     print(f"==================================================================")
+    # Khởi động luồng ngầm tự động đồng bộ Webhook URL trên ApiPay Cloud
+    def _sync_apipay_worker():
+        import time
+        while True:
+            try:
+                import apipay_bridge
+                apipay_bridge.sync_apipay_webhook_url("https://imposed-eligibility-ana-dirt.trycloudflare.com/api/webhook")
+            except Exception:
+                pass
+            time.sleep(300)
+    threading.Thread(target=_sync_apipay_worker, daemon=True).start()
+
     server = HTTPServer(("0.0.0.0", PORT), GeminiCRMHandler)
     try:
         server.serve_forever()

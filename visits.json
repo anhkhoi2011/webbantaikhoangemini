@@ -1,10 +1,10 @@
 {
-  "totalVisits": 53,
-  "todayVisits": 53,
+  "totalVisits": 54,
+  "todayVisits": 54,
   "lastDate": "22/10/2026",
   "devices": {
     "mobile": 26,
-    "desktop": 27,
+    "desktop": 28,
     "other": 0
   },
   "sources": {
@@ -12,10 +12,21 @@
     "tiktok": 0,
     "google": 1,
     "zalo": 6,
-    "direct": 45,
+    "direct": 46,
     "other": 0
   },
   "visits": [
+    {
+      "time": "16:16:39 22/10/2026",
+      "ip": "42.118.137.52",
+      "location": "Ho Chi Minh City, Viet Nam",
+      "device": "Máy tính",
+      "browser": "Google Chrome",
+      "domain": "webbantaikhoangemini.n2.tinhgon.xyz",
+      "referrer": "Truy cập trực tiếp",
+      "fullUrl": "https://webbantaikhoangemini.n2.tinhgon.xyz/",
+      "rawReferrer": "(Trực tiếp / Bookmark)"
+    },
     {
       "time": "03:51:52 22/10/2026",
       "ip": "54.224.122.202",
@@ -602,7 +613,7 @@
   ],
   "domains": {
     "guarantees-lexmark-lcd-counsel.trycloudflare.com": 37,
-    "webbantaikhoangemini.n2.tinhgon.xyz": 9,
+    "webbantaikhoangemini.n2.tinhgon.xyz": 10,
     "geminigiare.io.vn": 5,
     "khác": 2
   }

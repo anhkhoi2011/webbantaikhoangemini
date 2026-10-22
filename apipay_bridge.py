@@ -139,6 +139,8 @@ def check_recent_payment_requests(memo=None, phone=None, amount=None):
     clean_memo = memo.replace(" ", "").upper() if memo else ""
 
     try:
+        from datetime import datetime, timezone
+        now_utc = datetime.now(timezone.utc)
         with urllib.request.urlopen(req, context=ctx, timeout=8) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             prs = data.get("data", {}).get("data", [])
@@ -146,9 +148,20 @@ def check_recent_payment_requests(memo=None, phone=None, amount=None):
                 st = (pr.get("status") or "").upper()
                 is_paid = st in ["PAID", "COMPLETED", "SUCCESS"]
                 if is_paid:
+                    # Chỉ chấp nhận Payment Request được tạo trong vòng 20 phút trở lại
+                    created_at_str = pr.get("createdAt") or ""
+                    if created_at_str:
+                        try:
+                            created_dt = datetime.fromisoformat(created_at_str.replace("Z", "+00:00"))
+                            diff_sec = (now_utc - created_dt).total_seconds()
+                            if diff_sec > 1200:
+                                continue
+                        except Exception:
+                            pass
+
                     content = (pr.get("content") or "").replace(" ", "").upper()
                     # Khớp theo memo hoặc phone
-                    if (clean_phone and clean_phone in content) or (clean_memo and clean_memo in content):
+                    if (clean_phone and len(clean_phone) >= 9 and clean_phone in content) or (clean_memo and clean_memo in content):
                         return {
                             "status": "success",
                             "paid": True,
@@ -178,6 +191,38 @@ def get_qr_base64(memo="PRO18T", amount=None):
             b64 = base64.b64encode(data).decode("utf-8")
             return {"status": "success", "base64": b64}
     except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+def sync_apipay_webhook_url(target_url="https://imposed-eligibility-ana-dirt.trycloudflare.com/api/webhook"):
+    """
+    Tự động đồng bộ URL Webhook trên ApiPay Cloud.
+    Đảm bảo Webhook của ApiPay luôn gửi về đúng backend server đang chạy (không bị chết link).
+    """
+    try:
+        cfg = load_config()
+        headers = get_headers(cfg["accessKey"], cfg["secretKey"])
+        req = urllib.request.Request("https://app.apipay.vn/v1/client/webhooks", headers=headers)
+        with urllib.request.urlopen(req, context=ctx, timeout=8) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            whs = data.get("data", {}).get("data", [])
+            for wh in whs:
+                wh_id = wh.get("id")
+                curr_url = wh.get("webhookUrl")
+                if curr_url != target_url:
+                    patch_req = urllib.request.Request(
+                        f"https://app.apipay.vn/v1/client/webhooks/{wh_id}",
+                        data=json.dumps({"webhookUrl": target_url}).encode("utf-8"),
+                        headers=headers,
+                        method="PATCH"
+                    )
+                    with urllib.request.urlopen(patch_req, context=ctx, timeout=8) as p_resp:
+                        sys.stdout.write(f"[APIPAY WEBHOOK SYNC] Updated webhook {wh_id} -> {target_url}\n")
+                        sys.stdout.flush()
+                    return {"status": "success", "action": "updated", "webhookUrl": target_url}
+            return {"status": "success", "action": "already_up_to_date", "webhookUrl": target_url}
+    except Exception as e:
+        sys.stdout.write(f"[APIPAY WEBHOOK SYNC ERROR] {e}\n")
+        sys.stdout.flush()
         return {"status": "error", "message": str(e)}
 
 def output_json(obj):
