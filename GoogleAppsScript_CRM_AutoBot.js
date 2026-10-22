@@ -30,6 +30,45 @@ const BOT_CONFIG = {
   ZALO_SUPPORT: "https://zalo.me/0567960777"
 };
 
+// API Pay fallback cho website tĩnh: không cần PHP/Python trên hosting.
+const APIPAY_ACCESS_KEY = "5a03a2c11ed56ea65b7e7e11107f638ec8acfb95165a6a50225c91a477a157c2";
+const APIPAY_SECRET_KEY = "LK00NYGOmyz8i7MhhNOD/gz0YcMBjUS4+DfD/l1zXmKcKXo1v5ScvycSlu8DcngsKUSLWJzF+fS+eysDi0B3gQ==";
+
+function jsonOutput_(value) {
+  return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  const action = (e && e.parameter && e.parameter.action) || "health";
+  if (action !== "check_payment") return jsonOutput_({ status: "success", service: "Gemini CRM Apps Script" });
+
+  const memo = String((e.parameter && e.parameter.memo) || "").replace(/\s+/g, "").toUpperCase();
+  const phone = String((e.parameter && e.parameter.phone) || "").replace(/\D/g, "").replace(/^84/, "0");
+  const requestedAmount = Number(String((e.parameter && e.parameter.amount) || "0").replace(/\D/g, "")) || 0;
+  try {
+    const auth = Utilities.base64Encode(APIPAY_ACCESS_KEY + ":" + APIPAY_SECRET_KEY);
+    const response = UrlFetchApp.fetch("https://app.apipay.vn/v1/client/payment-requests", {
+      method: "get", muteHttpExceptions: true,
+      headers: { Authorization: "Bearer " + auth, Accept: "application/json" }
+    });
+    const payload = JSON.parse(response.getContentText() || "{}");
+    const rows = payload && payload.data && Array.isArray(payload.data.data) ? payload.data.data : [];
+    for (const row of rows) {
+      const status = String(row.status || "").toUpperCase();
+      if (!["PAID", "COMPLETED", "SUCCESS"].includes(status)) continue;
+      const content = String(row.content || "").replace(/\s+/g, "").toUpperCase();
+      const amount = Number(String(row.amount || "0").replace(/\D/g, "")) || 0;
+      if (requestedAmount && amount && amount < requestedAmount) continue;
+      if ((memo && content.indexOf(memo) >= 0) || (phone && content.indexOf(phone) >= 0)) {
+        return jsonOutput_({ paid: true, message: "Payment verified via API Pay", transaction: row, source: "Google Apps Script API Pay" });
+      }
+    }
+    return jsonOutput_({ paid: false, message: "Chưa có giao dịch hoàn tất" });
+  } catch (err) {
+    return jsonOutput_({ paid: false, status: "error", message: String(err) });
+  }
+}
+
 // Thứ tự 12 cột chuẩn
 const ORDER_COLUMNS = [
   "Ngày Giờ",

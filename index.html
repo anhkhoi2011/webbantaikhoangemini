@@ -2390,7 +2390,7 @@
       // 3. Kiểm tra Google Apps Script nếu có
       if (CONFIG.googleAppsScriptUrl && !CONFIG.googleAppsScriptUrl.includes('SAMPLE')) {
         try {
-          const gasRes = await window.fetch(`${CONFIG.googleAppsScriptUrl}?action=check_payment&memo=${encodeURIComponent(memo)}&phone=${encodeURIComponent(phone)}`);
+          const gasRes = await window.fetch(`${CONFIG.googleAppsScriptUrl}?action=check_payment&memo=${encodeURIComponent(memo)}&phone=${encodeURIComponent(phone)}&amount=${encodeURIComponent(amount || 0)}`);
           if (gasRes.ok) {
             const gasData = await gasRes.json();
             if (gasData && gasData.paid) {
