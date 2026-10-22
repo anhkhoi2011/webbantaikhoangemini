@@ -215,7 +215,9 @@ if (strpos($requestUri, '/api/payment-config') !== false) {
         writeJsonFile('payment_config.json', $body);
         echo json_encode(["status" => "success", "message" => "Payment config saved"]);
     } else {
-        echo json_encode(readJsonFile('payment_config.json', []));
+        $cfg = readJsonFile('payment_config.json', []);
+        foreach (['apiKey','accessKey','secretKey','googleSheetWebhookUrl','googleSheetUrl','appsScriptProjectUrl','telegramBotToken','telegramChatId'] as $secretKey) unset($cfg[$secretKey]);
+        echo json_encode($cfg);
     }
     exit();
 }
@@ -229,6 +231,40 @@ if (strpos($requestUri, '/api/bank-transactions') !== false) {
         echo json_encode(readJsonFile('bank_transactions.json', []));
     }
     exit();
+}
+
+// 2.1 API: Thống kê lượt truy cập tập trung (PHP hosting)
+if (strpos($requestUri, '/api/track-visit') !== false && $method === 'POST') {
+    $data = readJsonFile('visits.json', [
+        'totalVisits' => 0, 'todayVisits' => 0, 'lastDate' => date('d/m/Y'),
+        'devices' => ['mobile' => 0, 'desktop' => 0, 'other' => 0],
+        'sources' => ['facebook' => 0, 'tiktok' => 0, 'google' => 0, 'zalo' => 0, 'direct' => 0, 'other' => 0],
+        'visits' => []
+    ]);
+    $today = date('d/m/Y');
+    if (($data['lastDate'] ?? '') !== $today) { $data['lastDate'] = $today; $data['todayVisits'] = 0; }
+    $data['totalVisits'] = intval($data['totalVisits'] ?? 0) + 1;
+    $data['todayVisits'] = intval($data['todayVisits'] ?? 0) + 1;
+    $body = getPostJson();
+    $ua = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    $device = trim($body['device'] ?? '') ?: (preg_match('/Mobile|Android|iPhone|iPad/i', $ua) ? 'Điện thoại' : 'Máy tính');
+    $deviceKey = preg_match('/Mobile|Android|iPhone|iPad|Điện thoại/i', $device) ? 'mobile' : (preg_match('/Máy tính|PC|Desktop/i', $device) ? 'desktop' : 'other');
+    $data['devices'][$deviceKey] = intval($data['devices'][$deviceKey] ?? 0) + 1;
+    $ref = strtolower(trim($body['referrer'] ?? ($body['rawReferrer'] ?? '')));
+    $url = strtolower($body['fullUrl'] ?? '');
+    $source = strpos($ref, 'facebook') !== false || strpos($url, 'fbclid') !== false ? 'facebook' : (strpos($ref, 'tiktok') !== false || strpos($url, 'ttclid') !== false ? 'tiktok' : (strpos($ref, 'google') !== false || strpos($url, 'gclid') !== false ? 'google' : (strpos($ref, 'zalo') !== false ? 'zalo' : (empty($ref) || strpos($ref, 'direct') !== false ? 'direct' : 'other'))));
+    $data['sources'][$source] = intval($data['sources'][$source] ?? 0) + 1;
+    $entry = ['time' => $body['time'] ?? date('H:i:s d/m/Y'), 'ip' => $body['ip'] ?? ($_SERVER['REMOTE_ADDR'] ?? ''), 'location' => $body['location'] ?? 'Việt Nam', 'device' => $device, 'browser' => $body['browser'] ?? 'Trình duyệt Web', 'domain' => $body['domain'] ?? '', 'referrer' => $source, 'fullUrl' => $body['fullUrl'] ?? '', 'rawReferrer' => $body['rawReferrer'] ?? ''];
+    array_unshift($data['visits'], $entry); $data['visits'] = array_slice($data['visits'], 0, 1000);
+    writeJsonFile('visits.json', $data);
+    echo json_encode(['status' => 'success', 'totalVisits' => $data['totalVisits'], 'todayVisits' => $data['todayVisits']]); exit();
+}
+if (strpos($requestUri, '/api/visits') !== false) {
+    if ($method === 'POST' && (($body = getPostJson())['action'] ?? '') === 'clear') {
+        writeJsonFile('visits.json', ['totalVisits' => 0, 'todayVisits' => 0, 'lastDate' => date('d/m/Y'), 'devices' => ['mobile'=>0,'desktop'=>0,'other'=>0], 'sources' => ['facebook'=>0,'tiktok'=>0,'google'=>0,'zalo'=>0,'direct'=>0,'other'=>0], 'visits' => []]);
+        echo json_encode(['status' => 'success', 'message' => 'Visits cleared']); exit();
+    }
+    echo json_encode(readJsonFile('visits.json', [])); exit();
 }
 
 // 3. API: Đơn hàng (Orders)
@@ -418,7 +454,9 @@ if (strpos($requestUri, '/api/telegram-config') !== false) {
         writeJsonFile('telegram_config.json', $body);
         echo json_encode(["status" => "success", "message" => "Telegram config saved"]);
     } else {
-        echo json_encode(readJsonFile('telegram_config.json', []));
+        $cfg = readJsonFile('telegram_config.json', []);
+        unset($cfg['botToken'], $cfg['chatId']);
+        echo json_encode($cfg);
     }
     exit();
 }

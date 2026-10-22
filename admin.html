@@ -2412,6 +2412,9 @@
 
     async function adminApiFetch(endpoint, options = {}) {
       const base = getAdminApiBase();
+      options = { ...options, headers: { ...(options.headers || {}) } };
+      const adminToken = sessionStorage.getItem('admin_api_token');
+      if (adminToken) options.headers['X-Admin-Token'] = adminToken;
       try {
         const res = await window.fetch(`${base}${endpoint}`, options);
         if (res.ok) return res;
@@ -2430,7 +2433,7 @@
     }
     async function syncInventoryFromServer() {
       try {
-        const response = await fetch(`${LICENSE_API_BASE}/api/licenses`);
+        const response = await adminApiFetch('/api/licenses');
         const data = await response.json();
         if (!response.ok || data.status !== 'success') throw new Error(data.message || 'Không tải được kho server');
         let items = Array.isArray(data.items) ? data.items : [];
@@ -2444,7 +2447,7 @@
     }
 
     async function addLicensesToServer(items) {
-      const response = await fetch(`${LICENSE_API_BASE}/api/licenses`, {
+      const response = await adminApiFetch('/api/licenses', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'bulk_add', items })
       });
@@ -2455,7 +2458,7 @@
     }
 
     async function deleteLicenseFromServer(id, link = '') {
-      const response = await fetch(`${LICENSE_API_BASE}/api/licenses`, {
+      const response = await adminApiFetch('/api/licenses', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', id, link })
       });
@@ -2467,7 +2470,7 @@
     }
 
     async function clearLicensesOnServer() {
-      const response = await fetch(`${LICENSE_API_BASE}/api/licenses`, {
+      const response = await adminApiFetch('/api/licenses', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'clear' })
       });
@@ -3587,7 +3590,7 @@
       let newLink = '';
 
       try {
-        const claimResponse = await fetch(`${LICENSE_API_BASE}/api/licenses/auto-claim`, {
+        const claimResponse = await adminApiFetch('/api/licenses/auto-claim', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: ord.name, orderId })
         });
@@ -4274,7 +4277,7 @@
       const orderId = '#' + Math.floor(1000 + Math.random() * 9000);
       let licenseLink = '';
       try {
-        const claimResponse = await fetch(`${LICENSE_API_BASE}/api/licenses/auto-claim`, {
+        const claimResponse = await adminApiFetch('/api/licenses/auto-claim', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, orderId, phone, email })
         });
@@ -5109,7 +5112,7 @@
     function checkAdminAuth() {
       const pinModal = document.getElementById('adminPinModal');
       const appWrapper = document.getElementById('adminAppWrapper');
-      const isAuth = sessionStorage.getItem('admin_authenticated') === 'true';
+      const isAuth = sessionStorage.getItem('admin_authenticated') === 'true' && !!sessionStorage.getItem('admin_api_token');
 
       if (isAuth) {
         if (pinModal) pinModal.style.setProperty('display', 'none', 'important');
@@ -5148,6 +5151,19 @@
       const isValid = (enteredHash === expectedHash) || (legacyPin && entered === legacyPin);
 
       if (isValid) {
+        try {
+          const authBase = getAdminApiBase();
+          const authRes = await fetch(`${authBase}/api/admin-login`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: entered })
+          });
+          const authData = await authRes.json();
+          if (!authRes.ok || !authData.token) throw new Error('Server authentication failed');
+          sessionStorage.setItem('admin_api_token', authData.token);
+        } catch (e) {
+          if (error) error.classList.remove('hidden');
+          return;
+        }
         sessionStorage.setItem('admin_authenticated', 'true');
         const pinModal = document.getElementById('adminPinModal');
         const appWrapper = document.getElementById('adminAppWrapper');
@@ -5174,6 +5190,7 @@
 
     function logoutAdmin() {
       sessionStorage.removeItem('admin_authenticated');
+      sessionStorage.removeItem('admin_api_token');
       checkAdminAuth();
       const input = document.getElementById('adminPinInput');
       if (input) input.value = '';

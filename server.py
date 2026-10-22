@@ -14,6 +14,8 @@ import asyncio
 import threading
 import urllib.request
 import urllib.parse
+import secrets
+import hashlib
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from datetime import datetime
 
@@ -38,6 +40,31 @@ COUPONS_FILE = "coupons.json"
 COUPONS_LOCK = threading.Lock()
 VISITS_FILE = "visits.json"
 VISITS_LOCK = threading.Lock()
+ADMIN_TOKENS = {}
+ADMIN_TOKEN_TTL = 8 * 60 * 60
+DEFAULT_ADMIN_HASH = "c5bc82fc5c9d4553a39af5ea2f18257e2ba60b2822fdf93725abcd4451c0bada"
+
+def _admin_hash():
+    return os.environ.get("ADMIN_PASSWORD_HASH", DEFAULT_ADMIN_HASH)
+
+def _admin_authorized(handler):
+    token = handler.headers.get("X-Admin-Token", "")
+    now = datetime.now().timestamp()
+    expires = ADMIN_TOKENS.get(token, 0)
+    if expires > now:
+        ADMIN_TOKENS[token] = now + ADMIN_TOKEN_TTL
+        return True
+    if token:
+        ADMIN_TOKENS.pop(token, None)
+    return False
+
+def _requires_admin(path, method):
+    if path in ("/api/admin-login", "/api/orders") and method == "POST":
+        return path != "/api/orders"
+    if path in ("/api/licenses", "/api/licenses/claim", "/api/licenses/auto-claim", "/api/licenses/reissue", "/api/visits", "/api/bank-transactions", "/api/payment-config", "/api/pixel-config", "/api/telegram-config", "/api/telegram-notify", "/api/admin-login-notify", "/api/send-email", "/api/simulate-payment", "/api/apipay-test", "/api/get-apps-script", "/api/tele-buyer/status", "/api/tele-buyer/request-otp", "/api/tele-buyer/submit-otp", "/api/tele-buyer/buy", "/api/coupons", "/api/coupons/apply"):
+        return method != "GET" or path in ("/api/licenses", "/api/visits", "/api/bank-transactions")
+        return True
+    return False
 
 def get_current_package_price():
     cfg = read_json_file("payment_config.json", {})
@@ -66,6 +93,13 @@ def calculate_coupon_discount(coupon, base_price=None):
         final_price = max(1000, base_price - discount_amount)
 
     return discount_amount, final_price
+
+def parse_money(value, default=0):
+    try:
+        digits = ''.join(ch for ch in str(value) if ch.isdigit())
+        return int(digits) if digits else int(default)
+    except Exception:
+        return int(default)
 
 def read_json_file(filename, default):
     filepath = os.path.join(BASE_DIR, filename)
@@ -226,6 +260,13 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
 
+        if _requires_admin(path, "GET") and not _admin_authorized(self):
+            return self.send_json({"status": "error", "message": "Admin authentication required"}, 401)
+
+        blocked_files = {"/payment_config.json", "/telegram_config.json", "/orders.json", "/licenses.json", "/bank_transactions.json", "/visits.json", "/pixel_stats.json", "/coupons.json", "/temp_login.json", "/GoogleAppsScript_CRM_AutoBot.js", "/server.py", "/server.ps1", "/api.php"}
+        if path in blocked_files:
+            return self.send_json({"status": "error", "message": "Resource not available"}, 404)
+
         # Điều hướng trang chủ và admin
         if path == "/" or path == "":
             self.path = "/index.html"
@@ -237,7 +278,8 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
         # 1. API: Cấu hình cổng thanh toán
         if path == "/api/payment-config":
             cfg = read_json_file("payment_config.json", {})
-            return self.send_json(cfg)
+            public_keys = {"packagePrice", "originalPrice", "nextPrice", "packageName", "provider", "bankPublicId", "vaNumber", "accountNo", "physicalAccountNo", "bankBin", "accountName", "pollIntervalSeconds", "testMode", "enabled", "pixelId", "pixelEnabled"}
+            return self.send_json({k: v for k, v in cfg.items() if k in public_keys})
 
         # 1.1 API: Cấu hình Meta Pixel (Facebook Ads)
         if path == "/api/pixel-config":
@@ -350,6 +392,12 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             public_id = query.get("publicId", [""])[0]
             clean_phone = phone.replace("+84", "0").replace(" ", "") if phone else ""
             clean_memo = memo.replace(" ", "").upper() if memo else ""
+            expected_amount = 0
+            if order_id:
+                for pending in read_json_file("orders.json", []):
+                    if str(pending.get("orderId") or "") == order_id:
+                        expected_amount = parse_money(pending.get("amount"), get_current_package_price())
+                        break
 
             # 4.1 Kiểm tra qua ApiPay bridge nếu có publicId
             if public_id:
@@ -405,6 +453,8 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                     is_match = True
 
                 if is_match:
+                    if expected_amount and parse_money(tx.get("amount"), 0) < expected_amount:
+                        continue
                     if order_id and not tx.get("used_by_order"):
                         tx["used_by_order"] = order_id
                         tx_updated = True
@@ -531,6 +581,18 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         body = self.read_post_json()
+
+        if path == "/api/admin-login":
+            supplied = str(body.get("password") or "")
+            supplied_hash = hashlib.sha256(supplied.encode("utf-8")).hexdigest()
+            if not secrets.compare_digest(supplied_hash, _admin_hash()):
+                return self.send_json({"status": "error", "message": "Invalid admin credentials"}, 401)
+            token = secrets.token_urlsafe(32)
+            ADMIN_TOKENS[token] = datetime.now().timestamp() + ADMIN_TOKEN_TTL
+            return self.send_json({"status": "success", "token": token, "expiresIn": ADMIN_TOKEN_TTL})
+
+        if _requires_admin(path, "POST") and not _admin_authorized(self):
+            return self.send_json({"status": "error", "message": "Admin authentication required"}, 401)
 
         # 0. API: Thao tác kho license tập trung
         if path == "/api/licenses":
@@ -769,6 +831,9 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
         # 1.2 API: Ghi nhận sự kiện Meta Pixel thời gian thực (PageView, ViewContent, Lead, InitiateCheckout, Purchase)
         if path == "/api/pixel-event":
             ev = body.get("event") or "PageView"
+            allowed_events = {"PageView", "ViewContent", "Lead", "InitiateCheckout", "Purchase"}
+            if ev not in allowed_events:
+                return self.send_json({"status": "error", "message": "Unsupported pixel event"}, 400)
             with PIXEL_LOCK:
                 pixel_data = read_json_file(PIXEL_FILE, {
                     "pixelId": DEFAULT_PIXEL_ID,
@@ -1077,6 +1142,10 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
 
         # API: Nhận Webhook từ APIPay / Casso / SeAPay / MBBank
         if path == "/api/webhook":
+            webhook_secret = os.environ.get("WEBHOOK_SECRET", "")
+            supplied_secret = self.headers.get("X-Webhook-Secret", "") or str(body.get("webhookSecret") or "")
+            if webhook_secret and not secrets.compare_digest(supplied_secret, webhook_secret):
+                return self.send_json({"status": "error", "message": "Invalid webhook signature"}, 401)
             import re
             sys.stdout.write(f"[WEBHOOK INCOMING] Payload: {json.dumps(body, ensure_ascii=False)[:300]}\n")
             sys.stdout.flush()
@@ -1139,6 +1208,9 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                     for order in orders:
                         st = (order.get("status") or "").lower()
                         if "chờ thanh toán" in st and not order.get("paidNotified"):
+                            order_amount = parse_money(order.get("amount"), pkg_price)
+                            if actual_amt < order_amount:
+                                continue
                             phone = (order.get("phone") or "").replace("+84", "0").replace(" ", "")
                             memo = (order.get("memo") or f"PRO18T {phone}").upper().replace(" ", "")
                             o_pub = (order.get("apipayPublicId") or "").strip()
