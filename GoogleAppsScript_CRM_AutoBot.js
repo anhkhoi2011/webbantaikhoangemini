@@ -237,7 +237,19 @@ function doPost(e) {
         const amount = Number(String(rawAmount).replace(/\D/g, "")) || 0;
         const content = tx.content || tx.description || tx.memo || tx.comment || "";
         const status = String(tx.status || "COMPLETED").toUpperCase();
-        if (amount > 0 || content) txSheet.appendRow([String(tx.id || tx.publicId || Utilities.getUuid()), amount, content, status, tx.time || tx.transactionDateTime || new Date(), JSON.stringify(tx)]);
+        const txId = String(tx.id || tx.publicId || Utilities.getUuid());
+        if (amount > 0 || content) {
+          txSheet.appendRow([txId, amount, content, status, tx.time || tx.transactionDateTime || new Date(), JSON.stringify(tx)]);
+          // Báo Telegram ngay khi API Pay gửi giao dịch, không phụ thuộc website có mở hay không.
+          if (["PAID", "COMPLETED", "SUCCESS", "CREDIT"].indexOf(status) >= 0) {
+            const props = PropertiesService.getScriptProperties();
+            const sentKey = "TELEGRAM_TX_" + txId;
+            if (!props.getProperty(sentKey)) {
+              sendTelegramPayment_(txId, amount, content, tx);
+              props.setProperty(sentKey, "1");
+            }
+          }
+        }
       }
       return jsonOutput_({ status: "success", message: "API Pay webhook stored", count: incoming.length });
     }
@@ -366,6 +378,18 @@ function doPost(e) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", error: error.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+function sendTelegramPayment_(txId, amount, content, tx) {
+  const text = "🟢 <b>GIAO DỊCH MỚI ĐÃ THANH TOÁN</b>\n" +
+    "💰 Số tiền: <b>" + Number(amount || 0).toLocaleString("vi-VN") + "đ</b>\n" +
+    "📝 Nội dung: <code>" + String(content || "").replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</code>\n" +
+    "🆔 Mã giao dịch: <code>" + String(txId) + "</code>";
+  UrlFetchApp.fetch("https://api.telegram.org/bot" + BOT_CONFIG.TELEGRAM_BOT_TOKEN + "/sendMessage", {
+    method: "post", muteHttpExceptions: true,
+    contentType: "application/json",
+    payload: JSON.stringify({ chat_id: BOT_CONFIG.TELEGRAM_CHAT_ID, text: text, parse_mode: "HTML" })
+  });
 }
 
 // ============================== 4. HÀM TỰ ĐỘNG BỐC LINK TỪ KHO ==============================
