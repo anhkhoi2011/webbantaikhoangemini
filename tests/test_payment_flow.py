@@ -34,8 +34,8 @@ class PaymentFlowTests(unittest.TestCase):
         self.queue.stop()
         self.base.stop()
         self.temp.cleanup()
-    def post(self, path, data):
-        req = Request(f"http://127.0.0.1:{self.http.server_port}{path}", data=json.dumps(data).encode(), headers={"Content-Type": "application/json"})
+    def post(self, path, data, headers=None):
+        req = Request(f"http://127.0.0.1:{self.http.server_port}{path}", data=json.dumps(data).encode(), headers={"Content-Type": "application/json", **(headers or {})})
         with urlopen(req, timeout=5) as response:
             return json.load(response)
     def test_four_bank_deliveries_one_paid_order_one_license(self):
@@ -115,6 +115,39 @@ class PaymentFlowTests(unittest.TestCase):
             self.assertEqual(visit[key], payload[key])
         self.post("/api/track-visit", {"referrer": "Truy cập trực tiếp", "fullUrl": "https://example.invalid/"})
         self.assertEqual(server.read_json_file(server.VISITS_FILE, {})["sources"]["direct"], 1)
+
+    def test_late_sync_cannot_replace_original_facebook_tracking(self):
+        original = dict(self.order, referrer="Quảng cáo Facebook (Meta Ads)",
+                        fullUrl="https://geminigiare.io.vn/?utm_source=facebook&utm_medium=paid_social",
+                        domain="geminigiare.io.vn", utmSource="facebook", utmMedium="paid_social",
+                        rawReferrer="https://l.facebook.com/", sessionId="FB-VISIT", landingAt="2026-10-23T08:25:00Z")
+        server.write_json_file("orders.json", [original])
+        stale = dict(original, fullUrl="https://old-host.example/?utm_source=zalo", domain="old-host.example",
+                     referrer="Zalo Chat", utmSource="zalo", utmMedium="zalo", utmContent="OLD-ZALO-AD",
+                     fbclid="OLD-CLICK", sessionId="OLD-VISIT", landingAt="2026-10-22T08:00:00Z", ip="203.0.113.6")
+        for paid in (False, True):
+            if paid:
+                server.mark_order_paid(original["orderId"], "BANK-FB", {"amount": 90000, "description": original["memo"]})
+            self.post("/api/orders", stale)
+            stored = server.read_json_file("orders.json", [])[0]
+            for key in ("fullUrl", "domain", "referrer", "utmSource", "utmMedium", "rawReferrer", "sessionId", "landingAt"):
+                self.assertEqual(stored[key], original[key], key)
+            self.assertFalse(stored.get("utmContent"))
+            self.assertFalse(stored.get("fbclid"))
+            self.assertEqual(stored["ip"], "203.0.113.6")
+
+    def test_browser_cannot_create_order_with_another_site_url(self):
+        from urllib.error import HTTPError
+        server.write_json_file("orders.json", [])
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/orders", self.order, {"Origin": "https://geminigiare.io.vn"})
+        self.assertEqual(error.exception.code, 409)
+        self.assertEqual(server.read_json_file("orders.json", []), [])
+
+    def test_new_order_domain_comes_from_its_url(self):
+        server.write_json_file("orders.json", [])
+        self.post("/api/orders", dict(self.order, domain="stale-host.invalid"))
+        self.assertEqual(server.read_json_file("orders.json", [])[0]["domain"], "example.invalid")
 
     def test_old_script_rejected_without_posting(self):
         server.write_json_file("payment_config.json", {"googleSheetWebhookUrl": "https://example.invalid/webhook"})

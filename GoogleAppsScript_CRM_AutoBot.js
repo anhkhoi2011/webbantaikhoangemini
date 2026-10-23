@@ -41,7 +41,7 @@ function jsonOutput_(value) {
 
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || "health";
-  if (action !== "check_payment") return jsonOutput_({ status: "success", service: "Gemini CRM Apps Script", protocolVersion: 2, columns: ORDER_COLUMNS.length, build: "2026-10-23-payments" });
+  if (action !== "check_payment") return jsonOutput_({ status: "success", service: "Gemini CRM Apps Script", protocolVersion: 2, columns: ORDER_COLUMNS.length, build: "2026-10-23-source-lock" });
 
   const memo = String((e.parameter && e.parameter.memo) || "").replace(/\s+/g, "").toUpperCase();
   const orderId = String(e.parameter.orderId || "");
@@ -352,6 +352,12 @@ function upsertOrder_(ss, data, notify) {
   const order = Object.assign({}, previous);
   Object.keys(data).forEach(key => { if (data[key] !== "" && data[key] !== null && data[key] !== undefined) order[key] = data[key]; });
   if (previous.orderId) order.orderId = previous.orderId;
+  if (previous.fullUrl) {
+    // The original visit owns attribution even when later payloads contain different links.
+    ["fullUrl", "domain", "referrer", "rawReferrer", "utmSource", "utmMedium", "utmCampaign", "utmContent", "utmTerm", "fbclid", "gclid", "ttclid", "sessionId", "landingAt"].forEach(key => {
+      order[key] = previous[key] || "";
+    });
+  }
   if (isPaidOrder_(previous) && !isPaidOrder_(data)) order.status = previous.status;
   order.telegramSent = previous.telegramSent || "";
   order.emailSent = previous.emailSent || "";
@@ -384,22 +390,28 @@ function upsertOrder_(ss, data, notify) {
       }
     }
   }
+  let notificationsComplete = true;
   if (notify && isPaidOrder_(order)) {
     const sent = order.telegramSent ? JSON.parse(order.telegramSent) : {};
+    const text = orderTelegramText_(order);
+    const hash = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, text).map(b => ("0" + ((b + 256) % 256).toString(16)).slice(-2)).join("");
     for (const chatId of Array.from(new Set(BOT_CONFIG.TELEGRAM_CHAT_IDS || [BOT_CONFIG.TELEGRAM_CHAT_ID]))) {
-      if (sent[chatId]) continue;
-      const result = sendOrderTelegram_(order, chatId);
-      if (result.ok) { sent[chatId] = result.result.message_id; order.telegramSent = JSON.stringify(sent); write(); }
+      const receipt = sent[chatId];
+      const messageId = receipt && typeof receipt === "object" ? receipt.messageId : receipt;
+      if (receipt && receipt.contentHash === hash) continue;
+      const result = sendOrderTelegram_(order, chatId, messageId, text);
+      if (result.ok) {
+        sent[chatId] = {messageId: messageId || result.result.message_id, contentHash: hash};
+        order.telegramSent = JSON.stringify(sent); write();
+      } else notificationsComplete = false;
     }
     if (order.email && order.licenseLink && !order.emailSent && data.skipEmail !== true) {
       try { sendInvoiceEmail(order.name, order.email, order.phone, order.orderId, order.licenseLink); order.emailSent = nowVN_(); write(); } catch (err) { Logger.log(String(err)); }
     }
   }
-  const sentChats = order.telegramSent ? JSON.parse(order.telegramSent) : {};
-  const notificationsComplete = !notify || !isPaidOrder_(order) || (BOT_CONFIG.TELEGRAM_CHAT_IDS || [BOT_CONFIG.TELEGRAM_CHAT_ID]).every(cid => Boolean(sentChats[cid]));
   return {status: "success", notificationsComplete: notificationsComplete, orderId: order.orderId, duplicate: index >= 0, allocatedLink: order.licenseLink || "", columns: ORDER_COLUMNS.length};
 }
-function sendOrderTelegram_(order, chatId) {
+function orderTelegramText_(order) {
   const fields = [["Mã đơn", order.orderId], ["Khách", order.name], ["SĐT", order.phone], ["Email", order.email], ["Thanh toán lúc (GMT+7)", order.paidAt], ["Tạo đơn lúc", order.createdAt], ["Vào trang lúc", order.landingAt], ["IP", order.ip || "Không xác định"], ["Vị trí IP (ước lượng)", order.location || "Không xác định"], ["Thiết bị / Trình duyệt", [order.device, order.browser].filter(Boolean).join(" / ")], ["Nguồn khách", order.referrer || "Không xác định"], ["Tên miền", order.domain], ["URL vào trang", order.fullUrl], ["Referrer gốc", order.rawReferrer], ["UTM Source / Medium", [order.utmSource, order.utmMedium].filter(Boolean).join(" / ")], ["Chiến dịch", order.utmCampaign], ["UTM Content / Term", [order.utmContent, order.utmTerm].filter(Boolean).join(" / ")], ["FB / Google / TikTok Click ID", [order.fbclid, order.gclid, order.ttclid].filter(Boolean).join(" / ")], ["Nội dung CK", order.memo], ["Mã giao dịch", order.paymentTxId], ["Cổng thanh toán", order.paymentSource], ["Voucher", order.couponCode], ["Link cấp", order.licenseLink || "Chờ cấp link"], ["Trạng thái", order.status]];
   const title = "🟢 <b>ĐƠN HÀNG ĐÃ THANH TOÁN (" + html_(money_(order.amountRaw || order.amount).toLocaleString("vi-VN")) + "đ)</b>\n";
   const entries = fields.filter(pair => pair[1]).map(pair => ({
@@ -415,8 +427,15 @@ function sendOrderTelegram_(order, chatId) {
     entry.limit = Math.max(8, Math.min(entry.limit, entry.value.length) - Math.max(16, Math.ceil((text.length - 4000) / 4)));
     text = render();
   }
-  const response = UrlFetchApp.fetch("https://api.telegram.org/bot" + BOT_CONFIG.TELEGRAM_BOT_TOKEN + "/sendMessage", {method: "post", contentType: "application/json", muteHttpExceptions: true, payload: JSON.stringify({chat_id: chatId, text: text, parse_mode: "HTML", disable_web_page_preview: true})});
+  return text;
+}
+function sendOrderTelegram_(order, chatId, messageId, text) {
+  const payload = {chat_id: chatId, text: text || orderTelegramText_(order), parse_mode: "HTML", disable_web_page_preview: true};
+  if (messageId) payload.message_id = messageId;
+  const method = messageId ? "editMessageText" : "sendMessage";
+  const response = UrlFetchApp.fetch("https://api.telegram.org/bot" + BOT_CONFIG.TELEGRAM_BOT_TOKEN + "/" + method, {method: "post", contentType: "application/json", muteHttpExceptions: true, payload: JSON.stringify(payload)});
   const result = JSON.parse(response.getContentText() || "{}");
+  if (messageId && !result.ok && /message is not modified/i.test(String(result.description))) return {ok: true, result: {message_id: messageId}};
   if (!result.ok) Logger.log("Telegram " + chatId + ": " + String(result.description));
   return result;
 }

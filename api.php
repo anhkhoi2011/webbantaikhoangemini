@@ -315,6 +315,13 @@ function saveOrder($body) {
         foreach ($orders as $i => $item) if (($item['orderId'] ?? '') === $orderId) { $index = $i; $previous = $item; break; }
         foreach (['paidNotified','telegramSent','emailSent','sheetSyncError','sheetSyncedHash','couponCounted'] as $flag) unset($body[$flag]);
         $order = array_replace($previous, array_filter($body, function($value) { return $value !== '' && $value !== null; }));
+        if (!empty($previous['fullUrl'])) {
+            foreach (['fullUrl','domain','referrer','rawReferrer','utmSource','utmMedium','utmCampaign','utmContent','utmTerm','fbclid','gclid','ttclid','sessionId','landingAt','isFromAd','attributionVersion','attributionUpdatedAt'] as $key) {
+                $order[$key] = $previous[$key] ?? '';
+            }
+        } elseif (!empty($order['fullUrl'])) {
+            $order['domain'] = strtolower(parse_url($order['fullUrl'], PHP_URL_HOST) ?: '');
+        }
         $order['orderId'] = $orderId;
         $order['createdAt'] = $previous['createdAt'] ?? $body['createdAt'] ?? date('c');
         if (empty($order['ip']) || in_array($order['ip'], ['127.0.0.1','::1'])) {

@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const crypto = require('node:crypto');
 function environment() {
-  const sheets = new Map(), sends = [], emails = [];
+  const sheets = new Map(), sends = [], emails = [], edits = [];
   let failedChat = '';
   let providerPayments = [];
   class Range {
@@ -33,12 +33,12 @@ function environment() {
   const ctx={console, Date, Logger:{log(){}}, ContentService:{MimeType:{JSON:'json'}, createTextOutput(text){return {text,setMimeType(){return this;}};}},
     LockService:{getScriptLock(){return {waitLock(){assert.equal(locked,false);locked=true;},hasLock:()=>locked,releaseLock(){locked=false;}};}},
     SpreadsheetApp:{openById:()=>ss,getActiveSpreadsheet:()=>ss,flush(){}},
-    Utilities:{DigestAlgorithm:{SHA_256:'sha256'},computeDigest:(_,seed)=>[...crypto.createHash('sha256').update(seed).digest()],formatDate:()=> '23/10/2026 12:00:00',base64Encode:v=>Buffer.from(v).toString('base64')},
+    Utilities:{DigestAlgorithm:{SHA_256:'sha256'},computeDigest:(_,seed)=>[...crypto.createHash('sha256').update(seed).digest()],formatDate:date=>new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(date).replace(',', ''),base64Encode:v=>Buffer.from(v).toString('base64')},
     GmailApp:{sendEmail(...args){emails.push(args);}},
-    UrlFetchApp:{fetch(url,opts){if(opts.method==='get')return {getContentText:()=>JSON.stringify({data:{data:providerPayments}})};const payload=JSON.parse(opts.payload);sends.push(payload);return {getContentText:()=>JSON.stringify(payload.chat_id===failedChat?{ok:false,description:'retry'}:{ok:true,result:{message_id:sends.length}})};}}
+    UrlFetchApp:{fetch(url,opts){if(opts.method==='get')return {getContentText:()=>JSON.stringify({data:{data:providerPayments}})};const payload=JSON.parse(opts.payload);(url.endsWith('/editMessageText')?edits:sends).push(payload);return {getContentText:()=>JSON.stringify(payload.chat_id===failedChat?{ok:false,description:'retry'}:{ok:true,result:{message_id:payload.message_id || sends.length}})};}}
   };
   vm.createContext(ctx);vm.runInContext(fs.readFileSync('GoogleAppsScript_CRM_AutoBot.js','utf8'),ctx);
-  return {ctx,sheets,sends,emails,payments:rows=>providerPayments=rows,fail:cid=>failedChat=cid,post:data=>JSON.parse(ctx.doPost({postData:{contents:JSON.stringify(data)}}).text)};
+  return {ctx,sheets,sends,edits,emails,payments:rows=>providerPayments=rows,fail:cid=>failedChat=cid,post:data=>JSON.parse(ctx.doPost({postData:{contents:JSON.stringify(data)}}).text)};
 }
 const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',phone:'0900000000',email:'test@example.invalid',memo:'PRO18T 0900000000 AABBCCDD',referrer:'Facebook',utmSource:'facebook',utmMedium:'cpc',utmCampaign:'Campaign',utmContent:'Ad A',utmTerm:'keyword',fbclid:'click',gclid:'google',ttclid:'tiktok',ip:'203.0.113.5',location:'Test city',device:'Mobile',browser:'Safari',fullUrl:'https://example.invalid/?utm_source=facebook',domain:'example.invalid',createdAt:'2026-10-23T05:00:00Z',status:'Đã thanh toán (Chờ cấp link)',paymentTxId:'BANK-1'};
 {
@@ -87,7 +87,7 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
  const result=e.post({...base,action:'new_order',orderId:'#OTHER',paymentTxId:'early-bank',name:'Wrong customer'});
  assert.equal(result.status,'error');assert.equal(e.sheets.get('DON_HANG').rows[1][4],before);
  assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).columns,40);
- assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).build,'2026-10-23-payments');
+ assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).build,'2026-10-23-source-lock');
  assert.equal(e.ctx.money_(90000.0),90000);assert.equal(e.ctx.money_('90.000đ'),90000);assert.equal(e.ctx.money_('-90000'),-90000);
 }
 {
@@ -112,5 +112,48 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
  const result=check('90000.00');assert.equal(result.paid,true);assert.equal(result.transaction.amount,90000);
  e.payments([{id:'BANK-ZERO',status:'PAID',content:base.memo,amount:'0.00'}]);
  assert.equal(check('90000').paid,false);assert.equal(check('0').paid,false);
+}
+{
+ const e=environment();
+ const facebook={...base, action:'pending_order', paymentTxId:'', status:'Chờ thanh toán',
+  fullUrl:'https://geminigiare.io.vn/?utm_source=facebook&utm_medium=paid_social', domain:'geminigiare.io.vn',
+  referrer:'Quảng cáo Facebook (Meta Ads)', utmSource:'facebook', utmMedium:'paid_social', utmContent:'', fbclid:'',
+  sessionId:'FB-VISIT', landingAt:'2026-10-23T08:25:00Z'};
+ e.post(facebook);
+ const originalStored=e.ctx.rowToOrder_(e.sheets.get('DON_HANG').rows[1]);
+ const stale={...facebook, fullUrl:'https://old-host.example/?utm_source=zalo', domain:'old-host.example',
+  referrer:'Zalo Chat', utmSource:'zalo', utmMedium:'zalo', utmContent:'OLD-ZALO-AD', fbclid:'OLD-CLICK', sessionId:'OLD-VISIT',landingAt:'2026-10-22T08:25:00Z'};
+ e.post(stale);
+ e.post({...stale, action:'new_order', status:'Đã thanh toán (Chờ cấp link)', paymentTxId:'BANK-FB'});
+ const stored=e.ctx.rowToOrder_(e.sheets.get('DON_HANG').rows[1]);
+ for(const key of ['fullUrl','domain','referrer','utmSource','utmMedium','utmContent','fbclid','sessionId','landingAt']) {
+  assert.equal(stored[key],originalStored[key], 'late sync replaced '+key);
+ }
+ assert.ok(e.sends[0].text.includes('Quảng cáo Facebook'));
+ assert.ok(!e.sends[0].text.includes('old-host.example'));
+}
+{
+ const e=environment();
+ e.post({...base, action:'new_order'});
+ assert.equal(e.sends.length,2);
+ assert.equal(e.edits.length,0);
+ const issued={...base, action:'new_order', licenseLink:'https://example.invalid/real-issued-link',status:'Đã thanh toán (MBBank)'};
+ for(let i=0;i<4;i++) e.post(issued);
+ assert.equal(e.sends.length,2,'issuing a link must edit the existing message, not send another order');
+ assert.equal(e.edits.length,2,'one successful edit per chat');
+ assert.deepEqual(e.edits.map(x=>x.message_id),[1,2]);
+ assert.ok(e.edits.every(x=>x.text.includes('real-issued-link')));
+ assert.ok(e.edits.every(x=>!x.text.includes('Chờ cấp link')));
+}
+{
+ const e=environment();
+ e.post({...base,action:'new_order'});
+ e.fail('-5585627393');
+ const issued={...base,action:'new_order',licenseLink:'https://example.invalid/link',status:'Đã thanh toán (MBBank)'};
+ assert.equal(e.post(issued).notificationsComplete,false);
+ e.fail('');
+ assert.equal(e.post(issued).notificationsComplete,true);
+ assert.equal(e.sends.length,2,'an edit retry must never create a duplicate order notification');
+ assert.deepEqual(e.edits.map(x=>x.chat_id),['-1004413665683','-5585627393','-5585627393']);
 }
 console.log('PASS Apps Script: routing, four retries, changed UUID, row upsert, tracking, two chats, partial failure retry, late pending, unmatched/debit/pending events');

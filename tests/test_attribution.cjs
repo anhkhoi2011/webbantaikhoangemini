@@ -6,7 +6,7 @@ const html = fs.readFileSync('index.html', 'utf8');
 const source = html.slice(html.indexOf('    function getTrafficSource('), html.indexOf('    const completingOrders = new Set();'));
 const storage = new Map();
 let clock = Date.parse('2026-10-23T06:00:00Z');
-function visit(href, rawReferrer = '', navigationType = 'navigate', store = storage) {
+function visit(href, rawReferrer = '', navigationType = 'navigate', store = storage, afterLoad) {
   class ClockDate extends Date { constructor(...args) { super(...(args.length ? args : [clock])); } static now() { return clock; } }
   const location = new URL(href);
   const ctx = {URL, URLSearchParams, crypto, Date: ClockDate,
@@ -15,6 +15,7 @@ function visit(href, rawReferrer = '', navigationType = 'navigate', store = stor
     sessionStorage: {getItem: key => store.get(key) || null, setItem: (key, value) => store.set(key, value)}};
   vm.createContext(ctx);
   vm.runInContext(source + '\nglobalThis.result = orderTracking();', ctx);
+  if (afterLoad) { afterLoad(ctx); vm.runInContext('globalThis.result = orderTracking();', ctx); }
   clock += 1000;
   return ctx.result;
 }
@@ -53,6 +54,25 @@ const corrupt = new Map([['crm_attribution', '{bad json']]);
 assert.equal(visit('https://shop.example/?ref=google', '', 'navigate', corrupt).referrer, 'Tìm kiếm Google');
 const legacy = new Map([['crm_attribution', JSON.stringify({fullUrl: zaloLink, referrer: 'Zalo Chat', utmSource: 'zalo'})]]);
 assert.equal(visit('https://shop.example/?ref=facebook', '', 'navigate', legacy).referrer, 'Facebook');
+const facebookAdsUrl='https://geminigiare.io.vn/?utm_source=facebook&utm_medium=paid_social&utm_campaign=fb_campaign&fbclid=FB_CLICK';
+const facebookAd=visit(facebookAdsUrl,'https://l.facebook.com/');
+assert.equal(facebookAd.referrer,'Quảng cáo Facebook (Meta Ads)');
+assert.equal(facebookAd.domain,'geminigiare.io.vn');
+assert.equal(facebookAd.isFromAd,true);
+const hostingZalo='https://old-host.example/?utm_source=zalo&utm_medium=zalo';
+const freshMain=visit('https://geminigiare.io.vn/','', 'navigate',new Map([['crm_attribution', JSON.stringify({...zalo,fullUrl:hostingZalo})]]));
+assert.equal(freshMain.fullUrl,'https://geminigiare.io.vn/');
+assert.equal(freshMain.utmSource,'');
+assert.equal(freshMain.referrer,'Truy cập trực tiếp');
+const changedInPage=visit(zaloLink,'','navigate',new Map(),ctx=> {
+ vm.runInContext("visitorData.ip='203.0.113.8'; visitorData.location='Test city';",ctx);
+ ctx.window.location=new URL(facebookAdsUrl);
+});
+assert.equal(changedInPage.fullUrl,facebookAdsUrl);
+assert.equal(changedInPage.referrer,'Quảng cáo Facebook (Meta Ads)');
+assert.equal(changedInPage.domain,'geminigiare.io.vn');
+assert.equal(changedInPage.ip,'203.0.113.8');
+assert.equal(changedInPage.location,'Test city');
 for (const name of ['admin.html', 'admin/index.html']) {
   const admin = fs.readFileSync(name, 'utf8');
   const start = admin.indexOf('    function trafficChannel(');

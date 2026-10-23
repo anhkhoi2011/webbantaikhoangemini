@@ -19,5 +19,14 @@ vm.createContext(ctx);vm.runInContext(source,ctx);
  await ctx.triggerPaymentSuccess({id:'BANK-B',amount:90000,licenseLink:'https://example.invalid/already-allocated'});
  assert.equal(claims,1,'server license must not be claimed twice');
  assert.equal(syncs,2);
+ const syncSource=html.slice(html.indexOf('    async function syncCustomerOrder('),html.indexOf('    let currentOrder ='));
+ let fallbacks=0;
+ const syncCtx={smartApiFetch:async()=>({ok:false,status:409,json:async()=>({status:'error',message:'Tracking mismatch'})}),
+  showToast(){},postOrderToWebhook:async()=>{fallbacks++;return {status:'queued'};},console};
+ vm.createContext(syncCtx);vm.runInContext(syncSource,syncCtx);
+ const rejected=await syncCtx.syncCustomerOrder(current);
+ assert.equal(rejected.status,'error');assert.equal(fallbacks,0,'a tracking rejection must not be bypassed via Apps Script');
+ syncCtx.smartApiFetch=async()=>({ok:false,status:404});
+ assert.equal((await syncCtx.syncCustomerOrder(current)).status,'queued');assert.equal(fallbacks,1);
  console.log('PASS checkout: four concurrent callbacks, one inventory claim/order/purchase, completed guard, already-allocated license, tracking snapshot');
 })().catch(error=>{console.error(error);process.exitCode=1;});

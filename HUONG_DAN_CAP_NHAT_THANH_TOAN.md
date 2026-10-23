@@ -43,3 +43,15 @@ Rà soát bổ sung thanh toán và doanh thu:
 - Nhánh tra cứu Apps Script dùng cùng bộ đọc tiền với webhook: 90000.00 là 90.000đ; không xóa dấu thập phân rồi tăng sai số tiền.
 - Doanh thu, chuyển đổi mua hàng và báo cáo ngày chỉ tính đơn có trạng thái đã thanh toán; đơn chờ/hủy không cộng vào tiền đã thu. Số tiền không có dữ liệu không tự gán 90.000đ.
 - Thống kê ngày chuẩn hóa ngày có/không số 0 và thời điểm ISO về GMT+7; ưu tiên paidAt cho doanh thu ngày thanh toán. Bộ lọc nguồn áp dụng đồng thời cho lượt truy cập và đơn đã thanh toán.
+
+
+Cập nhật nguồn khách và tin Telegram: 2026-10-23-source-lock
+
+- Website hiện chạy Python qua Dockerfile trên Vibe Host. Git push không tự cập nhật website khi công tắc tự triển khai đang tắt; cần bấm Triển khai lại.
+- Khi tạo đơn, lưu URL, nguồn, UTM, click ID, phiên và thời gian vào trang thành một bộ dữ liệu. Các lần đồng bộ sau giữ bộ dữ liệu ban đầu, kể cả trường UTM để trống, tránh bản Zalo cũ ghi đè Facebook. IP/vị trí vẫn được bổ sung nếu có dữ liệu.
+- Website kiểm tra lại URL lúc tạo đơn nếu trang đổi URL trong cùng phiên. Backend lấy tên miền từ URL và từ chối đơn mới có URL khác nguồn Origin của trình duyệt đã được cho phép.
+- Apps Script giữ nguồn ban đầu và sửa tin Telegram đã gửi khi có link cấp, không gửi thêm một tin đơn mới. Lỗi sửa tin ở một chat chỉ thử lại chat đó. Đồng bộ im lặng sync_order vẫn không sửa/gửi Telegram.
+- Thay Apps Script bằng file mới rồi chọn phiên bản triển khai mới trên URL /exec hiện tại. Kiểm tra health phải có build: 2026-10-23-source-lock. Số cột vẫn là 40.
+- Link sạch không cung cấp bằng chứng rằng khách đến từ quảng cáo. Trong quảng cáo Facebook, dùng URL có utm_source=facebook&utm_medium=paid_social; có thể thêm chiến dịch, nhóm và mẫu quảng cáo trong mục tham số URL của quảng cáo. Không tự gán toàn bộ đơn trên geminigiare.io.vn thành Facebook.
+- Đơn cũ có dữ liệu sai ngay từ lần ghi đầu không thể tự khôi phục nguồn/campaign. Cần đối chiếu bằng chứng của đúng mã đơn. Bản sửa không chỉnh hàng loạt lịch sử thành Facebook.
+- Kiểm thử mới tái hiện đơn Facebook bị đồng bộ Zalo gửi muộn ghi đè ở cả Python và Apps Script, giữ UTM trống, đổi URL trong cùng trang, chặn chuyển tiếp payload bị backend từ chối, sửa Telegram khi có link và thử lại từng chat.

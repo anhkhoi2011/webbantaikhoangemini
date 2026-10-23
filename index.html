@@ -1869,7 +1869,19 @@
       return data;
     }
     let visitorData = createVisitorData();
-    function orderTracking() { return Object.assign({}, visitorData, {domain: window.location.hostname.toLowerCase()}); }
+    function orderTracking() {
+      const currentUrl = new URL(window.location.href);
+      const capturedUrl = new URL(visitorData.fullUrl);
+      currentUrl.hash = ''; capturedUrl.hash = '';
+      // A URL changed by in-page navigation must not keep the previous link's source.
+      if (currentUrl.href !== capturedUrl.href) {
+        const previous = visitorData;
+        visitorData = createVisitorData();
+        visitorData.ip = previous.ip || '';
+        visitorData.location = previous.location || '';
+      }
+      return Object.assign({}, visitorData, {domain: window.location.hostname.toLowerCase()});
+    }
     const completingOrders = new Set();
     let firstPollTimeout = null;
     async function syncCustomerOrder(order) {
@@ -1879,6 +1891,11 @@
           const result = await res.json();
           if (result.status === 'success' && result.sheetSync !== 'error') return result;
           if (result.status === 'success') return Object.assign(result, {status: 'queued'});
+        } else if (res && [400, 401, 403, 409, 422].includes(res.status)) {
+          // An application rejection must not be bypassed by sending the same payload to Sheets.
+          const result = await res.json();
+          if (result.message) showToast(result.message, 6000);
+          return Object.assign({}, result, {status: 'error'});
         }
       } catch(e) { console.warn('Order backend unavailable:', e); }
       // The same idempotent Apps Script endpoint handles static hosting and retry delivery.

@@ -191,6 +191,20 @@ def successful_tx(tx):
     status = str(tx.get("status") or "COMPLETED").upper()
     return status in {"PAID", "COMPLETED", "SUCCESS", "CREDIT"} and str(tx.get("transferType") or tx.get("direction") or "").lower() not in {"out", "debit"} and parse_money(tx.get("amount") or tx.get("transferAmount") or tx.get("creditAmount"), 0) > 0
 
+# Source fields describe the visit that created the order, including empty UTM values.
+# Retries may enrich IP/location but must never replace the original visit with another one.
+ORDER_TRACKING_FIELDS = (
+    "fullUrl", "domain", "referrer", "rawReferrer", "utmSource", "utmMedium",
+    "utmCampaign", "utmContent", "utmTerm", "fbclid", "gclid", "ttclid",
+    "sessionId", "landingAt", "isFromAd", "attributionVersion", "attributionUpdatedAt",
+)
+
+def preserve_order_tracking(previous, updated):
+    if previous.get("fullUrl"):
+        for key in ORDER_TRACKING_FIELDS:
+            updated[key] = previous.get(key, "")
+    return updated
+
 def sheet_payload(order):
     payload = dict(order)
     payload.update(action="sync_order" if order.get("paidNotified") else "new_order" if is_paid_order(order) else "pending_order", product=order.get("package") or order.get("product") or "Google Gemini Pro 18 Tháng")
@@ -299,6 +313,9 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
         if origin and origin in allowed_origins():
             self.send_header("Access-Control-Allow-Origin", origin)
             self.send_header("Vary", "Origin")
+        path = urllib.parse.urlparse(self.path).path
+        if path in ("/", "/admin", "/admin/") or path.endswith(".html") or path.startswith("/api/"):
+            self.send_header("Cache-Control", "no-store")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
         super().end_headers()
@@ -1124,8 +1141,8 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 body["device"] = "Điện thoại" if ("Mobile" in ua or "Android" in ua or "iPhone" in ua) else "Máy tính PC"
             
             # Tự động trích xuất Tên Miền Đặt Hàng (Domain Tracking)
-            order_domain = str(body.get("domain") or "").strip().lower()
-            if not order_domain and body.get("fullUrl"):
+            order_domain = ""
+            if body.get("fullUrl"):
                 try:
                     p_ord = urllib.parse.urlparse(body["fullUrl"])
                     order_domain = (p_ord.hostname or p_ord.netloc or "").strip().lower()
@@ -1143,8 +1160,15 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 existing = next((o for o in orders if o.get("orderId") == order_id), {})
                 for flag in ("paidNotified", "couponCounted", "telegramSent", "sheetSyncedHash", "sheetSyncedAt", "sheetSyncError"):
                     body.pop(flag, None)
+                if not existing and body.get("fullUrl"):
+                    origin = self.headers.get("Origin", "").rstrip("/")
+                    landing = urllib.parse.urlparse(body["fullUrl"])
+                    landing_origin = f"{landing.scheme}://{landing.netloc}"
+                    if origin in allowed_origins() and origin != landing_origin:
+                        return self.send_json({"status": "error", "message": "URL nguồn không khớp trang đang tạo đơn. Vui lòng tải lại trang trước khi đặt hàng."}, 409)
                 merged = dict(existing)
                 merged.update({key: value for key, value in body.items() if value is not None and value != ""})
+                preserve_order_tracking(existing, merged)
                 merged["createdAt"] = existing.get("createdAt") or body.get("createdAt") or now_vn()
                 if is_paid_order(existing):
                     for key in ("status", "paidAt", "paymentTxId", "paymentKey", "licenseLink", "amount", "amountRaw"):
