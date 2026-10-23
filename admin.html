@@ -2567,52 +2567,45 @@
     let currentSelectedDateFilter = '';
 
     // Trích xuất ngày chuẩn dạng dd/mm/yyyy từ chuỗi thời gian đơn hàng
-    function extractOrderDate(timeStr) {
-      if (!timeStr) {
-        const now = new Date();
-        return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    function extractOrderDate(value) {
+      if (!value) return '';
+      const text = String(value);
+      if (value instanceof Date || /^\d{4}-\d{2}-\d{2}T/.test(text) || text.includes('Vừa xong')) {
+        const date = text.includes('Vừa xong') ? new Date() : new Date(value);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toLocaleDateString('vi-VN', {timeZone: 'Asia/Ho_Chi_Minh', day: '2-digit', month: '2-digit', year: 'numeric'});
       }
-      if (timeStr.includes('Vừa xong')) {
-        const now = new Date();
-        return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
-      }
-      const m = timeStr.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
-      if (m) {
-        const parts = m[1].split('/');
-        return `${parts[0].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[2]}`;
-      }
-      const m2 = timeStr.match(/(\d{4})-(\d{2})-(\d{2})/);
-      if (m2) {
-        return `${m2[3]}/${m2[2]}/${m2[1]}`;
-      }
-      const now = new Date();
-      return `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+      const match = text.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (match) return `${match[1].padStart(2, '0')}/${match[2].padStart(2, '0')}/${match[3]}`;
+      const iso = text.match(/(\d{4})-(\d{2})-(\d{2})/);
+      return iso ? `${iso[3]}/${iso[2]}/${iso[1]}` : '';
     }
 
-    // Chuyển đổi định dạng số tiền linh hoạt sang number
-    function parseAmountToNumber(amt) {
-      if (typeof amt === 'number') return amt;
-      if (typeof amt === 'string') {
-        const n = parseInt(amt.replace(/[^0-9]/g, ''));
-        return isNaN(n) ? 90000 : n;
-      }
-      return 90000;
+    function parseAmountToNumber(value) {
+      if (typeof value === 'number') return Number.isFinite(value) ? Math.trunc(value) : 0;
+      const text = String(value || '').trim();
+      if (/^-?\d+[.,]\d{1,2}$/.test(text)) return Math.trunc(Number(text.replace(',', '.')));
+      const digits = text.replace(/[^0-9]/g, '');
+      return digits ? (text.startsWith('-') ? -1 : 1) * Number(digits) : 0;
+    }
+
+    function orderIsPaid(order) {
+      return /đã thanh toán|da thanh toan|thành công|thanh cong|^(paid|completed|success)$/i.test(order.status || '') && !/hủy|cancel|refund|hoàn tiền/i.test(order.status || '');
     }
 
     // Thống kê doanh thu hôm nay và chi tiết từng ngày
     function renderDailySalesStats(orders) {
+      orders = orders.filter(orderIsPaid);
       const todayDate = new Date();
-      const todayStr = `${String(todayDate.getDate()).padStart(2, '0')}/${String(todayDate.getMonth() + 1).padStart(2, '0')}/${todayDate.getFullYear()}`;
-
-      const yesterdayDate = new Date(Date.now() - 86400000);
-      const yesterdayStr = `${String(yesterdayDate.getDate()).padStart(2, '0')}/${String(yesterdayDate.getMonth() + 1).padStart(2, '0')}/${yesterdayDate.getFullYear()}`;
+      const todayStr = extractOrderDate(todayDate);
+      const yesterdayStr = extractOrderDate(new Date(todayDate.getTime() - 86400000));
 
       const dateMap = {};
       let allTimeRev = 0;
       let allTimeCount = 0;
 
       orders.forEach(o => {
-        const dStr = extractOrderDate(o.time);
+        const dStr = extractOrderDate(o.paidAt || o.time) || 'Chưa rõ ngày';
         if (!dateMap[dStr]) {
           dateMap[dStr] = {
             dateStr: dStr,
@@ -2623,7 +2616,7 @@
             pending: 0
           };
         }
-        const val = parseAmountToNumber(o.amount);
+        const val = parseAmountToNumber(o.amountRaw ?? o.amount);
         const isCanceled = o.status && o.status.toLowerCase().includes('hủy');
         const hasRealLink = Boolean(o.licenseLink && o.licenseLink.trim() !== '' && !o.licenseLink.includes('Chưa có') && !o.licenseLink.includes('hết'));
 
@@ -2810,21 +2803,11 @@
       const badgeOrderEl = document.getElementById('badgeOrderCount');
       if (badgeOrderEl) badgeOrderEl.innerText = totalCount.toLocaleString('vi-VN');
 
-      let todayRev = 0;
-      const todayStr = new Date().toLocaleDateString('vi-VN');
-      const totalRev = orders.reduce((sum, o) => {
-        let val = 0;
-        if (typeof o.amount === 'number') {
-          val = o.amount;
-        } else if (typeof o.amount === 'string') {
-          val = parseInt(o.amount.replace(/[^0-9]/g, '')) || 0;
-        }
-        if (val === 0) val = 90000;
-        if (o.time && (o.time.includes(todayStr) || o.time.includes('Vừa xong'))) {
-          todayRev += val;
-        }
-        return sum + val;
-      }, 0);
+      const paidOrders = orders.filter(orderIsPaid);
+      const todayStr = extractOrderDate(new Date());
+      const totalRev = paidOrders.reduce((sum, order) => sum + parseAmountToNumber(order.amountRaw ?? order.amount), 0);
+      const todayRev = paidOrders.filter(order => extractOrderDate(order.paidAt || order.time) === todayStr)
+        .reduce((sum, order) => sum + parseAmountToNumber(order.amountRaw ?? order.amount), 0);
 
       const kpiRevEl = document.getElementById('kpiRevenue');
       if (kpiRevEl) kpiRevEl.innerText = totalRev.toLocaleString('vi-VN') + 'đ';
@@ -2835,7 +2818,7 @@
       const kpiConv = document.getElementById('kpiConversion');
       if (kpiConv) {
         const totalVisitsCount = (serverVisitsData && typeof serverVisitsData.totalVisits === 'number') ? Math.max(serverVisitsData.totalVisits, visits.length) : visits.length;
-        const cr = totalVisitsCount > 0 ? ((orders.length / totalVisitsCount) * 100).toFixed(1) : '0.0';
+        const cr = totalVisitsCount > 0 ? ((paidOrders.length / totalVisitsCount) * 100).toFixed(1) : '0.0';
         kpiConv.innerText = cr + '%';
       }
 
@@ -3917,26 +3900,27 @@
       for (let i = 0; i < daysCount; i++) {
         const d = new Date(baseDate);
         d.setDate(d.getDate() - i);
-        const dayStr = d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const dayStr = extractOrderDate(d);
         const dayLabel = i === 0 ? `⚡ HÔM NAY (${dayStr})` : (i === 1 ? `Hôm qua (${dayStr})` : dayStr);
 
         // Đếm số lượt truy cập thật trong ngày này (Hỗ trợ lọc Tên Miền)
         const realVisitsForDay = visits.filter(v => {
           if (!v.time) return false;
-          const matchDate = v.time.includes(dayStr);
+          const matchDate = extractOrderDate(v.time) === dayStr;
           if (!matchDate) return false;
           if (currentDomainFilter !== 'ALL' && extractDomain(v) !== currentDomainFilter) return false;
           if (currentSourceFilter !== 'ALL') {
-            return (v.referrer || '').toLowerCase().includes(currentSourceFilter.toLowerCase());
+            return trafficChannel(v.referrer) === trafficChannel(currentSourceFilter);
           }
           return true;
         }).length;
 
         // Đếm số đơn hàng thật trong ngày này (Hỗ trợ lọc Tên Miền)
         const realOrdersForDay = orders.filter(o => {
-          if (!o.time) return false;
+          if (!orderIsPaid(o)) return false;
+          if (currentSourceFilter !== 'ALL' && trafficChannel(o.referrer) !== trafficChannel(currentSourceFilter)) return false;
           if (currentDomainFilter !== 'ALL' && extractDomain(o) !== currentDomainFilter) return false;
-          return o.time.includes(dayStr);
+          return extractOrderDate(o.paidAt || o.time) === dayStr;
         }).length;
 
         const dayVisits = realVisitsForDay;
@@ -4112,11 +4096,11 @@
         visits = visits.filter(v => extractDomain(v) === currentDomainFilter);
         orders = orders.filter(o => extractDomain(o) === currentDomainFilter);
       }
-      const todayDateStr = new Date().toLocaleDateString('vi-VN');
-      const localTodayVisits = visits.filter(v => v.time && v.time.includes(todayDateStr)).length;
+      const todayDateStr = extractOrderDate(new Date());
+      const localTodayVisits = visits.filter(v => extractOrderDate(v.time) === todayDateStr).length;
       const todayVisits = (currentDomainFilter === 'ALL' && serverVisitsData && typeof serverVisitsData.todayVisits === 'number') ? Math.max(serverVisitsData.todayVisits, localTodayVisits) : localTodayVisits;
       const totalVisits = (currentDomainFilter === 'ALL' && serverVisitsData && typeof serverVisitsData.totalVisits === 'number') ? Math.max(serverVisitsData.totalVisits, visits.length) : visits.length;
-      const todayOrders = orders.filter(o => o.time && (o.time.includes(todayDateStr) || o.time.includes('Vừa xong'))).length;
+      const todayOrders = orders.filter(o => orderIsPaid(o) && extractOrderDate(o.paidAt || o.time) === todayDateStr).length;
 
       const badgeElem = document.getElementById('todayLiveDateBadge');
       if (badgeElem) badgeElem.innerText = todayDateStr;
@@ -4128,15 +4112,8 @@
       if (cardOrders) cardOrders.innerText = `${todayOrders} đơn`;
 
       const cardRev = document.getElementById('todayCardRevenue');
-      const todayOrdersList = orders.filter(o => o.time && (o.time.includes(todayDateStr) || o.time.includes('Vừa xong')));
-      const todayRevVal = todayOrdersList.reduce((sum, o) => {
-        let val = 0;
-        if (typeof o.amountRaw === 'number') val = o.amountRaw;
-        else if (typeof o.amount === 'number') val = o.amount;
-        else if (typeof o.amount === 'string') val = parseInt(o.amount.replace(/[^0-9]/g, '')) || 0;
-        if (val === 0) val = 90000;
-        return sum + val;
-      }, 0);
+      const todayOrdersList = orders.filter(o => orderIsPaid(o) && extractOrderDate(o.paidAt || o.time) === todayDateStr);
+      const todayRevVal = todayOrdersList.reduce((sum, order) => sum + parseAmountToNumber(order.amountRaw ?? order.amount), 0);
       if (cardRev) cardRev.innerHTML = `Doanh thu: <strong>${todayRevVal.toLocaleString('vi-VN')}đ</strong>`;
 
       const todayCR = todayVisits > 0 ? ((todayOrders / todayVisits) * 100).toFixed(1) : '0.0';
@@ -4157,7 +4134,7 @@
       if (kpiTodayElem) kpiTodayElem.innerText = `Hôm nay: ${todayVisits.toLocaleString('vi-VN')} lượt`;
 
       // Cập nhật tỷ trọng nguồn khách và Kênh dẫn đầu HÔM NAY thực tế 100%
-      const todayVisitsList = visits.filter(v => v.time && v.time.includes(todayDateStr));
+      const todayVisitsList = visits.filter(v => extractOrderDate(v.time) === todayDateStr);
       const todayChannels = [
         { key: 'FACEBOOK', name: 'Facebook', short: 'FB', count: 0, color: 'bg-blue-600' },
         { key: 'RESEARCH', name: 'Research / SEO', short: 'Research', count: 0, color: 'bg-emerald-600' },
@@ -5469,20 +5446,13 @@
       const inventory = getInventory();
       const availableStock = inventory.filter(i => i.status === 'Sẵn sàng').length;
 
-      const todayDateStr = new Date().toLocaleDateString('vi-VN');
-      const localTodayVisits = visits.filter(v => v.time && v.time.includes(todayDateStr)).length;
+      const todayDateStr = extractOrderDate(new Date());
+      const localTodayVisits = visits.filter(v => extractOrderDate(v.time) === todayDateStr).length;
       const todayVisits = (serverVisitsData && typeof serverVisitsData.todayVisits === 'number') ? Math.max(serverVisitsData.todayVisits, localTodayVisits) : localTodayVisits;
       const totalVisits = (serverVisitsData && typeof serverVisitsData.totalVisits === 'number') ? Math.max(serverVisitsData.totalVisits, visits.length) : visits.length;
-      const todayOrders = orders.filter(o => o.time && (o.time.includes(todayDateStr) || o.time.includes('Vừa xong'))).length;
-      const todayOrdersList = orders.filter(o => o.time && (o.time.includes(todayDateStr) || o.time.includes('Vừa xong')));
-      const todayRevenueVal = todayOrdersList.reduce((sum, o) => {
-        let val = 0;
-        if (typeof o.amountRaw === 'number') val = o.amountRaw;
-        else if (typeof o.amount === 'number') val = o.amount;
-        else if (typeof o.amount === 'string') val = parseInt(o.amount.replace(/[^0-9]/g, '')) || 0;
-        if (val === 0) val = 90000;
-        return sum + val;
-      }, 0);
+      const todayOrders = orders.filter(o => orderIsPaid(o) && extractOrderDate(o.paidAt || o.time) === todayDateStr).length;
+      const todayOrdersList = orders.filter(o => orderIsPaid(o) && extractOrderDate(o.paidAt || o.time) === todayDateStr);
+      const todayRevenueVal = todayOrdersList.reduce((sum, order) => sum + parseAmountToNumber(order.amountRaw ?? order.amount), 0);
       const todayRevenue = todayRevenueVal.toLocaleString('vi-VN') + ' VNĐ';
       const conversionRate = todayVisits > 0 ? ((todayOrders / todayVisits) * 100).toFixed(1) + '%' : '0.0%';
 

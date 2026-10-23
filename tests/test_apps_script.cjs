@@ -5,6 +5,7 @@ const crypto = require('node:crypto');
 function environment() {
   const sheets = new Map(), sends = [], emails = [];
   let failedChat = '';
+  let providerPayments = [];
   class Range {
     constructor(sheet, r, c, nr=1, nc=1) { Object.assign(this,{sheet,r,c,nr,nc}); }
     getValues() { return Array.from({length:this.nr}, (_,r)=>Array.from({length:this.nc},(_,c)=>(this.sheet.rows[this.r+r-1]||[])[this.c+c-1] ?? '')); }
@@ -34,10 +35,10 @@ function environment() {
     SpreadsheetApp:{openById:()=>ss,getActiveSpreadsheet:()=>ss,flush(){}},
     Utilities:{DigestAlgorithm:{SHA_256:'sha256'},computeDigest:(_,seed)=>[...crypto.createHash('sha256').update(seed).digest()],formatDate:()=> '23/10/2026 12:00:00',base64Encode:v=>Buffer.from(v).toString('base64')},
     GmailApp:{sendEmail(...args){emails.push(args);}},
-    UrlFetchApp:{fetch(url,opts){const payload=JSON.parse(opts.payload);sends.push(payload);return {getContentText:()=>JSON.stringify(payload.chat_id===failedChat?{ok:false,description:'retry'}:{ok:true,result:{message_id:sends.length}})};}}
+    UrlFetchApp:{fetch(url,opts){if(opts.method==='get')return {getContentText:()=>JSON.stringify({data:{data:providerPayments}})};const payload=JSON.parse(opts.payload);sends.push(payload);return {getContentText:()=>JSON.stringify(payload.chat_id===failedChat?{ok:false,description:'retry'}:{ok:true,result:{message_id:sends.length}})};}}
   };
   vm.createContext(ctx);vm.runInContext(fs.readFileSync('GoogleAppsScript_CRM_AutoBot.js','utf8'),ctx);
-  return {ctx,sheets,sends,emails,fail:cid=>failedChat=cid,post:data=>JSON.parse(ctx.doPost({postData:{contents:JSON.stringify(data)}}).text)};
+  return {ctx,sheets,sends,emails,payments:rows=>providerPayments=rows,fail:cid=>failedChat=cid,post:data=>JSON.parse(ctx.doPost({postData:{contents:JSON.stringify(data)}}).text)};
 }
 const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',phone:'0900000000',email:'test@example.invalid',memo:'PRO18T 0900000000 AABBCCDD',referrer:'Facebook',utmSource:'facebook',utmMedium:'cpc',utmCampaign:'Campaign',utmContent:'Ad A',utmTerm:'keyword',fbclid:'click',gclid:'google',ttclid:'tiktok',ip:'203.0.113.5',location:'Test city',device:'Mobile',browser:'Safari',fullUrl:'https://example.invalid/?utm_source=facebook',domain:'example.invalid',createdAt:'2026-10-23T05:00:00Z',status:'Đã thanh toán (Chờ cấp link)',paymentTxId:'BANK-1'};
 {
@@ -86,7 +87,7 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
  const result=e.post({...base,action:'new_order',orderId:'#OTHER',paymentTxId:'early-bank',name:'Wrong customer'});
  assert.equal(result.status,'error');assert.equal(e.sheets.get('DON_HANG').rows[1][4],before);
  assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).columns,40);
- assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).build,'2026-10-23-attribution');
+ assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).build,'2026-10-23-payments');
  assert.equal(e.ctx.money_(90000.0),90000);assert.equal(e.ctx.money_('90.000đ'),90000);assert.equal(e.ctx.money_('-90000'),-90000);
 }
 {
@@ -100,5 +101,16 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
  crowded.post({...base,action:'new_order',fullUrl:huge,name:huge,email:huge,phone:huge,referrer:huge,rawReferrer:huge,location:huge,userAgent:huge,utmCampaign:huge,utmContent:huge,licenseLink:huge});
  assert.ok(crowded.sends[0].text.length<=4000,'oversized metadata must stay within Telegram message budget');
  assert.equal(crowded.sheets.get('DON_HANG').rows[1][19],huge,'Sheet keeps the original full URL');
+}
+{
+ const e=environment();
+ const check=amount=>JSON.parse(e.ctx.doGet({parameter:{action:'check_payment',orderId:base.orderId,memo:base.memo,amount}}).text);
+ e.payments([{id:'BANK-DECIMAL',status:'PAID',content:base.memo,amount:'69000.00'}]);
+ assert.equal(check('90000').paid,false,'decimal amounts must be compared at their actual VND value');
+ assert.equal(check('90000.00').paid,false);
+ e.payments([{id:'BANK-DECIMAL',status:'PAID',content:base.memo,amount:'90000.00'}]);
+ const result=check('90000.00');assert.equal(result.paid,true);assert.equal(result.transaction.amount,90000);
+ e.payments([{id:'BANK-ZERO',status:'PAID',content:base.memo,amount:'0.00'}]);
+ assert.equal(check('90000').paid,false);assert.equal(check('0').paid,false);
 }
 console.log('PASS Apps Script: routing, four retries, changed UUID, row upsert, tracking, two chats, partial failure retry, late pending, unmatched/debit/pending events');

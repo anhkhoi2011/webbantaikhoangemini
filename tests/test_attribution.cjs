@@ -66,7 +66,9 @@ for (const name of ['admin.html', 'admin/index.html']) {
     {referrer: 'X (Twitter)', domain: 'other-shop.example'}
   ];
   const ctx = {getVisits: () => visits, currentTrafficDays: 7, currentDomainFilter: 'shop.example', extractDomain: v => v.domain};
-  vm.createContext(ctx); vm.runInContext(admin.slice(start, end), ctx);
+  vm.createContext(ctx);
+  vm.runInContext(admin.slice(admin.indexOf('    function extractOrderDate('), admin.indexOf('    function renderDailySalesStats(')), ctx);
+  vm.runInContext(admin.slice(start, end), ctx);
   const counts = Object.fromEntries(ctx.calculateTrafficSources().map(c => [c.key, c.count]));
   assert.equal(counts.FACEBOOK, 1); assert.equal(counts.ZALO, 1);
   assert.equal(counts.OTHER, 2); assert.equal(counts.DIRECT, 1); assert.equal(counts.X, 0);

@@ -41,12 +41,12 @@ function jsonOutput_(value) {
 
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || "health";
-  if (action !== "check_payment") return jsonOutput_({ status: "success", service: "Gemini CRM Apps Script", protocolVersion: 2, columns: ORDER_COLUMNS.length, build: "2026-10-23-attribution" });
+  if (action !== "check_payment") return jsonOutput_({ status: "success", service: "Gemini CRM Apps Script", protocolVersion: 2, columns: ORDER_COLUMNS.length, build: "2026-10-23-payments" });
 
   const memo = String((e.parameter && e.parameter.memo) || "").replace(/\s+/g, "").toUpperCase();
   const orderId = String(e.parameter.orderId || "");
   const phone = String((e.parameter && e.parameter.phone) || "").replace(/\D/g, "").replace(/^84/, "0");
-  const requestedAmount = Number(String((e.parameter && e.parameter.amount) || "0").replace(/\D/g, "")) || 0;
+  const requestedAmount = money_((e.parameter && e.parameter.amount) || 0);
   try {
     const ss = getSpreadsheet();
     const orderSheet = ss.getSheetByName("DON_HANG");
@@ -60,10 +60,10 @@ function doGet(e) {
       for (const row of rows) {
         if ((row[7] && String(row[7]) !== orderId) || claimed(String(row[0]), row[6])) continue;
         const content = String(row[2] || "").replace(/\s+/g, "").toUpperCase();
-        const amount = Number(row[1]) || 0;
+        const amount = money_(row[1]);
         const status = String(row[3] || "").toUpperCase();
         if (["PAID", "COMPLETED", "SUCCESS", "CREDIT"].indexOf(status) < 0) continue;
-        if (requestedAmount && amount < requestedAmount) continue;
+        if (amount <= 0 || (requestedAmount > 0 && amount < requestedAmount)) continue;
         if ((memo ? content.indexOf(memo) >= 0 : phone && content.indexOf(phone) >= 0)) {
           return jsonOutput_({ paid: true, message: "Payment verified via API Pay webhook", transaction: { id: row[0], amount: amount, description: row[2], status: row[3], time: row[4] }, source: "Google Apps Script webhook" });
         }
@@ -81,10 +81,10 @@ function doGet(e) {
       const status = String(row.status || "").toUpperCase();
       if (!["PAID", "COMPLETED", "SUCCESS"].includes(status)) continue;
       const content = String(row.content || "").replace(/\s+/g, "").toUpperCase();
-      const amount = Number(String(row.amount || "0").replace(/\D/g, "")) || 0;
-      if (requestedAmount && amount < requestedAmount) continue;
+      const amount = money_(row.amount);
+      if (amount <= 0 || (requestedAmount > 0 && amount < requestedAmount)) continue;
       if ((memo ? content.indexOf(memo) >= 0 : phone && content.indexOf(phone) >= 0)) {
-        return jsonOutput_({ paid: true, message: "Payment verified via API Pay", transaction: row, source: "Google Apps Script API Pay" });
+        return jsonOutput_({ paid: true, message: "Payment verified via API Pay", transaction: Object.assign({}, row, {amount: amount}), source: "Google Apps Script API Pay" });
       }
     }
     return jsonOutput_({ paid: false, message: "Chưa có giao dịch hoàn tất" });

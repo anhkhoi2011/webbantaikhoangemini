@@ -36,4 +36,10 @@ Cập nhật bổ sung nguồn khách và thống kê theo link:
 - Không tự sửa dữ liệu đơn cũ hoặc gửi lại thông báo cũ: cần link gốc để đối chiếu, không suy đoán dữ liệu bị thiếu.
 - Kiểm thử bổ sung: node tests/test_attribution.cjs.
 
-- Để xác nhận đúng bản sửa nguồn khách mới nhất, health cần có thêm build: 2026-10-23-attribution.
+- Để xác nhận đúng bản sửa nguồn khách mới nhất, health cần có thêm build: 2026-10-23-payments.
+
+Rà soát bổ sung thanh toán và doanh thu:
+
+- Nhánh tra cứu Apps Script dùng cùng bộ đọc tiền với webhook: 90000.00 là 90.000đ; không xóa dấu thập phân rồi tăng sai số tiền.
+- Doanh thu, chuyển đổi mua hàng và báo cáo ngày chỉ tính đơn có trạng thái đã thanh toán; đơn chờ/hủy không cộng vào tiền đã thu. Số tiền không có dữ liệu không tự gán 90.000đ.
+- Thống kê ngày chuẩn hóa ngày có/không số 0 và thời điểm ISO về GMT+7; ưu tiên paidAt cho doanh thu ngày thanh toán. Bộ lọc nguồn áp dụng đồng thời cho lượt truy cập và đơn đã thanh toán.
