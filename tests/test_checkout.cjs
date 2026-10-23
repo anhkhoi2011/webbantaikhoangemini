@@ -1,0 +1,23 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const html=fs.readFileSync('index.html','utf8');
+const start=html.indexOf('    async function triggerPaymentSuccess(txData) {');
+const end=html.indexOf('    async function sendCustomerActivationEmail',start);
+const source=html.slice(start,end);
+const stored=new Map();let claims=0,syncs=0,purchases=0;
+const current={orderId:'#CHECKOUT-A',name:'Test',phone:'0900000000',email:'test@example.invalid',memo:'PRO18T 0900000000 UNIQUE',amountRaw:90000,amount:'90.000đ',createdAt:'2026-10-23T05:00:00Z'};
+const ctx={console,currentOrder:current,completingOrders:new Set(),stopPaymentPolling(){},document:{getElementById:()=>null},CONFIG:{amount:90000},currentOrderAmount:90000,appliedCoupon:null,formatVnd:()=> '90.000đ',orderTracking:()=>({ip:'203.0.113.1',referrer:'Facebook',browser:'Safari'}),visitorData:{ip:'203.0.113.1',referrer:'Facebook',browser:'Safari'},window:{location:{hostname:'example.invalid',host:'example.invalid',href:'https://example.invalid/'}},localStorage:{getItem:k=>stored.get(k)||null,setItem:(k,v)=>stored.set(k,v),removeItem:k=>stored.delete(k)},smartApiFetch:async()=>{claims++;await new Promise(r=>setTimeout(r,5));return {ok:true,json:async()=>({status:'success',licenseLink:'https://example.invalid/license',available:4})};},syncCustomerOrder:async(order)=>{syncs++;assert.equal(order.browser,'Safari');assert.equal(order.ip,'203.0.113.1');return {status:'success'};},trackPixelEvent(){purchases++;},showToast(){}};
+vm.createContext(ctx);vm.runInContext(source,ctx);
+(async()=>{
+ await Promise.all(Array.from({length:4},()=>ctx.triggerPaymentSuccess({id:'BANK-A',amount:90000})));
+ assert.equal(claims,1);assert.equal(syncs,1);assert.equal(purchases,1);
+ assert.equal(JSON.parse(stored.get('crm_orders')).length,1);assert.equal(current.paymentComplete,true);
+ assert.equal(ctx.completingOrders.size,0);
+ await ctx.triggerPaymentSuccess({id:'BANK-A',amount:90000});assert.equal(syncs,1);
+ ctx.currentOrder={...current,orderId:'#CHECKOUT-B',paymentComplete:false};
+ await ctx.triggerPaymentSuccess({id:'BANK-B',amount:90000,licenseLink:'https://example.invalid/already-allocated'});
+ assert.equal(claims,1,'server license must not be claimed twice');
+ assert.equal(syncs,2);
+ console.log('PASS checkout: four concurrent callbacks, one inventory claim/order/purchase, completed guard, already-allocated license, tracking snapshot');
+})().catch(error=>{console.error(error);process.exitCode=1;});

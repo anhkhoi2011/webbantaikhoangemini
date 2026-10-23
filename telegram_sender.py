@@ -9,6 +9,7 @@ import ssl
 import urllib.request
 import urllib.error
 from datetime import datetime
+from html import escape
 
 # SSL Context đảm bảo gửi thông báo Telegram thông suốt trong mọi môi trường
 tele_ssl_ctx = ssl.create_default_context()
@@ -30,47 +31,32 @@ DEFAULT_CHAT_ID = "-1004413665683"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def get_current_tele_config():
-    token = None
-    cid = None
+    token, ids = None, []
     for filename in ["telegram_config.json", "payment_config.json"]:
-        p = os.path.join(BASE_DIR, filename)
-        if os.path.exists(p):
-            try:
-                with open(p, "r", encoding="utf-8-sig") as f:
-                    c = json.load(f)
-                    token = token or c.get("botToken") or c.get("telegramBotToken")
-                    cid = cid or c.get("chatId") or c.get("telegramChatId")
-            except:
-                pass
-    return token or DEFAULT_BOT_TOKEN, cid or DEFAULT_CHAT_ID
+        try:
+            with open(os.path.join(BASE_DIR, filename), encoding="utf-8-sig") as f:
+                config = json.load(f)
+            token = token or config.get("botToken") or config.get("telegramBotToken")
+            values = config.get("chatIds") or config.get("telegramChatIds") or [config.get("chatId") or config.get("telegramChatId")]
+            ids.extend(str(value) for value in values if value)
+        except (OSError, ValueError):
+            pass
+    return token or DEFAULT_BOT_TOKEN, list(dict.fromkeys(ids or [DEFAULT_CHAT_ID, "-5585627393"]))
 
 def send_telegram_raw(html_text, bot_token=None, chat_id=None):
-    def_tok, def_cid = get_current_tele_config()
-    token = bot_token or def_tok
-    cid = chat_id or def_cid
-    
-    url = f"https://api.telegram.org/bot{token}/sendMessage"
-    payload = {
-        "chat_id": cid,
-        "text": html_text,
-        "parse_mode": "HTML",
-        "disable_web_page_preview": True
-    }
-    
-    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    req = urllib.request.Request(
-        url,
-        data=data,
-        headers={"Content-Type": "application/json; charset=utf-8"}
-    )
-    
-    try:
-        with urllib.request.urlopen(req, context=tele_ssl_ctx, timeout=10) as resp:
-            res_json = json.loads(resp.read().decode("utf-8"))
-            return res_json.get("ok", False)
-    except Exception as e:
-        sys.stderr.write(f"Telegram error: {e}\n")
-        return False
+    token, default_ids = get_current_tele_config()
+    recipients = [str(chat_id)] if chat_id else default_ids
+    results = []
+    for cid in recipients:
+        payload = {"chat_id": cid, "text": html_text, "parse_mode": "HTML", "disable_web_page_preview": True}
+        req = urllib.request.Request(f"https://api.telegram.org/bot{bot_token or token}/sendMessage", data=json.dumps(payload, ensure_ascii=False).encode("utf-8"), headers={"Content-Type": "application/json; charset=utf-8"})
+        try:
+            with urllib.request.urlopen(req, context=tele_ssl_ctx, timeout=10) as resp:
+                results.append(bool(json.loads(resp.read().decode("utf-8")).get("ok")))
+        except Exception as exc:
+            sys.stderr.write(f"Telegram chat {cid}: {type(exc).__name__}\n")
+            results.append(False)
+    return bool(results) and all(results)
 
 # ==========================================
 # 4 MẪU TIN NHẮN CHUẨN ĐẸP, GỌN GÀNG, CHUYÊN NGHIỆP
@@ -129,50 +115,18 @@ def format_ad_tracking_lines(order):
     return "\n".join(lines)
 
 def get_payment_success_template(order):
-    order_id = order.get("orderId", "#GEM-" + datetime.now().strftime("%H%M"))
-    name = order.get("name", "Khách hàng")
-    phone = order.get("phone", "")
-    email = order.get("email", "")
-    amount = order.get("amount", "90.000 VNĐ")
-    memo = order.get("memo", f"PRO18T {phone}")
-    license_link = order.get("licenseLink", "")
-    ip = order.get("ip") or "127.0.0.1"
-    location = order.get("location") or "Việt Nam"
-    device = order.get("device") or "Thiết bị di động/PC"
-    time_str = order.get("time", datetime.now().strftime("%H:%M %d/%m/%Y"))
-    domain = extract_domain_from_order(order)
-    domain_hdr = f"🌐 <b>Tên miền chốt đơn:</b> <code>{domain}</code>\n" if domain else ""
-    ad_info = format_ad_tracking_lines(order)
-    coupon_str = f"🏷️ <b>Mã Voucher:</b> <code>{order.get('couponCode')}</code>\n" if order.get("couponCode") else ""
+    fields = [("Mã đơn", "orderId"), ("Khách", "name"), ("SĐT", "phone"), ("Email", "email"), ("Thanh toán lúc (GMT+7)", "paidAt"), ("Tạo đơn lúc", "createdAt"), ("Vào trang lúc", "landingAt"), ("IP", "ip"), ("Vị trí IP (ước lượng)", "location"), ("Thiết bị", "device"), ("Trình duyệt", "browser"), ("Nguồn khách", "referrer"), ("Tên miền", "domain"), ("URL vào trang", "fullUrl"), ("Referrer gốc", "rawReferrer"), ("UTM Source", "utmSource"), ("UTM Medium", "utmMedium"), ("Chiến dịch", "utmCampaign"), ("UTM Content", "utmContent"), ("UTM Term", "utmTerm"), ("FB Click ID", "fbclid"), ("Google Click ID", "gclid"), ("TikTok Click ID", "ttclid"), ("Nội dung CK", "memo"), ("Mã giao dịch", "paymentTxId"), ("Cổng thanh toán", "paymentSource"), ("Voucher", "couponCode"), ("Link cấp", "licenseLink"), ("Trạng thái", "status")]
+    lines = ["🟢 <b>ĐƠN HÀNG ĐÃ THANH TOÁN (" + escape(str(order.get("amount") or "")) + ")</b>"]
+    for label, key in fields:
+        value = order.get(key)
+        if not value and key in ("ip", "location", "referrer"):
+            value = "Không xác định"
+        if value:
+            lines.append(f"<b>{label}:</b> <code>{escape(str(value)[:80])}</code>")
+    return "\n".join(lines)
 
-    if not license_link:
-        return f"""🚨 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN ({amount})</b>
-━━━━━━━━━━━━━━━━━━━━
-{domain_hdr}📦 <b>Mã đơn:</b> <code>{order_id}</code> • {time_str}
-👤 <b>Khách:</b> <b>{name}</b> | <code>{phone}</code>
-✉️ <b>Gmail:</b> <code>{email}</code>
-📝 <b>Nội dung CK:</b> <code>{memo}</code>
-🌐 <b>Địa chỉ IP:</b> <code>{ip}</code>
-📍 <b>Vị trí khách:</b> <b>{location}</b>
-💻 <b>Thiết bị:</b> {device}
-{coupon_str}{ad_info}
-━━━━━━━━━━━━━━━━━━━━
-⚠️ <b>KHO ĐÃ HẾT LINK! VUI LÒNG MUA LINK GẤP:</b>
-👉 <b>VÀO BOT MUA NGAY:</b> https://t.me/shopxoainon_bot
-<i>(Mua xong vào /admin hoặc gửi Zalo cho khách liền!)</i>"""
-
-    return f"""🟢 <b>ĐƠN HÀNG MỚI ĐÃ THANH TOÁN ({amount})</b>
-━━━━━━━━━━━━━━━━━━━━
-{domain_hdr}📦 <b>Mã đơn:</b> <code>{order_id}</code> • {time_str}
-👤 <b>Khách:</b> <b>{name}</b> | <code>{phone}</code>
-✉️ <b>Gmail:</b> <code>{email}</code>
-📝 <b>Nội dung:</b> <code>{memo}</code>
-🌐 <b>Địa chỉ IP:</b> <code>{ip}</code>
-📍 <b>Vị trí khách:</b> <b>{location}</b>
-💻 <b>Thiết bị:</b> {device}
-{coupon_str}{ad_info}
-🔑 <b>Link cấp:</b> <code>{license_link}</code>
-━━━━━━━━━━━━━━━━━━━━"""
+def send_payment_success_notification(order):
+    return send_telegram_raw(get_payment_success_template(order))
 
 def get_low_stock_template(current_stock=0, threshold=5):
     return f"""⚠️ <b>CẢNH BÁO: KHO SẮP HẾT</b>
@@ -215,8 +169,8 @@ if __name__ == "__main__":
     parser.add_argument("--data", help="JSON data string for order")
     parser.add_argument("--file", help="Path to file containing JSON data or raw text")
     parser.add_argument("--raw", help="Raw HTML message to send")
-    parser.add_argument("--token", default=DEFAULT_BOT_TOKEN)
-    parser.add_argument("--chat_id", default=DEFAULT_CHAT_ID)
+    parser.add_argument("--token", default=None)
+    parser.add_argument("--chat_id", default=None)
     args = parser.parse_args()
 
     order_data = {}

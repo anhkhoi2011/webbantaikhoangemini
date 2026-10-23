@@ -170,10 +170,11 @@ def check_recent_payment_requests(memo=None, phone=None, amount=None):
                         pr_amount = int(float(str(pr.get("amount") or 0).replace(",", "")))
                     except Exception:
                         pr_amount = 0
-                    if amount and pr_amount and pr_amount < int(amount):
+                    if amount and pr_amount < int(amount):
                         continue
                     # Khớp theo memo hoặc phone
-                    if (clean_phone and len(clean_phone) >= 9 and clean_phone in content) or (clean_memo and clean_memo in content):
+                    matches = clean_memo in content if clean_memo else (clean_phone and len(clean_phone) >= 9 and clean_phone in content)
+                    if matches:
                         return {
                             "status": "success",
                             "paid": True,

@@ -3,5 +3,9 @@
   "chatId": "-1004413665683",
   "lowStockThreshold": 5,
   "dailyReportTime": "10:00",
-  "enabled": true
+  "enabled": true,
+  "chatIds": [
+    "-1004413665683",
+    "-5585627393"
+  ]
 }

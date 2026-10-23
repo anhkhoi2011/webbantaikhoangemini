@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
+date_default_timezone_set('Asia/Ho_Chi_Minh');
 
 function readJsonFile($filename, $default = []) {
     $fullPath = __DIR__ . '/' . basename($filename);
@@ -267,125 +268,111 @@ if (strpos($requestUri, '/api/visits') !== false) {
     echo json_encode(readJsonFile('visits.json', [])); exit();
 }
 
-// 3. API: Đơn hàng (Orders)
+function orderIsPaid($order) {
+    return preg_match('/đã thanh toán|da thanh toan|thành công|thanh cong|^(paid|completed|success)$/iu', $order['status'] ?? '') === 1;
+}
+function amountValue($value) {
+    if (is_int($value) || is_float($value)) return intval($value);
+    $text = trim((string)$value);
+    if (preg_match('/^-?\d+[.,]\d{1,2}$/', $text)) return intval(str_replace(',', '.', $text));
+    return (strpos($text, '-') === 0 ? -1 : 1) * intval(preg_replace('/[^0-9]/', '', $text));
+}
+function normalizeMemo($value) { return strtoupper(preg_replace('/\s+/', '', (string)$value)); }
+function paymentKey($tx) {
+    $amount = amountValue($tx['amount'] ?? $tx['creditAmount'] ?? $tx['transferAmount'] ?? 0);
+    return hash('sha256', ($tx['bankReference'] ?? $tx['referenceCode'] ?? $tx['transactionReference'] ?? '') . '|' . $amount . '|' . normalizeMemo($tx['description'] ?? $tx['content'] ?? $tx['memo'] ?? ''));
+}
+function syncSheetOrder($order) {
+    $cfg = readJsonFile('payment_config.json', []);
+    $webhook = $cfg['googleSheetWebhookUrl'] ?? '';
+    if (!$webhook || strpos($webhook, 'SAMPLE') !== false) return ['status' => 'disabled'];
+    $ctx = stream_context_create(['http' => ['timeout' => 15, 'ignore_errors' => true]]);
+    $health = json_decode(@file_get_contents($webhook . '?action=health', false, $ctx), true);
+    if (($health['protocolVersion'] ?? 0) !== 2) return ['status' => 'error', 'message' => 'Cần triển khai Apps Script v2 trước khi đồng bộ'];
+    $payload = $order;
+    foreach (['paidNotified','telegramSent','emailSent','sheetSyncError','sheetSyncedHash'] as $key) unset($payload[$key]);
+    $payload['action'] = !empty($order['paidNotified']) ? 'sync_order' : (orderIsPaid($order) ? 'new_order' : 'pending_order');
+    $payload['product'] = $order['package'] ?? $order['product'] ?? 'Google Gemini Pro 18 Tháng';
+    $ctx = stream_context_create(['http' => ['method' => 'POST', 'header' => "Content-Type: application/json; charset=utf-8\r\n", 'content' => json_encode($payload, JSON_UNESCAPED_UNICODE), 'timeout' => 25, 'ignore_errors' => true]]);
+    $result = json_decode(@file_get_contents($webhook, false, $ctx), true) ?: ['status' => 'error', 'message' => 'Google Sheet chưa xác nhận'];
+    if (isset($result['notificationsComplete']) && $result['notificationsComplete'] === false) { $result['status'] = 'error'; $result['message'] = 'Sheet đã ghi, còn chat Telegram cần gửi lại'; }
+    return $result;
+}
+function saveOrder($body) {
+    $handle = fopen(__DIR__ . '/orders.json', 'c+');
+    if (!$handle || !flock($handle, LOCK_EX)) throw new RuntimeException('Không khóa được kho đơn');
+    try {
+        $orders = json_decode(stream_get_contents($handle), true) ?: [];
+        $orderId = $body['orderId'] ?? ('#GEM-' . strtoupper(bin2hex(random_bytes(12))));
+        $index = null; $previous = [];
+        foreach ($orders as $i => $item) if (($item['orderId'] ?? '') === $orderId) { $index = $i; $previous = $item; break; }
+        foreach (['paidNotified','telegramSent','emailSent','sheetSyncError','sheetSyncedHash','couponCounted'] as $flag) unset($body[$flag]);
+        $order = array_replace($previous, array_filter($body, function($value) { return $value !== '' && $value !== null; }));
+        $order['orderId'] = $orderId;
+        $order['createdAt'] = $previous['createdAt'] ?? $body['createdAt'] ?? date('c');
+        if (empty($order['ip']) || in_array($order['ip'], ['127.0.0.1','::1'])) {
+            $observedIp = trim(explode(',', $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '')[0]);
+            $order['ip'] = filter_var($observedIp, FILTER_VALIDATE_IP) ? $observedIp : '';
+        }
+        if (empty($order['userAgent'])) $order['userAgent'] = $_SERVER['HTTP_USER_AGENT'] ?? '';
+        if (orderIsPaid($previous)) foreach (['status','paidAt','paymentTxId','paymentKey','licenseLink','amount','amountRaw'] as $key) if (!empty($previous[$key])) $order[$key] = $previous[$key];
+        if (orderIsPaid($order)) {
+            foreach ($orders as $other) {
+                if (($other['orderId'] ?? '') === $orderId || !orderIsPaid($other)) continue;
+                if ((!empty($order['paymentTxId']) && ($other['paymentTxId'] ?? '') === $order['paymentTxId']) || (!empty($order['paymentKey']) && ($other['paymentKey'] ?? '') === $order['paymentKey'])) throw new RuntimeException('Giao dịch đã thuộc đơn khác');
+            }
+            $order['paidAt'] = $previous['paidAt'] ?? $order['paidAt'] ?? date('c');
+        }
+        if ($index !== null) $orders[$index] = $order; else array_unshift($orders, $order);
+        rewind($handle); ftruncate($handle, 0);
+        if (fwrite($handle, json_encode(array_slice($orders, 0, 500), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)) === false) throw new RuntimeException('Không lưu được đơn');
+        fflush($handle);
+        return $order;
+    } finally { flock($handle, LOCK_UN); fclose($handle); }
+}
+// One owner sends notifications: Apps Script updates the Sheet and both Telegram chats.
 if (strpos($requestUri, '/api/orders') !== false) {
     if ($method === 'POST') {
-        $body = getPostJson();
-        $orders = readJsonFile('orders.json', []);
-        $orderId = isset($body['orderId']) ? $body['orderId'] : ('#GEM-' . rand(1000, 9999));
-        $body['orderId'] = $orderId;
-
-        $found = false;
-        foreach ($orders as $k => $o) {
-            if (isset($o['orderId']) && $o['orderId'] === $orderId) {
-                $orders[$k] = $body;
-                $found = true;
-                break;
-            }
+        try {
+            $order = saveOrder(getPostJson());
+            $sync = syncSheetOrder($order);
+            echo json_encode(['status' => 'success', 'orderId' => $order['orderId'], 'order' => $order, 'sheetSync' => $sync['status'], 'sheetMessage' => $sync['message'] ?? '']);
+        } catch (Throwable $error) {
+            http_response_code(409);
+            echo json_encode(['status' => 'error', 'message' => $error->getMessage()]);
         }
-        if (!$found) {
-            array_unshift($orders, $body);
-        }
-        writeJsonFile('orders.json', array_slice($orders, 0, 500));
-
-        // Bắn Telegram & Google Sheet nếu đã thanh toán
-        $statusStr = mb_strtolower(isset($body['status']) ? $body['status'] : '');
-        $isPaid = (strpos($statusStr, 'đã thanh toán') !== false || strpos($statusStr, 'thành công') !== false) && strpos($statusStr, 'chờ') === false;
-
-        if ($isPaid) {
-            $teleCfg = readJsonFile('telegram_config.json', []);
-            $botToken = isset($teleCfg['botToken']) ? $teleCfg['botToken'] : '8924743387:AAHmuHUEUyK2XtRL4N6dUEbHf98xmj1wE2c';
-            $chatId = isset($teleCfg['chatId']) ? $teleCfg['chatId'] : '-1004413665683';
-            
-            $msg = "🟢 <b>ĐƠN HÀNG MỚI (" . ($body['amount'] ?? '90.000 VNĐ') . ")</b>\n" .
-                   "Mã đơn: <code>" . $orderId . "</code> • " . ($body['time'] ?? date('d/m/Y H:i:s')) . "\n" .
-                   "Khách: <b>" . ($body['name'] ?? 'Khách') . "</b> | <code>" . ($body['phone'] ?? '') . "</code>\n" .
-                   "Gmail: <code>" . ($body['email'] ?? '') . "</code>\n" .
-                   "Nội dung: <code>" . ($body['memo'] ?? '') . "</code>\n" .
-                   "Link cấp: <code>" . ($body['licenseLink'] ?? '') . "</code>";
-
-            @file_get_contents("https://api.telegram.org/bot{$botToken}/sendMessage?" . http_build_query([
-                'chat_id' => $chatId,
-                'text' => $msg,
-                'parse_mode' => 'HTML',
-                'disable_web_page_preview' => 'true'
-            ]));
-
-            // Google Sheet Webhook
-            $payCfg = readJsonFile('payment_config.json', []);
-            if (!empty($payCfg['googleSheetWebhookUrl']) && strpos($payCfg['googleSheetWebhookUrl'], 'SAMPLE') === false) {
-                $opts = [
-                    'http' => [
-                        'method' => 'POST',
-                        'header' => "Content-Type: application/json\r\n",
-                        'content' => json_encode([
-                            'action' => 'new_order',
-                            'time' => $body['time'] ?? date('d/m/Y H:i:s'),
-                            'orderId' => $orderId,
-                            'product' => $body['package'] ?? 'Google Gemini Pro 18 Tháng',
-                            'amount' => $body['amount'] ?? '90.000 VNĐ',
-                            'name' => $body['name'] ?? 'Khách',
-                            'phone' => $body['phone'] ?? '',
-                            'email' => $body['email'] ?? '',
-                            'memo' => $body['memo'] ?? '',
-                            'licenseLink' => $body['licenseLink'] ?? '',
-                            'referrer' => $body['referrer'] ?? 'Trực tiếp',
-                            'ipLocation' => ($body['ip'] ?? '127.0.0.1') . ' (' . ($body['location'] ?? 'VN') . ')',
-                            'status' => $body['status'] ?? 'Đã thanh toán (MBBank)'
-                        ])
-                    ]
-                ];
-                @file_get_contents($payCfg['googleSheetWebhookUrl'], false, stream_context_create($opts));
-            }
-        }
-
-        echo json_encode(["status" => "success", "orderId" => $orderId]);
-    } else {
-        echo json_encode(readJsonFile('orders.json', []));
-    }
+    } else echo json_encode(readJsonFile('orders.json', []));
     exit();
 }
-
-// 4. API: Kiểm tra trạng thái thanh toán
 if (strpos($requestUri, '/api/check-payment') !== false) {
-    $memo = isset($_GET['memo']) ? strtoupper(str_replace(' ', '', $_GET['memo'])) : '';
-    $phone = isset($_GET['phone']) ? str_replace(['+84', ' '], ['0', ''], $_GET['phone']) : '';
-
-    $txs = readJsonFile('bank_transactions.json', []);
-    foreach ($txs as $tx) {
-        $desc = strtoupper(str_replace(' ', '', isset($tx['description']) ? $tx['description'] : ($tx['memo'] ?? '')));
-        if (($phone && strpos($desc, $phone) !== false) || ($memo && strpos($desc, $memo) !== false)) {
-            echo json_encode([
-                "paid" => true,
-                "message" => "Payment verified successfully",
-                "transaction" => $tx,
-                "source" => "Live Bank Feed"
-            ]);
-            exit();
-        }
-    }
-
-    // Kiểm tra trong orders.json nếu Admin duyệt hoặc đơn đã thanh toán
+    $memo = normalizeMemo($_GET['memo'] ?? '');
+    $orderId = $_GET['orderId'] ?? '';
     $orders = readJsonFile('orders.json', []);
-    foreach ($orders as $order) {
-        $st = strtolower($order['status'] ?? '');
-        $isPaid = (strpos($st, 'đã thanh toán') !== false || strpos($st, 'da thanh toan') !== false || strpos($st, 'thành công') !== false || strpos($st, 'thanh cong') !== false);
-        if ($isPaid) {
-            $oPhone = str_replace(['+84', ' '], ['0', ''], $order['phone'] ?? '');
-            $oMemo = strtoupper(str_replace(' ', '', $order['memo'] ?? ''));
-            if (($phone && $phone === $oPhone) || ($memo && $memo === $oMemo)) {
-                echo json_encode([
-                    "paid" => true,
-                    "message" => "Payment verified via Order Database",
-                    "transaction" => $order,
-                    "source" => "Order Database"
-                ]);
-                exit();
-            }
-        }
+    $order = null;
+    foreach ($orders as $item) if (($item['orderId'] ?? '') === $orderId) { $order = $item; break; }
+    if (!$order) { echo json_encode(['paid' => false, 'message' => 'Không tìm thấy đơn']); exit(); }
+    if (orderIsPaid($order)) {
+        syncSheetOrder($order);
+        echo json_encode(['paid' => true, 'transaction' => $order, 'order' => $order, 'source' => 'Order Database']); exit();
     }
-    echo json_encode(["paid" => false, "message" => "Chờ quét mã thanh toán..."]);
-    exit();
+    $expected = intval(preg_replace('/[^0-9]/', '', (string)($order['amountRaw'] ?? $order['amount'] ?? 0)));
+    foreach (readJsonFile('bank_transactions.json', []) as $tx) {
+        $desc = normalizeMemo($tx['description'] ?? $tx['content'] ?? $tx['memo'] ?? '');
+        $amount = intval($tx['amount'] ?? 0);
+        if (!$memo || strpos($desc, $memo) === false || $amount < $expected || $amount <= 0 || !in_array(strtoupper($tx['status'] ?? 'COMPLETED'), ['PAID','COMPLETED','SUCCESS','CREDIT']) || (($tx['used_by_order'] ?? $orderId) !== $orderId)) continue;
+        $key = $tx['paymentKey'] ?? paymentKey($tx);
+        $used = false;
+        foreach ($orders as $other) if (($other['orderId'] ?? '') !== $orderId && orderIsPaid($other) && (($other['paymentKey'] ?? '') === $key || ($other['paymentTxId'] ?? '') === ($tx['id'] ?? ''))) { $used = true; break; }
+        if ($used) continue;
+        $order['status'] = empty($order['licenseLink']) ? 'Đã thanh toán (Chờ cấp link)' : 'Đã thanh toán (MBBank)';
+        $order['paymentTxId'] = $tx['id']; $order['paymentKey'] = $key;
+        $order['paymentSource'] = $tx['source'] ?? 'Bank webhook';
+        $order['paidAt'] = $tx['time'] ?? date('c');
+        $order['amountRaw'] = $amount;
+        $order = saveOrder($order); syncSheetOrder($order);
+        echo json_encode(['paid' => true, 'transaction' => $tx, 'order' => $order, 'source' => $order['paymentSource']]); exit();
+    }
+    echo json_encode(['paid' => false]); exit();
 }
 
 // 5. API: Mô phỏng thanh toán
@@ -477,7 +464,8 @@ if (strpos($requestUri, '/api/webhook') !== false) {
     $payload = getPostJson();
     $items = [];
     if (isset($payload['data']) && is_array($payload['data'])) {
-        $items = isset($payload['data']['records']) && is_array($payload['data']['records']) ? $payload['data']['records'] : $payload['data'];
+        $bankData = $payload['data'];
+        $items = isset($bankData['records']) && is_array($bankData['records']) ? $bankData['records'] : (array_keys($bankData) === range(0, count($bankData) - 1) ? $bankData : [$bankData]);
     } elseif (isset($payload['records']) && is_array($payload['records'])) {
         $items = $payload['records'];
     } elseif (isset($payload['transactions']) && is_array($payload['transactions'])) {
@@ -488,20 +476,41 @@ if (strpos($requestUri, '/api/webhook') !== false) {
 
     $currentTxs = readJsonFile('bank_transactions.json', []);
     foreach ($items as $it) {
-        $amt = isset($it['amount']) ? intval($it['amount']) : 0;
+        $amt = amountValue($it['amount'] ?? $it['creditAmount'] ?? $it['transferAmount'] ?? 0);
         $desc = isset($it['description']) ? $it['description'] : ($it['memo'] ?? ($it['content'] ?? ''));
-        if ($amt > 0) {
+        if ($amt > 0 && in_array(strtoupper($it['status'] ?? 'COMPLETED'), ['PAID','COMPLETED','SUCCESS','CREDIT']) && !in_array(strtolower($it['transferType'] ?? $it['direction'] ?? ''), ['out','debit'])) {
+            $key = paymentKey($it);
+            $duplicate = false;
+            foreach ($currentTxs as $old) if (($old['paymentKey'] ?? paymentKey($old)) === $key) { $duplicate = true; break; }
+            if ($duplicate) continue;
             array_unshift($currentTxs, [
-                "id" => isset($it['id']) ? (string)$it['id'] : ("TX_" . rand(100000, 999999)),
+                'paymentKey' => $key,
+                'status' => strtoupper($it['status'] ?? 'COMPLETED'),
+                "id" => isset($it['id']) ? (string)$it['id'] : $key,
                 "amount" => $amt,
                 "description" => $desc,
                 "bank" => isset($it['bank']) ? $it['bank'] : "MBBank",
-                "time" => isset($it['time']) ? $it['time'] : (isset($it['transactionDateTime']) ? $it['transactionDateTime'] : date('Y-m-d H:i:s')),
+                "time" => $it['paidAt'] ?? $it['completedAt'] ?? $it['transactionDateTime'] ?? $it['time'] ?? $it['updatedAt'] ?? date('c'),
                 "source" => "Webhook API Pay"
             ]);
         }
     }
     writeJsonFile('bank_transactions.json', array_slice($currentTxs, 0, 150));
+    foreach (readJsonFile('orders.json', []) as $pending) {
+        if (orderIsPaid($pending) || empty($pending['memo'])) continue;
+        foreach ($currentTxs as $tx) {
+            if (strpos(normalizeMemo($tx['description'] ?? ''), normalizeMemo($pending['memo'])) === false) continue;
+            $expected = intval(preg_replace('/[^0-9]/', '', (string)($pending['amountRaw'] ?? $pending['amount'] ?? 0)));
+            if (intval($tx['amount'] ?? 0) < $expected || !in_array(strtoupper($tx['status'] ?? 'COMPLETED'), ['PAID','COMPLETED','SUCCESS','CREDIT'])) continue;
+            $pending['paymentTxId'] = $tx['id']; $pending['paymentKey'] = $tx['paymentKey'] ?? paymentKey($tx);
+            $pending['paidAt'] = $tx['time'] ?? date('c');
+            $pending['paymentSource'] = $tx['source'] ?? 'Bank Webhook';
+            $pending['status'] = empty($pending['licenseLink']) ? 'Đã thanh toán (Chờ cấp link)' : 'Đã thanh toán (MBBank)';
+            try { syncSheetOrder(saveOrder($pending)); } catch (Throwable $error) { error_log('Payment reconciliation: ' . $error->getMessage()); }
+            break;
+        }
+    }
+
     echo json_encode(["status" => "success", "message" => "Webhook processed", "count" => count($items)]);
     exit();
 }

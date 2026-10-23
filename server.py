@@ -17,7 +17,8 @@ import urllib.parse
 import secrets
 import hashlib
 from http.server import HTTPServer, SimpleHTTPRequestHandler
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+import re
 
 # Đảm bảo console UTF-8 trên Windows
 if sys.stdout.encoding != 'utf-8':
@@ -30,6 +31,8 @@ if sys.stdout.encoding != 'utf-8':
 PORT = int(os.environ.get("PORT", 8080))
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LICENSES_FILE = "licenses.json"
+ORDER_LOCK = threading.RLock()
+SYNC_LOCK = threading.Lock()
 LICENSE_LOCK = threading.Lock()
 AUTOBUY_LOCK = threading.Lock()
 LICENSE_STATUSES = {"Sẵn sàng", "Đã cấp"}
@@ -100,9 +103,14 @@ def calculate_coupon_discount(coupon, base_price=None):
 
 def parse_money(value, default=0):
     try:
-        digits = ''.join(ch for ch in str(value) if ch.isdigit())
-        return int(digits) if digits else int(default)
-    except Exception:
+        if isinstance(value, (int, float)):
+            return int(value)
+        text = str(value).strip()
+        if re.fullmatch(r"-?\d+[.,]\d{1,2}", text):
+            return int(float(text.replace(",", ".")))
+        digits = ''.join(ch for ch in text if ch.isdigit())
+        return (-1 if text.startswith("-") else 1) * int(digits) if digits else int(default)
+    except (TypeError, ValueError):
         return int(default)
 
 def read_json_file(filename, default):
@@ -162,66 +170,124 @@ def next_license_id(items):
 def license_stock_count(items):
     return sum(1 for item in items if item.get("status") == "Sẵn sàng")
 
-def mark_order_paid(order_id, tx_id=None, tx_data=None, source="API Pay"):
-    if not order_id:
-        return None
-    orders = read_json_file("orders.json", [])
-    matched_order = None
-    for o in orders:
-        if o.get("orderId") == order_id:
-            matched_order = o
-            break
-    if not matched_order:
-        return None
+def now_vn():
+    return datetime.now(timezone(timedelta(hours=7))).isoformat(timespec="seconds")
 
-    st = (matched_order.get("status") or "").lower()
-    is_already_paid = "đã thanh toán" in st or "da thanh toan" in st
-    if is_already_paid and matched_order.get("paidNotified"):
-        return matched_order
+def is_paid_order(order):
+    return bool(re.search(r"đã thanh toán|da thanh toan|thành công|thanh cong|^(paid|completed|success)$", str(order.get("status") or ""), re.I))
 
-    matched_order["paymentTxId"] = tx_id or matched_order.get("paymentTxId") or f"TX_{int(datetime.now().timestamp()) % 1000000:06d}"
-    matched_order["paymentSource"] = source
+def normalized_memo(value):
+    return re.sub(r"\s+", "", str(value or "")).upper()
 
-    if not matched_order.get("licenseLink"):
-        with LICENSE_LOCK:
-            lics = read_licenses()
-            free_lic = next((l for l in lics if l.get("status") == "Sẵn sàng"), None)
-            if free_lic:
-                free_lic["status"] = "Đã cấp"
-                free_lic["assignedTo"] = f"{matched_order.get('name')} ({matched_order.get('orderId')})"
-                write_json_file(LICENSES_FILE, lics)
-                matched_order["licenseLink"] = free_lic.get("link", "")
-                matched_order["status"] = "Đã thanh toán (MBBank)"
-            else:
-                matched_order["licenseLink"] = ""
-                matched_order["status"] = "Đã thanh toán (Chờ cấp link)"
-    else:
-        matched_order["status"] = "Đã thanh toán (MBBank)"
+def payment_key(tx):
+    if tx.get("paymentKey"):
+        return tx["paymentKey"]
+    reference = tx.get("bankReference") or tx.get("referenceCode") or tx.get("transactionReference") or ""
+    amount = parse_money(tx.get("amount") or tx.get("creditAmount") or tx.get("transferAmount"), 0)
+    content = normalized_memo(tx.get("description") or tx.get("content") or tx.get("memo") or tx.get("comment"))
+    return hashlib.sha256(f"{reference}|{amount}|{content}".encode()).hexdigest()
 
-    if matched_order.get("couponCode") and not matched_order.get("couponCounted"):
-        matched_order["couponCounted"] = True
-        c_code = (matched_order.get("couponCode") or "").strip().upper()
-        with COUPONS_LOCK:
-            coupons = read_json_file(COUPONS_FILE, [])
-            for c in coupons:
-                if (c.get("code") or "").upper() == c_code:
-                    c["usedCount"] = int(c.get("usedCount") or 0) + 1
-                    break
-            write_json_file(COUPONS_FILE, coupons)
+def successful_tx(tx):
+    status = str(tx.get("status") or "COMPLETED").upper()
+    return status in {"PAID", "COMPLETED", "SUCCESS", "CREDIT"} and str(tx.get("transferType") or tx.get("direction") or "").lower() not in {"out", "debit"} and parse_money(tx.get("amount") or tx.get("transferAmount") or tx.get("creditAmount"), 0) > 0
 
-    write_json_file("orders.json", orders)
+def sheet_payload(order):
+    payload = dict(order)
+    payload.update(action="sync_order" if order.get("paidNotified") else "new_order" if is_paid_order(order) else "pending_order", product=order.get("package") or order.get("product") or "Google Gemini Pro 18 Tháng")
+    for key in ["paidNotified", "sheetSyncedHash", "sheetSyncedAt", "sheetSyncError", "telegramSent", "emailSent"]:
+        payload.pop(key, None)
+    return payload
 
-    if not matched_order.get("paidNotified"):
-        matched_order["paidNotified"] = True
-        write_json_file("orders.json", orders)
-        try:
+def sync_order_integrations(order_id):
+    with SYNC_LOCK:
+        with ORDER_LOCK:
+            order = next((o for o in read_json_file("orders.json", []) if o.get("orderId") == order_id), None)
+            if not order:
+                return
+            order = dict(order)
+        cfg = read_json_file("payment_config.json", {})
+        webhook = cfg.get("googleSheetWebhookUrl") or ""
+        payload = sheet_payload(order)
+        digest = hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+        if webhook and "SAMPLE" not in webhook:
+            if order.get("sheetSyncedHash") == digest:
+                return
+            try:
+                with urllib.request.urlopen(webhook + "?action=health", timeout=15) as response:
+                    health = json.loads(response.read().decode("utf-8"))
+                if health.get("protocolVersion") != 2:
+                    raise ValueError("Cần triển khai Apps Script v2")
+                req = urllib.request.Request(webhook, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"), headers={"Content-Type": "application/json"})
+                with urllib.request.urlopen(req, timeout=25) as response:
+                    result = json.loads(response.read().decode("utf-8"))
+                if result.get("status") != "success" or result.get("notificationsComplete") is False:
+                    raise ValueError("Sheet did not acknowledge the order")
+                updates = {"sheetSyncedHash": digest, "sheetSyncError": "", "sheetSyncedAt": now_vn()}
+            except Exception as exc:
+                updates = {"sheetSyncError": type(exc).__name__ + ": Sheet chưa xác nhận, sẽ gửi lại"}
+        elif is_paid_order(order):
             import telegram_sender
-            telegram_sender.send_payment_success_notification(matched_order)
-        except Exception as e:
-            sys.stdout.write(f"[TELEGRAM ERROR] {e}\n")
-            sys.stdout.flush()
+            _, recipients = telegram_sender.get_current_tele_config()
+            sent = dict(order.get("telegramSent") or {})
+            for cid in recipients:
+                if not sent.get(cid) and telegram_sender.send_telegram_raw(telegram_sender.get_payment_success_template(order), chat_id=cid):
+                    sent[cid] = now_vn()
+            updates = {"telegramSent": sent, "paidNotified": all(sent.get(cid) for cid in recipients)}
+        else:
+            return
+        with ORDER_LOCK:
+            orders = read_json_file("orders.json", [])
+            current = next((o for o in orders if o.get("orderId") == order_id), None)
+            if current:
+                current.update(updates)
+                write_json_file("orders.json", orders)
 
-    return matched_order
+def queue_order_sync(order_id):
+    threading.Thread(target=sync_order_integrations, args=(order_id,), daemon=True).start()
+
+def mark_order_paid(order_id, tx_id=None, tx_data=None, source="API Pay"):
+    tx = dict(tx_data or {})
+    with ORDER_LOCK:
+        orders = read_json_file("orders.json", [])
+        order = next((o for o in orders if o.get("orderId") == order_id), None)
+        if not order:
+            return None
+        if is_paid_order(order):
+            queue_order_sync(order_id)
+            return dict(order)
+        amount = parse_money(tx.get("amount"), 0)
+        if amount < parse_money(order.get("amountRaw") or order.get("amount"), get_current_package_price()):
+            return None
+        key = payment_key(tx)
+        identity = str(tx.get("transactionId") or tx.get("publicId") or tx_id or tx.get("id") or key)
+        if any(o.get("orderId") != order_id and is_paid_order(o) and (o.get("paymentKey") == key or o.get("paymentTxId") == identity) for o in orders):
+            return None
+        order.update(paymentTxId=identity, paymentKey=key, paymentSource=source, paidAt=tx.get("paidAt") or tx.get("transactionDateTime") or tx.get("time") or now_vn(), amountRaw=amount)
+        order["amount"] = f"{amount:,}đ".replace(",", ".")
+        if not order.get("licenseLink"):
+            with LICENSE_LOCK:
+                lics = read_licenses()
+                existing = next((lic for lic in lics if f"({order_id})" in lic.get("assignedTo", "")), None)
+                free = existing or next((lic for lic in lics if lic.get("status") == "Sẵn sàng"), None)
+                if free:
+                    free.update(status="Đã cấp", assignedTo=f"{order.get('name')} ({order_id})")
+                    write_json_file(LICENSES_FILE, lics)
+                    order["licenseLink"] = free["link"]
+        order["status"] = "Đã thanh toán (MBBank)" if order.get("licenseLink") else "Đã thanh toán (Chờ cấp link)"
+        if order.get("couponCode") and not order.get("couponCounted"):
+            with COUPONS_LOCK:
+                coupons = read_json_file(COUPONS_FILE, [])
+                for coupon in coupons:
+                    if str(coupon.get("code") or "").upper() == order["couponCode"].upper():
+                        coupon["usedCount"] = int(coupon.get("usedCount") or 0) + 1
+                        break
+                write_json_file(COUPONS_FILE, coupons)
+            order["couponCounted"] = True
+        write_json_file("orders.json", orders)
+        result = dict(order)
+    queue_order_sync(order_id)
+    return result
+
 
 class GeminiCRMHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -406,16 +472,18 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                         expected_amount = parse_money(pending.get("amount"), get_current_package_price())
                         break
 
+            if not order_id:
+                return self.send_json({"paid": False, "message": "Missing orderId"}, 400)
             # 4.1 Kiểm tra qua ApiPay bridge nếu có publicId
             if public_id:
                 try:
                     import apipay_bridge
                     res = apipay_bridge.check_payment_status(public_id)
                     paid_amount = parse_money(res.get("amount") or (res.get("transaction") or {}).get("amount"), 0)
-                    if res.get("paid") and (not expected_amount or not paid_amount or paid_amount >= expected_amount):
+                    if res.get("paid") and paid_amount >= expected_amount and paid_amount > 0:
                         updated_order = mark_order_paid(order_id, public_id, res.get("transaction"), "APIPay Cloud PR")
                         return self.send_json({
-                            "paid": True,
+                            "paid": updated_order is not None,
                             "message": "Payment verified via APIPay Cloud",
                             "transaction": res.get("transaction"),
                             "order": updated_order,
@@ -431,10 +499,10 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                     res = apipay_bridge.check_recent_payment_requests(memo, phone, expected_amount or parse_money(query.get("amount", [0])[0], 0))
                     if res.get("paid"):
                         pr_tx = res.get("transaction") or {}
-                        pr_pub = pr_tx.get("publicId") or public_id
+                        pr_pub = pr_tx.get("publicId") or pr_tx.get("id") or public_id
                         updated_order = mark_order_paid(order_id, pr_pub, pr_tx, "APIPay Cloud Recent PR")
                         return self.send_json({
-                            "paid": True,
+                            "paid": updated_order is not None,
                             "message": "Payment verified via APIPay Cloud Recent",
                             "transaction": pr_tx,
                             "order": updated_order,
@@ -457,10 +525,10 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 is_match = False
                 if clean_memo and clean_memo in desc:
                     is_match = True
-                elif clean_phone and len(clean_phone) >= 9 and clean_phone in desc:
+                elif not clean_memo and clean_phone and len(clean_phone) >= 9 and clean_phone in desc:
                     is_match = True
 
-                if is_match:
+                if is_match and successful_tx(tx):
                     if expected_amount and parse_money(tx.get("amount"), 0) < expected_amount:
                         continue
                     if order_id and not tx.get("used_by_order"):
@@ -470,7 +538,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                         write_json_file("bank_transactions.json", txs)
                     updated_order = mark_order_paid(order_id, tx.get("id"), tx, tx.get("source", "Live Bank Stream"))
                     return self.send_json({
-                        "paid": True,
+                        "paid": updated_order is not None,
                         "message": "Payment verified via Live Bank Feed",
                         "transaction": tx,
                         "order": updated_order,
@@ -548,7 +616,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
 
         # 10. API: Báo động lên giá (Mốc 200 đơn lên giá 129K, FOMO chạy từ 150 lên 195)
         if path == "/api/fomo-stats" or path == "/api/sold-stats":
-            client_ip = self.headers.get("X-Forwarded-For")
+            client_ip = self.headers.get("CF-Connecting-IP") or self.headers.get("X-Forwarded-For")
             if client_ip:
                 client_ip = client_ip.split(",")[0].strip()
             else:
@@ -893,7 +961,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 visits_data["todayVisits"] = int(visits_data.get("todayVisits", 0)) + 1
 
                 # Trích xuất IP thật từ proxy hoặc header
-                client_ip = self.headers.get("X-Forwarded-For")
+                client_ip = self.headers.get("CF-Connecting-IP") or self.headers.get("X-Forwarded-For")
                 if client_ip:
                     client_ip = client_ip.split(",")[0].strip()
                 else:
@@ -1027,7 +1095,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             body["orderId"] = order_id
             
             # Tự động làm giàu IP, Location, Device từ HTTP Headers nếu client thiếu
-            client_ip = self.headers.get("X-Forwarded-For")
+            client_ip = self.headers.get("CF-Connecting-IP") or self.headers.get("X-Forwarded-For")
             if client_ip:
                 client_ip = client_ip.split(",")[0].strip()
             else:
@@ -1039,6 +1107,9 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             if not body.get("ip"):
                 body["ip"] = client_ip or "127.0.0.1"
             body["buyerIp"] = body.get("ip")
+            body.setdefault("userAgent", self.headers.get("User-Agent", ""))
+            ua = body["userAgent"]
+            body.setdefault("browser", "Edge" if "Edg/" in ua else "Chrome" if "Chrome/" in ua else "Safari" if "Safari/" in ua else "Không xác định")
 
             if not body.get("location") or body.get("location") == "Việt Nam":
                 # Nếu đã có IP thật từ ngoài mạng, có thể đối soát
@@ -1064,94 +1135,44 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 order_domain = "geminigiare.io.vn"
             body["domain"] = order_domain
 
-            # Cập nhật nếu trùng mã đơn, ngược lại thêm mới
-            existing_order = None
-            found = False
-            for i, o in enumerate(orders):
-                if o.get("orderId") == order_id:
-                    existing_order = o
-                    # Giữ lại các cờ thông báo nếu đã gửi
-                    if o.get("qrNotified"):
-                        body["qrNotified"] = True
-                    if o.get("paidNotified"):
-                        body["paidNotified"] = True
-                    if o.get("couponCounted"):
-                        body["couponCounted"] = True
-                    orders[i] = body
-                    found = True
-                    break
-            if not found:
-                orders.insert(0, body)
-            if len(orders) > 500:
-                orders = orders[:500]
-
-            status_str = (body.get("status") or "").lower()
-
-            # Bắn Telegram khi thanh toán thành công (kể cả khi có link hoặc chờ cấp link)
-            is_paid = ("đã thanh toán" in status_str or "thành công" in status_str or "paid" in status_str) and ("chờ thanh toán" not in status_str)
-            send_paid_flag = False
-            if is_paid and not body.get("paidNotified"):
-                body["paidNotified"] = True
-                send_paid_flag = True
-
-                # Tăng số lượt dùng voucher khi KHÁCH ĐÃ THANH TOÁN THÀNH CÔNG
-                if body.get("couponCode") and not body.get("couponCounted"):
-                    body["couponCounted"] = True
-                    c_code = (body.get("couponCode") or "").strip().upper()
-                    with COUPONS_LOCK:
-                        coupons = read_json_file(COUPONS_FILE, [])
-                        for c in coupons:
-                            if (c.get("code") or "").upper() == c_code:
-                                c["usedCount"] = int(c.get("usedCount") or 0) + 1
-                                break
-                        write_json_file(COUPONS_FILE, coupons)
-
-            def _bg_notify(order_data):
-                try:
-                    import telegram_sender
-                    telegram_sender.send_telegram_raw(telegram_sender.get_payment_success_template(order_data))
-                except Exception as e:
-                    sys.stderr.write(f"Telegram paid notify error: {e}\n")
-
-                # Đồng bộ Google Sheet qua Webhook
-                try:
-                    cfg = read_json_file("payment_config.json", {})
-                    webhook = cfg.get("googleSheetWebhookUrl")
-                    if webhook and "SAMPLE" not in webhook:
-                        req_data = json.dumps({
-                            "action": "new_order",
-                            "domain": order_data.get("domain") or "",
-                            "time": order_data.get("time") or datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-                            "orderId": order_data.get("orderId"),
-                            "product": order_data.get("package") or "Google Gemini Pro 18 Tháng",
-                            "amount": order_data.get("amount") or "90.000 VNĐ",
-                            "name": order_data.get("name") or "Khách hàng",
-                            "phone": order_data.get("phone") or "",
-                            "email": order_data.get("email") or "",
-                            "memo": order_data.get("memo") or f"PRO18T {order_data.get('phone', '')}",
-                            "licenseLink": order_data.get("licenseLink") or "",
-                            "referrer": f"{order_data.get('referrer', 'Trực tiếp')} | {order_data.get('fullUrl', '')}".strip(" |"),
-                            "adLink": order_data.get("fullUrl") or "",
-                            "adCampaign": order_data.get("utmCampaign") or "",
-                            "fbclid": order_data.get("fbclid") or "",
-                            "ipLocation": f"{order_data.get('ip', '127.0.0.1')} ({order_data.get('location', 'VN')})",
-                            "status": order_data.get("status") or "Đã thanh toán (MBBank)"
-                        }).encode("utf-8")
-                        req = urllib.request.Request(webhook, data=req_data, headers={"Content-Type": "application/json"})
-                        urllib.request.urlopen(req, timeout=8)
-                except Exception as e:
-                    sys.stderr.write(f"Google Sheet webhook error: {e}\n")
-
-            if send_paid_flag:
-                threading.Thread(target=_bg_notify, args=(dict(body),), daemon=True).start()
-
-            write_json_file("orders.json", orders)
-            return self.send_json({"status": "success", "orderId": order_id})
+            with ORDER_LOCK:
+                orders = read_json_file("orders.json", [])
+                existing = next((o for o in orders if o.get("orderId") == order_id), {})
+                for flag in ("paidNotified", "couponCounted", "telegramSent", "sheetSyncedHash", "sheetSyncedAt", "sheetSyncError"):
+                    body.pop(flag, None)
+                merged = dict(existing)
+                merged.update({key: value for key, value in body.items() if value is not None and value != ""})
+                merged["createdAt"] = existing.get("createdAt") or body.get("createdAt") or now_vn()
+                if is_paid_order(existing):
+                    for key in ("status", "paidAt", "paymentTxId", "paymentKey", "licenseLink", "amount", "amountRaw"):
+                        if existing.get(key):
+                            merged[key] = existing[key]
+                if is_paid_order(merged):
+                    duplicate = next((o for o in orders if o.get("orderId") != order_id and is_paid_order(o) and ((merged.get("paymentKey") and o.get("paymentKey") == merged["paymentKey"]) or (merged.get("paymentTxId") and o.get("paymentTxId") == merged["paymentTxId"]))), None)
+                    if duplicate:
+                        return self.send_json({"status": "error", "message": "Giao dịch đã thuộc đơn khác", "orderId": duplicate["orderId"]}, 409)
+                    merged["paidAt"] = existing.get("paidAt") or merged.get("paidAt") or now_vn()
+                    if merged.get("couponCode") and not merged.get("couponCounted"):
+                        with COUPONS_LOCK:
+                            coupons = read_json_file(COUPONS_FILE, [])
+                            for coupon in coupons:
+                                if str(coupon.get("code") or "").upper() == merged["couponCode"].upper():
+                                    coupon["usedCount"] = int(coupon.get("usedCount") or 0) + 1
+                                    break
+                            write_json_file(COUPONS_FILE, coupons)
+                        merged["couponCounted"] = True
+                orders = [merged if o.get("orderId") == order_id else o for o in orders]
+                if not existing:
+                    orders.insert(0, merged)
+                if not write_json_file("orders.json", orders[:500]):
+                    return self.send_json({"status": "error", "message": "Không lưu được đơn"}, 500)
+            queue_order_sync(order_id)
+            return self.send_json({"status": "success", "orderId": order_id, "order": merged, "sheetSync": "queued"})
 
         # API: Nhận Webhook từ APIPay / Casso / SeAPay / MBBank
         if path == "/api/webhook":
             webhook_secret = os.environ.get("WEBHOOK_SECRET", "")
-            supplied_secret = self.headers.get("X-Webhook-Secret", "") or str(body.get("webhookSecret") or "")
+            supplied_secret = self.headers.get("X-Webhook-Secret", "") or str((body.get("webhookSecret") if isinstance(body, dict) else "") or "")
             if webhook_secret and not secrets.compare_digest(supplied_secret, webhook_secret):
                 return self.send_json({"status": "error", "message": "Invalid webhook signature"}, 401)
             import re
@@ -1159,18 +1180,18 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             sys.stdout.flush()
 
             items = []
-            if isinstance(body.get("data"), list):
+            if isinstance(body, list):
+                items = body
+            elif isinstance(body.get("data"), dict) and isinstance(body["data"].get("records"), list):
+                items = body["data"]["records"]
+            elif isinstance(body.get("data"), list):
                 items = body.get("data")
             elif isinstance(body.get("data"), dict) and body.get("data"):
                 items = [body.get("data")]
-            elif isinstance(body.get("data", {}).get("records"), list):
-                items = body.get("data", {}).get("records")
             elif isinstance(body.get("records"), list):
                 items = body.get("records")
             elif isinstance(body.get("transactions"), list):
                 items = body.get("transactions")
-            elif isinstance(body, list):
-                items = body
             elif isinstance(body, dict) and body:
                 items = [body]
 
@@ -1182,11 +1203,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 # Trích xuất số tiền an toàn (hỗ trợ cả int, float, string "90000", "90.000đ")
                 raw_amt = it.get("amount") or it.get("transferAmount") or it.get("creditAmount") or 0
                 try:
-                    if isinstance(raw_amt, str):
-                        clean_amt_str = re.sub(r"[^\d]", "", raw_amt)
-                        amt = int(clean_amt_str) if clean_amt_str else 0
-                    else:
-                        amt = int(raw_amt)
+                    amt = parse_money(raw_amt, 0)
                 except Exception:
                     amt = 0
 
@@ -1195,7 +1212,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 public_id = str(it.get("publicId") or "").strip()
 
                 # Kiểm tra giao dịch hợp lệ
-                is_valid_tx = (amt > 0) or (status_raw in ["PAID", "COMPLETED", "SUCCESS"]) or ("PRO18T" in desc.upper())
+                is_valid_tx = successful_tx(it)
 
                 if is_valid_tx:
                     pkg_price = get_current_package_price()
@@ -1205,15 +1222,23 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                         "amount": actual_amt,
                         "description": desc or f"PRO18T (APIPay {public_id})",
                         "bank": it.get("bank") or it.get("bankCode") or "MBBank",
-                        "time": it.get("time") or it.get("transactionDateTime") or it.get("createdAt") or datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "time": it.get("paidAt") or it.get("completedAt") or it.get("transactionDateTime") or it.get("time") or it.get("updatedAt") or it.get("createdAt") or datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         "source": "APIPay Webhook"
                     }
-                    current_txs.insert(0, tx_record)
+                    tx_record["paymentKey"] = payment_key(it)
+                    tx_record["status"] = status_raw or "COMPLETED"
+                    previous_tx = next((tx for tx in current_txs if tx.get("id") == tx_record["id"] or tx.get("paymentKey", payment_key(tx)) == tx_record["paymentKey"]), None)
+                    if previous_tx:
+                        if previous_tx.get("used_by_order"):
+                            continue
+                        tx_record = previous_tx
+                    else:
+                        current_txs.insert(0, tx_record)
 
                     # Tự động khớp với đơn hàng đang chờ thanh toán
                     clean_desc = (desc or "").upper().replace(" ", "")
                     matched_order = None
-                    for order in orders:
+                    for order in read_json_file("orders.json", []):
                         st = (order.get("status") or "").lower()
                         if "chờ thanh toán" in st and not order.get("paidNotified"):
                             order_amount = parse_money(order.get("amount"), pkg_price)
@@ -1222,7 +1247,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                             phone = (order.get("phone") or "").replace("+84", "0").replace(" ", "")
                             memo = (order.get("memo") or f"PRO18T {phone}").upper().replace(" ", "")
                             o_pub = (order.get("apipayPublicId") or "").strip()
-                            if (public_id and public_id == o_pub) or (phone and phone in clean_desc) or (memo and memo in clean_desc):
+                            if (public_id and public_id == o_pub) or (memo and memo in clean_desc):
                                 matched_order = order
                                 break
 
@@ -1232,8 +1257,6 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                         orders_updated = True
 
             write_json_file("bank_transactions.json", current_txs[:150])
-            if orders_updated:
-                write_json_file("orders.json", orders)
             return self.send_json({"status": "success", "message": "Webhook processed", "count": len(items)})
 
         # 4. API: Mô phỏng thanh toán (Simulate)
@@ -1429,6 +1452,16 @@ def run():
             time.sleep(300)
     threading.Thread(target=_sync_apipay_worker, daemon=True).start()
 
+    def _integration_worker():
+        import time
+        while True:
+            for order in read_json_file("orders.json", []):
+                try:
+                    sync_order_integrations(order.get("orderId"))
+                except Exception as exc:
+                    sys.stderr.write(f"Integration retry: {type(exc).__name__}\n")
+            time.sleep(30)
+    threading.Thread(target=_integration_worker, daemon=True).start()
     server = HTTPServer(("0.0.0.0", PORT), GeminiCRMHandler)
     try:
         server.serve_forever()

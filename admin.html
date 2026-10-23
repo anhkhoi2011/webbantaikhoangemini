@@ -2757,13 +2757,18 @@
       const cfg = getPaymentConfig();
       const webhookUrl = cfg.googleSheetWebhookUrl || 'https://script.google.com/macros/s/AKfycbyn1IIEyU6SX9ywlIRasV1GlhJSg0Sj6crMX3HqEJxyNXPji8tasMTV74pQu4tkuNSp/exec';
 
+      try {
+        const health = await (await fetch(webhookUrl + '?action=health')).json();
+        if (health.protocolVersion !== 2) throw new Error('Cần triển khai lại GoogleAppsScript_CRM_AutoBot.js bản mới trước khi đồng bộ.');
+      } catch (error) { showToast(error.message, 6000); return; }
       showToast(`⚡ Đang đồng bộ ${orders.length} đơn hàng sang Google Sheet...`);
 
       let successCount = 0;
       for (let i = 0; i < orders.length; i++) {
         const o = orders[i];
         const payload = {
-          action: 'new_order',
+          ...o,
+          action: 'sync_order',
           orderId: o.orderId || ('#GEM-' + (9000 - i)),
           time: o.time || new Date().toLocaleString('vi-VN'),
           name: o.name || 'Khách hàng',
@@ -2782,7 +2787,7 @@
           await fetch(webhookUrl, {
             method: 'POST',
             mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload)
           });
           successCount++;
@@ -2790,7 +2795,7 @@
         await new Promise(r => setTimeout(r, 120));
       }
 
-      showToast(`✓ Đã đồng bộ hoàn tất ${successCount}/${orders.length} đơn sang Google Sheet!`, 4000);
+      showToast(`✓ Đã gửi ${successCount}/${orders.length} yêu cầu cập nhật. Mở Google Sheet để kiểm tra kết quả.`, 4000);
     }
 
     // Render Orders
@@ -5007,7 +5012,7 @@
           badge.innerText = "✕ Đang Tắt Tự Động";
         } else if (cfg.botToken && cfg.chatId && !cfg.botToken.includes('SAMPLE')) {
           badge.className = "text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-full";
-          badge.innerText = "✓ Đã Kết Nối Bot Thật (-1004413665683)";
+          badge.innerText = '✓ Chat nhận đơn: ' + (cfg.chatIds || [cfg.chatId, '-5585627393']).join(', ');
         } else {
           badge.className = "text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full";
           badge.innerText = "● Chờ Nhập Token Thật";
@@ -5033,6 +5038,7 @@
       const cfg = {
         botToken: token,
         chatId: chatId,
+        chatIds: Array.from(new Set([chatId, '-5585627393'].filter(Boolean))),
         lowStockThreshold: threshold,
         dailyReportTime: reportTime,
         enabled: toggle ? toggle.checked : true

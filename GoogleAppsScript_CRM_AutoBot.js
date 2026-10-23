@@ -22,7 +22,8 @@ const BOT_CONFIG = {
   TELEGRAM_BOT_TOKEN: "8924743387:AAHmuHUEUyK2XtRL4N6dUEbHf98xmj1wE2c", 
   
   // ID Nhóm chat Telegram nhận thông báo:
-  TELEGRAM_CHAT_ID: "-1004413665683", 
+  TELEGRAM_CHAT_ID: "-1004413665683",
+  TELEGRAM_CHAT_IDS: ["-1004413665683", "-5585627393"],
 
   // Tên thương hiệu hiển thị trong email:
   BRAND_NAME: "TRẠM CÔNG NGHỆ - Gemini Pro",
@@ -40,23 +41,30 @@ function jsonOutput_(value) {
 
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || "health";
-  if (action !== "check_payment") return jsonOutput_({ status: "success", service: "Gemini CRM Apps Script" });
+  if (action !== "check_payment") return jsonOutput_({ status: "success", service: "Gemini CRM Apps Script", protocolVersion: 2, columns: ORDER_COLUMNS.length });
 
   const memo = String((e.parameter && e.parameter.memo) || "").replace(/\s+/g, "").toUpperCase();
+  const orderId = String(e.parameter.orderId || "");
   const phone = String((e.parameter && e.parameter.phone) || "").replace(/\D/g, "").replace(/^84/, "0");
   const requestedAmount = Number(String((e.parameter && e.parameter.amount) || "0").replace(/\D/g, "")) || 0;
   try {
     const ss = getSpreadsheet();
+    const orderSheet = ss.getSheetByName("DON_HANG");
+    const orders = orderSheet && orderSheet.getLastRow() > 1 ? orderSheet.getRange(2, 1, orderSheet.getLastRow() - 1, Math.min(ORDER_COLUMNS.length, orderSheet.getMaxColumns())).getValues().map(rowToOrder_) : [];
+    const approved = orders.find(order => String(order.orderId) === orderId && isPaidOrder_(order));
+    if (approved) return jsonOutput_({paid: true, transaction: Object.assign({}, approved, {id: approved.paymentTxId || approved.orderId, amount: money_(approved.amountRaw || approved.amount)}), source: "Order Database"});
+    const claimed = (id, key) => orders.some(order => String(order.orderId) !== orderId && isPaidOrder_(order) && ((id && order.paymentTxId === id) || (key && order.paymentKey === key)));
     const txSheet = ss.getSheetByName("GIAO_DICH");
     if (txSheet && txSheet.getLastRow() > 1) {
-      const rows = txSheet.getRange(2, 1, txSheet.getLastRow() - 1, 6).getValues();
+      const rows = txSheet.getRange(2, 1, txSheet.getLastRow() - 1, Math.min(8, txSheet.getMaxColumns())).getValues();
       for (const row of rows) {
+        if ((row[7] && String(row[7]) !== orderId) || claimed(String(row[0]), row[6])) continue;
         const content = String(row[2] || "").replace(/\s+/g, "").toUpperCase();
         const amount = Number(row[1]) || 0;
         const status = String(row[3] || "").toUpperCase();
         if (["PAID", "COMPLETED", "SUCCESS", "CREDIT"].indexOf(status) < 0) continue;
-        if (requestedAmount && amount && amount < requestedAmount) continue;
-        if ((memo && content.indexOf(memo) >= 0) || (phone && content.indexOf(phone) >= 0)) {
+        if (requestedAmount && amount < requestedAmount) continue;
+        if ((memo ? content.indexOf(memo) >= 0 : phone && content.indexOf(phone) >= 0)) {
           return jsonOutput_({ paid: true, message: "Payment verified via API Pay webhook", transaction: { id: row[0], amount: amount, description: row[2], status: row[3], time: row[4] }, source: "Google Apps Script webhook" });
         }
       }
@@ -69,12 +77,13 @@ function doGet(e) {
     const payload = JSON.parse(response.getContentText() || "{}");
     const rows = payload && payload.data && Array.isArray(payload.data.data) ? payload.data.data : [];
     for (const row of rows) {
+      if (claimed(String(row.transactionId || row.publicId || row.id || ""), paymentKey_(row, money_(row.amount), row.content || ""))) continue;
       const status = String(row.status || "").toUpperCase();
       if (!["PAID", "COMPLETED", "SUCCESS"].includes(status)) continue;
       const content = String(row.content || "").replace(/\s+/g, "").toUpperCase();
       const amount = Number(String(row.amount || "0").replace(/\D/g, "")) || 0;
-      if (requestedAmount && amount && amount < requestedAmount) continue;
-      if ((memo && content.indexOf(memo) >= 0) || (phone && content.indexOf(phone) >= 0)) {
+      if (requestedAmount && amount < requestedAmount) continue;
+      if ((memo ? content.indexOf(memo) >= 0 : phone && content.indexOf(phone) >= 0)) {
         return jsonOutput_({ paid: true, message: "Payment verified via API Pay", transaction: row, source: "Google Apps Script API Pay" });
       }
     }
@@ -116,15 +125,10 @@ function getSpreadsheet() {
 function getOrdersSheet(ss) {
   let sheet = ss.getSheetByName("DON_HANG");
   if (!sheet) {
-    const sheets = ss.getSheets();
-    if (sheets.length > 0) {
-      sheet = sheets[0]; // Lấy ngay sheet đầu tiên (gid=0)
-      if (sheet.getName() === "Sheet1" || sheet.getName() === "Trang tính1") {
-        try { sheet.setName("DON_HANG"); } catch(e) {}
-      }
-    } else {
-      sheet = ss.insertSheet("DON_HANG");
-    }
+    const first = ss.getSheets()[0];
+    if (first && !["GIAO_DICH", "TRUY_CAP", "KHO_TAI_NGUYEN"].includes(first.getName())) sheet = first;
+    else sheet = ss.insertSheet("DON_HANG");
+    if (sheet.getName() !== "DON_HANG") sheet.setName("DON_HANG");
   }
   return sheet;
 }
@@ -149,6 +153,7 @@ function initDatabaseSheets() {
   let sheetOrders = getOrdersSheet(ss);
   
   // Tự động kiểm tra: nếu dòng 1 đã có đơn hàng mà chưa có tiêu đề, chèn thêm 1 dòng trước dòng 1
+  ensureOrderHeaders_(sheetOrders);
   const firstVal = sheetOrders.getLastRow() > 0 ? sheetOrders.getRange(1, 1).getValue().toString().trim() : "";
   if (firstVal !== ORDER_COLUMNS[0]) {
     if (sheetOrders.getLastRow() > 0) {
@@ -216,189 +221,191 @@ function initDatabaseSheets() {
 }
 
 // ============================== 3. WEBHOOK NHẬN DỮ LIỆU TỪ WEBSITE (doPost) ==============================
+// All writes share one lock: retries and simultaneous callbacks update the same row.
 function doPost(e) {
+  const lock = LockService.getScriptLock();
   try {
+    lock.waitLock(25000);
     const data = JSON.parse(e.postData.contents);
     const ss = getSpreadsheet();
-
-    // KIỂU API PAY WEBHOOK: lưu giao dịch vào Google Sheet để website tĩnh tra cứu.
-    let incoming = [];
-    if (Array.isArray(data)) incoming = data;
-    else if (Array.isArray(data.transactions)) incoming = data.transactions;
-    else if (Array.isArray(data.records)) incoming = data.records;
-    else if (data.data && Array.isArray(data.data)) incoming = data.data;
-    else if (data.data && typeof data.data === "object") incoming = [data.data];
-    else if (data.amount || data.creditAmount || data.transferAmount || data.content || data.description) incoming = [data];
-    if (incoming.length) {
-      let txSheet = ss.getSheetByName("GIAO_DICH");
-      if (!txSheet) { txSheet = ss.insertSheet("GIAO_DICH"); txSheet.appendRow(["ID", "Số tiền", "Nội dung", "Trạng thái", "Thời gian", "Raw"]); }
-      for (const tx of incoming) {
-        const rawAmount = tx.amount || tx.creditAmount || tx.transferAmount || 0;
-        const amount = Number(String(rawAmount).replace(/\D/g, "")) || 0;
-        const content = tx.content || tx.description || tx.memo || tx.comment || "";
-        const status = String(tx.status || "COMPLETED").toUpperCase();
-        const txId = String(tx.id || tx.publicId || Utilities.getUuid());
-        if (amount > 0 || content) {
-          txSheet.appendRow([txId, amount, content, status, tx.time || tx.transactionDateTime || new Date(), JSON.stringify(tx)]);
-          // Báo Telegram ngay khi API Pay gửi giao dịch, không phụ thuộc website có mở hay không.
-          if (["PAID", "COMPLETED", "SUCCESS", "CREDIT"].indexOf(status) >= 0) {
-            const props = PropertiesService.getScriptProperties();
-            const sentKey = "TELEGRAM_TX_" + txId;
-            if (!props.getProperty(sentKey)) {
-              sendTelegramPayment_(txId, amount, content, tx);
-              props.setProperty(sentKey, "1");
-            }
-          }
+    const action = String(data.action || "");
+    // Website actions MUST be routed before bank payload detection (orders also contain amount).
+    if (["new_order", "payment_success", "pending_order", "sync_order"].includes(action)) {
+      return jsonOutput_(upsertOrder_(ss, data, action !== "sync_order" && action !== "pending_order"));
+    }
+    if (action === "sync_orders") {
+      const results = (data.orders || []).map(order => upsertOrder_(ss, order, false));
+      return jsonOutput_({status: "success", count: results.length, results: results});
+    }
+    if (action === "init_headers" || action === "create_headers") {
+      ensureOrderHeaders_(getOrdersSheet(ss));
+      return jsonOutput_({status: "success", columns: ORDER_COLUMNS.length});
+    }
+    if (action === "track_visit") {
+      const headers = ["Thời Gian", "IP Khách", "Vị trí (ước lượng)", "Thiết Bị", "Trình Duyệt", "Nguồn", "URL truy cập", "FB Click ID", "UTM Source", "UTM Campaign", "Tên Miền", "Referrer gốc", "UTM Medium", "UTM Content", "UTM Term", "Google Click ID", "TikTok Click ID", "Session ID"];
+      const sheet = ss.getSheetByName("TRUY_CAP") || ss.insertSheet("TRUY_CAP");
+      ensureColumns_(sheet, headers.length);
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      sheet.appendRow([nowVN_(), data.ip || "Không xác định", data.location || "Không xác định", data.device || "", data.browser || "", data.referrer || "", data.fullUrl || "", data.fbclid || "", data.utmSource || "", data.utmCampaign || "", data.domain || "", data.rawReferrer || "", data.utmMedium || "", data.utmContent || "", data.utmTerm || "", data.gclid || "", data.ttclid || "", data.sessionId || ""].map(sheetText_));
+      return jsonOutput_({status: "success"});
+    }
+    if (action) return jsonOutput_({status: "error", message: "Unknown action"});
+    const incoming = Array.isArray(data) ? data : Array.isArray(data.transactions) ? data.transactions : Array.isArray(data.records) ? data.records : data.data && Array.isArray(data.data.records) ? data.data.records : Array.isArray(data.data) ? data.data : data.data && typeof data.data === "object" ? [data.data] : [data];
+    let stored = 0;
+    for (const tx of incoming) {
+      const amount = money_(tx.amount || tx.creditAmount || tx.transferAmount);
+      const content = String(tx.content || tx.description || tx.memo || tx.comment || "").trim();
+      const status = String(tx.status || "COMPLETED").toUpperCase();
+      const direction = String(tx.transferType || tx.direction || "").toLowerCase();
+      if (amount <= 0 || !content || ["out", "debit"].includes(direction)) continue;
+      const key = paymentKey_(tx, amount, content);
+      const txId = String(tx.transactionId || tx.referenceCode || tx.reference || tx.id || tx.publicId || key);
+      const time = tx.paidAt || tx.completedAt || tx.transactionDateTime || tx.time || tx.updatedAt || tx.createdAt || nowVN_();
+      const sheet = ss.getSheetByName("GIAO_DICH") || ss.insertSheet("GIAO_DICH");
+      const headers = ["ID", "Số tiền", "Nội dung", "Trạng thái", "Thời gian", "Raw", "Khóa giao dịch", "Mã đơn"];
+      ensureColumns_(sheet, headers.length);
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+      const rows = sheet.getLastRow() > 1 ? sheet.getRange(2, 1, sheet.getLastRow() - 1, headers.length).getValues() : [];
+      const found = rows.findIndex(row => String(row[6]) === key || String(row[0]) === txId || paymentKey_({}, money_(row[1]), String(row[2])) === key);
+      const old = found >= 0 ? rows[found] : [];
+      const rowNumber = found >= 0 ? found + 2 : sheet.getLastRow() + 1;
+      const paid = paidStatus_(status);
+      // A late PENDING event must not downgrade a completed payment.
+      const nextStatus = paidStatus_(old[3]) ? old[3] : status;
+      let orderId = old[7] || "";
+      const orderSheet = getOrdersSheet(ss);
+      ensureOrderHeaders_(orderSheet);
+      const orders = orderSheet.getLastRow() > 1 ? orderSheet.getRange(2, 1, orderSheet.getLastRow() - 1, ORDER_COLUMNS.length).getValues().map(rowToOrder_) : [];
+      if (paid) {
+        const candidates = orders.filter(order => orderId ? order.orderId === orderId : !isPaidOrder_(order) && order.memo && normalizeMemo_(content).includes(normalizeMemo_(order.memo)) && amount >= money_(order.amountRaw || order.amount));
+        // Ambiguous legacy phone-only transfers need manual reconciliation.
+        if (candidates.length === 1) {
+          const order = candidates[0];
+          orderId = order.orderId;
+          order.paymentTxId = txId;
+          order.paymentKey = key;
+          order.paidAt = time;
+          order.paymentSource = "APIPay Webhook";
+          order.amountRaw = amount;
+          order.amount = amount;
+          order.status = order.licenseLink ? "Đã thanh toán (MBBank)" : "Đã thanh toán (Chờ cấp link)";
+          upsertOrder_(ss, order, true);
         }
       }
-      return jsonOutput_({ status: "success", message: "API Pay webhook stored", count: incoming.length });
+      sheet.getRange(rowNumber, 1, 1, headers.length).setValues([[txId, amount, content, nextStatus, time, JSON.stringify(tx), key, orderId].map(sheetText_)]);
+      stored++;
     }
-
-    // KIỂU 0: KHỞI TẠO TIÊU ĐỀ BẢNG (INIT HEADERS)
-    if (data.action === "init_headers" || data.action === "create_headers") {
-      initDatabaseSheets();
-      return ContentService.createTextOutput(JSON.stringify({
-        status: "success",
-        message: "Đã tạo tiêu đề 12 cột thành công vào Google Sheet!",
-        sheetUrl: BOT_CONFIG.SPREADSHEET_URL
-      })).setMimeType(ContentService.MimeType.JSON);
-    }
-
-    // KIỂU 1: GHI NHẬN LƯỢT TRUY CẬP (TRAFFIC ANALYTICS)
-    if (data.action === "track_visit") {
-      // Luôn ghi đúng sheet TRUY_CAP, không dùng sheet đang mở làm dự phòng.
-      let sheetTraffic = ss.getSheetByName("TRUY_CAP");
-      if (!sheetTraffic) sheetTraffic = ss.insertSheet("TRUY_CAP");
-      const trafficHeaders = ["Thời Gian", "IP Khách", "Tỉnh Thành", "Thiết Bị", "Trình Duyệt", "Nguồn Giới Thiệu", "Trang Truy Cập", "FB Click ID", "UTM Source", "UTM Campaign", "Tên Miền"];
-      if (sheetTraffic.getLastRow() === 0) {
-        sheetTraffic.appendRow(trafficHeaders);
-        sheetTraffic.getRange(1, 1, 1, 11).setBackground("#334155").setFontColor("#ffffff").setFontWeight("bold");
-        sheetTraffic.setFrozenRows(1);
-      } else if (sheetTraffic.getLastColumn() < trafficHeaders.length || String(sheetTraffic.getRange(1, 1).getValue()) !== trafficHeaders[0]) {
-        sheetTraffic.getRange(1, 1, 1, trafficHeaders.length).setValues([trafficHeaders]);
-        sheetTraffic.getRange(1, 1, 1, trafficHeaders.length).setBackground("#334155").setFontColor("#ffffff").setFontWeight("bold");
-      }
-      sheetTraffic.appendRow([
-        Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm:ss"), data.ip || "Không rõ",
-        data.location || "Việt Nam", data.device || "Không rõ", data.browser || "Không rõ",
-        data.referrer || "Truy cập trực tiếp", data.fullUrl || "", data.fbclid || "",
-        data.utmSource || "", data.utmCampaign || "", data.domain || ""
-      ]);
-      return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Traffic logged" }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-
-    // KIỂU 2: GIAO DỊCH ĐƠN HÀNG MỚI (NEW ORDER / SUCCESS PAYMENT)
-    if (data.action === "new_order" || data.action === "payment_success") {
-      const sheetOrders = getOrdersSheet(ss);
-
-      // Tự động kiểm tra và tạo dòng tiêu đề nếu dòng 1 chưa có tiêu đề "Ngày Giờ"
-      const firstVal = sheetOrders.getLastRow() > 0 ? sheetOrders.getRange(1, 1).getValue().toString().trim() : "";
-      if (firstVal !== ORDER_COLUMNS[0]) {
-        if (sheetOrders.getLastRow() > 0) {
-          sheetOrders.insertRowBefore(1);
-        }
-        sheetOrders.getRange(1, 1, 1, ORDER_COLUMNS.length).setValues([ORDER_COLUMNS]);
-        sheetOrders.getRange(1, 1, 1, ORDER_COLUMNS.length)
-          .setBackground("#0f172a")
-          .setFontColor("#ffffff")
-          .setFontWeight("bold")
-          .setFontSize(10)
-          .setHorizontalAlignment("center")
-          .setVerticalAlignment("middle");
-        sheetOrders.setRowHeight(1, 38);
-        sheetOrders.setFrozenRows(1);
-        const colWidths = [160, 110, 230, 110, 150, 130, 190, 150, 280, 120, 180, 150];
-        for (let c = 0; c < colWidths.length; c++) {
-          sheetOrders.setColumnWidth(c + 1, colWidths[c]);
-        }
-      }
-
-      const timeNow = data.time || Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm:ss");
-      const orderId = data.orderId || ("#GEM-" + Math.floor(1000 + Math.random() * 9000));
-      const product = data.product || data.package || "Google Gemini Pro 18 Tháng (5TB Cloud)";
-      const amount = data.amount || "90.000 VNĐ";
-      const name = data.name || "Khách hàng";
-      const rawPhone = data.phone ? data.phone.toString().replace(/^'/, '').trim() : "";
-      const sheetPhone = rawPhone ? ("'" + rawPhone) : "";
-      const email = data.email || "";
-      const memo = data.memo || `PRO18T ${rawPhone}`;
-      let rawAllocated = data.licenseLink || "";
-      if (!rawAllocated || rawAllocated.includes("GEMINI-VIP-DEMO") || rawAllocated.includes("geminiactivation.com")) {
-        rawAllocated = allocateLicenseFromInventory(name, email);
-      }
-      const hasRealLink = rawAllocated && rawAllocated.startsWith("http") && !rawAllocated.includes("ACT-GEMINI-VIP-BACKUP") && !rawAllocated.includes("geminiactivation.com");
-      const allocatedLink = hasRealLink ? rawAllocated : "";
-      const referrer = data.referrer || "Truy cập trực tiếp";
-      const ipLocation = data.ipLocation || `${data.ip || '127.0.0.1'} (${data.location || 'Việt Nam'})`;
-      const status = data.status || (hasRealLink ? "Đã thanh toán (MBBank)" : "Chờ cấp link (Hết kho)");
-
-      // Ghi 12 cột chuẩn xác
-      sheetOrders.appendRow([
-        timeNow,
-        orderId,
-        product,
-        amount,
-        name,
-        sheetPhone,
-        email,
-        memo,
-        allocatedLink,
-        referrer,
-        ipLocation,
-        status
-      ]);
-
-      // Định dạng dòng vừa thêm cho đẹp
-      const lastRow = sheetOrders.getLastRow();
-      sheetOrders.getRange(lastRow, 1, 1, ORDER_COLUMNS.length).setVerticalAlignment("middle");
-      sheetOrders.getRange(lastRow, 4).setHorizontalAlignment("right").setFontWeight("bold"); // Cột Giá
-      sheetOrders.getRange(lastRow, 6).setHorizontalAlignment("left"); // Cột SĐT giữ nguyên số 0 đầu
-      sheetOrders.getRange(lastRow, 12).setHorizontalAlignment("center"); // Cột Trạng Thái
-
-      // Gửi email hóa đơn tự động bằng Gmail CHỈ KHI CÓ LINK THỰC SỰ
-      // Trường hợp hết link kho: Không gửi email rác, Admin mua bot https://t.me/shopxoainon_bot rồi gửi sau
-      if (email && email.includes("@") && hasRealLink) {
-        try {
-          sendInvoiceEmail(name, email, rawPhone, orderId, allocatedLink);
-        } catch(err) {
-          Logger.log("Email send error: " + err.message);
-        }
-      }
-
-      // Bắn thông báo Telegram Bot siêu gọn (1 icon)
-      try {
-        sendTelegramAlert(orderId, name, rawPhone, email, amount, memo, allocatedLink, timeNow);
-      } catch(err) {
-        Logger.log("Telegram alert error: " + err.message);
-      }
-
-      return ContentService.createTextOutput(JSON.stringify({
-        status: "success",
-        orderId: orderId,
-        allocatedLink: allocatedLink,
-        sheetUrl: BOT_CONFIG.SPREADSHEET_URL,
-        message: "Order successfully synced to Google Sheet!"
-      })).setMimeType(ContentService.MimeType.JSON);
-    }
-
-    return ContentService.createTextOutput(JSON.stringify({ status: "ignored" })).setMimeType(ContentService.MimeType.JSON);
+    // Raw bank events stay in GIAO_DICH. Only a matched customer order sends an alert.
+    return jsonOutput_({status: "success", count: stored});
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({ status: "error", error: error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonOutput_({status: "error", message: String(error)});
+  } finally {
+    if (lock.hasLock()) { SpreadsheetApp.flush(); lock.releaseLock(); }
   }
 }
 
-function sendTelegramPayment_(txId, amount, content, tx) {
-  const text = "🟢 <b>GIAO DỊCH MỚI ĐÃ THANH TOÁN</b>\n" +
-    "💰 Số tiền: <b>" + Number(amount || 0).toLocaleString("vi-VN") + "đ</b>\n" +
-    "📝 Nội dung: <code>" + String(content || "").replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</code>\n" +
-    "🆔 Mã giao dịch: <code>" + String(txId) + "</code>";
-  UrlFetchApp.fetch("https://api.telegram.org/bot" + BOT_CONFIG.TELEGRAM_BOT_TOKEN + "/sendMessage", {
-    method: "post", muteHttpExceptions: true,
-    contentType: "application/json",
-    payload: JSON.stringify({ chat_id: BOT_CONFIG.TELEGRAM_CHAT_ID, text: text, parse_mode: "HTML" })
-  });
+const ORDER_EXTRA_FIELDS = ["domain", "createdAt", "paidAt", "ip", "location", "device", "browser", "fullUrl", "rawReferrer", "utmSource", "utmMedium", "utmCampaign", "utmContent", "utmTerm", "fbclid", "gclid", "ttclid", "paymentTxId", "paymentKey", "paymentSource", "couponCode", "discountAmount", "sessionId", "landingAt", "userAgent", "amountRaw", "telegramSent", "emailSent"];
+ORDER_COLUMNS.push("Tên miền", "Tạo đơn lúc", "Thanh toán lúc (GMT+7)", "IP", "Vị trí IP (ước lượng)", "Thiết bị", "Trình duyệt", "URL truy cập", "Referrer gốc", "UTM Source", "UTM Medium", "UTM Campaign", "UTM Content", "UTM Term", "FB Click ID", "Google Click ID", "TikTok Click ID", "Mã giao dịch", "Khóa giao dịch", "Cổng thanh toán", "Voucher", "Giảm giá", "Session ID", "Vào trang lúc", "User Agent", "Số tiền thực", "Telegram đã gửi", "Email đã gửi");
+function displayTime_(value) {
+  if (!value) return "";
+  const parsed = value instanceof Date ? value : /^\d{4}-\d{2}-\d{2}T/.test(String(value)) ? new Date(value) : null;
+  return parsed && !isNaN(parsed.getTime()) ? Utilities.formatDate(parsed, "GMT+7", "dd/MM/yyyy HH:mm:ss") : String(value);
+}
+function nowVN_() { return Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm:ss"); }
+function money_(value) {
+  if (typeof value === "number") return Math.trunc(value);
+  const text = String(value || "0").trim();
+  if (/^-?\d+[.,]\d{1,2}$/.test(text)) return Math.trunc(Number(text.replace(",", ".")));
+  return (text.startsWith("-") ? -1 : 1) * Number(text.replace(/[^0-9]/g, ""));
+}
+function normalizeMemo_(value) { return String(value || "").replace(/\s+/g, "").toUpperCase(); }
+function paidStatus_(status) { return ["PAID", "COMPLETED", "SUCCESS", "CREDIT"].includes(String(status || "").toUpperCase()); }
+function isPaidOrder_(order) { return /đã thanh toán|da thanh toan|thành công|thanh cong|^(paid|completed|success)$/i.test(order.status || ""); }
+function sheetText_(value) { return typeof value === "string" && /^[=+@-]/.test(value) ? "'" + value : value === undefined || value === null ? "" : value; }
+function html_(value) { return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function paymentKey_(tx, amount, content) {
+  // Provider delivery IDs can change on retry. Bank reference/content are stable.
+  const reference = tx.bankReference || tx.referenceCode || tx.transactionReference || "";
+  const seed = [reference, amount, normalizeMemo_(content)].join("|");
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, seed).map(b => ("0" + ((b + 256) % 256).toString(16)).slice(-2)).join("");
+}
+function ensureColumns_(sheet, count) { if (sheet.getMaxColumns() < count) sheet.insertColumnsAfter(sheet.getMaxColumns(), count - sheet.getMaxColumns()); }
+function ensureOrderHeaders_(sheet) {
+  ensureColumns_(sheet, ORDER_COLUMNS.length);
+  if (sheet.getLastRow() && String(sheet.getRange(1, 2).getValue()).startsWith("#")) sheet.insertRowBefore(1);
+  sheet.getRange(1, 1, 1, ORDER_COLUMNS.length).setValues([ORDER_COLUMNS]).setBackground("#0f172a").setFontColor("#ffffff").setFontWeight("bold");
+  sheet.setFrozenRows(1);
+}
+function rowToOrder_(row) {
+  const order = {time: row[0], orderId: row[1], product: row[2], amount: row[3], name: row[4], phone: String(row[5] || "").replace(/^'/, ""), email: row[6], memo: row[7], licenseLink: row[8], referrer: row[9], ipLocation: row[10], status: row[11]};
+  ORDER_EXTRA_FIELDS.forEach((key, i) => order[key] = row[12 + i] || "");
+  return order;
+}
+function upsertOrder_(ss, data, notify) {
+  if (!data.orderId) throw new Error("Missing orderId");
+  const sheet = getOrdersSheet(ss);
+  ensureOrderHeaders_(sheet);
+  const rows = sheet.getLastRow() > 1 ? sheet.getRange(2, 1, sheet.getLastRow() - 1, ORDER_COLUMNS.length).getValues() : [];
+  const index = rows.findIndex(row => String(row[1]) === String(data.orderId) || (data.paymentKey && String(row[30]) === String(data.paymentKey)) || (data.paymentTxId && String(row[29]) === String(data.paymentTxId)));
+  const previous = index >= 0 ? rowToOrder_(rows[index]) : {};
+  if (previous.orderId && String(previous.orderId) !== String(data.orderId)) return {status: "error", message: "Giao dịch đã thuộc đơn khác", orderId: previous.orderId};
+  const order = Object.assign({}, previous);
+  Object.keys(data).forEach(key => { if (data[key] !== "" && data[key] !== null && data[key] !== undefined) order[key] = data[key]; });
+  if (previous.orderId) order.orderId = previous.orderId;
+  if (isPaidOrder_(previous) && !isPaidOrder_(data)) order.status = previous.status;
+  order.telegramSent = previous.telegramSent || "";
+  order.emailSent = previous.emailSent || "";
+  order.time = order.time || nowVN_();
+  order.createdAt = previous.createdAt || data.createdAt || order.time;
+  if (isPaidOrder_(order)) order.paidAt = previous.paidAt || data.paidAt || nowVN_();
+  if (isPaidOrder_(order)) order.time = order.paidAt;
+  order.product = order.product || order.package || "Google Gemini Pro 18 Tháng";
+  order.fullUrl = order.fullUrl || order.adLink || "";
+  order.utmCampaign = order.utmCampaign || order.adCampaign || "";
+  const rowNumber = index >= 0 ? index + 2 : sheet.getLastRow() + 1;
+  const write = () => {
+    const values = [displayTime_(order.time), order.orderId, order.product, order.amount, order.name, String(order.phone || ""), order.email, order.memo, order.licenseLink, order.referrer || "Không xác định", order.ipLocation || [order.ip || "Không xác định", order.location || "Không xác định"].join(" - "), order.status].concat(ORDER_EXTRA_FIELDS.map(key => ["createdAt", "paidAt", "landingAt"].includes(key) ? displayTime_(order[key]) : order[key] || ""));
+    sheet.getRange(rowNumber, 1, 1, values.length).setValues([values.map(sheetText_)]);
+  };
+  write();
+  if (!isPaidOrder_(order) && data.action !== "sync_order" && order.memo) {
+    const txSheet = ss.getSheetByName("GIAO_DICH");
+    if (txSheet && txSheet.getLastRow() > 1) {
+      const transactions = txSheet.getRange(2, 1, txSheet.getLastRow() - 1, 8).getValues();
+      const matches = transactions.map((row, i) => ({row: row, number: i + 2})).filter(item => paidStatus_(item.row[3]) && (!item.row[7] || String(item.row[7]) === String(order.orderId)) && normalizeMemo_(item.row[2]).includes(normalizeMemo_(order.memo)) && money_(item.row[1]) >= money_(order.amountRaw || order.amount));
+      if (matches.length === 1) {
+        const tx = matches[0];
+        order.paymentTxId = tx.row[0]; order.paymentKey = tx.row[6]; order.paidAt = tx.row[4];
+        order.amountRaw = money_(tx.row[1]); order.amount = order.amountRaw;
+        order.paymentSource = "APIPay Webhook";
+        order.status = order.licenseLink ? "Đã thanh toán (MBBank)" : "Đã thanh toán (Chờ cấp link)";
+        txSheet.getRange(tx.number, 8).setValue(order.orderId);
+        return upsertOrder_(ss, order, true);
+      }
+    }
+  }
+  if (notify && isPaidOrder_(order)) {
+    const sent = order.telegramSent ? JSON.parse(order.telegramSent) : {};
+    for (const chatId of Array.from(new Set(BOT_CONFIG.TELEGRAM_CHAT_IDS || [BOT_CONFIG.TELEGRAM_CHAT_ID]))) {
+      if (sent[chatId]) continue;
+      const result = sendOrderTelegram_(order, chatId);
+      if (result.ok) { sent[chatId] = result.result.message_id; order.telegramSent = JSON.stringify(sent); write(); }
+    }
+    if (order.email && order.licenseLink && !order.emailSent && data.skipEmail !== true) {
+      try { sendInvoiceEmail(order.name, order.email, order.phone, order.orderId, order.licenseLink); order.emailSent = nowVN_(); write(); } catch (err) { Logger.log(String(err)); }
+    }
+  }
+  const sentChats = order.telegramSent ? JSON.parse(order.telegramSent) : {};
+  const notificationsComplete = !notify || !isPaidOrder_(order) || (BOT_CONFIG.TELEGRAM_CHAT_IDS || [BOT_CONFIG.TELEGRAM_CHAT_ID]).every(cid => Boolean(sentChats[cid]));
+  return {status: "success", notificationsComplete: notificationsComplete, orderId: order.orderId, duplicate: index >= 0, allocatedLink: order.licenseLink || "", columns: ORDER_COLUMNS.length};
+}
+function sendOrderTelegram_(order, chatId) {
+  const fields = [["Mã đơn", order.orderId], ["Khách", order.name], ["SĐT", order.phone], ["Email", order.email], ["Thanh toán lúc (GMT+7)", order.paidAt], ["Tạo đơn lúc", order.createdAt], ["Vào trang lúc", order.landingAt], ["IP", order.ip || "Không xác định"], ["Vị trí IP (ước lượng)", order.location || "Không xác định"], ["Thiết bị / Trình duyệt", [order.device, order.browser].filter(Boolean).join(" / ")], ["Nguồn khách", order.referrer || "Không xác định"], ["Tên miền", order.domain], ["URL vào trang", order.fullUrl], ["Referrer gốc", order.rawReferrer], ["UTM Source / Medium", [order.utmSource, order.utmMedium].filter(Boolean).join(" / ")], ["Chiến dịch", order.utmCampaign], ["UTM Content / Term", [order.utmContent, order.utmTerm].filter(Boolean).join(" / ")], ["FB / Google / TikTok Click ID", [order.fbclid, order.gclid, order.ttclid].filter(Boolean).join(" / ")], ["Nội dung CK", order.memo], ["Mã giao dịch", order.paymentTxId], ["Cổng thanh toán", order.paymentSource], ["Voucher", order.couponCode], ["Link cấp", order.licenseLink || "Chờ cấp link"], ["Trạng thái", order.status]];
+  const text = "🟢 <b>ĐƠN HÀNG ĐÃ THANH TOÁN (" + html_(money_(order.amountRaw || order.amount).toLocaleString("vi-VN")) + "đ)</b>\n" + fields.filter(pair => pair[1]).map(pair => "<b>" + pair[0] + ":</b> <code>" + html_(String(pair[0].includes("lúc") ? displayTime_(pair[1]) : pair[1]).slice(0, 90)) + "</code>").join("\n");
+  const response = UrlFetchApp.fetch("https://api.telegram.org/bot" + BOT_CONFIG.TELEGRAM_BOT_TOKEN + "/sendMessage", {method: "post", contentType: "application/json", muteHttpExceptions: true, payload: JSON.stringify({chat_id: chatId, text: text, parse_mode: "HTML", disable_web_page_preview: true})});
+  const result = JSON.parse(response.getContentText() || "{}");
+  if (!result.ok) Logger.log("Telegram " + chatId + ": " + String(result.description));
+  return result;
 }
 
 // ============================== 4. HÀM TỰ ĐỘNG BỐC LINK TỪ KHO ==============================

@@ -1808,7 +1808,7 @@
       // 1. TỪ FACEBOOK ADS / META ADS (fbclid, utm_source=fb/facebook)
       if (fbclid || utm.includes('facebook') || utm.includes('fb') || ref.includes('facebook') || ref.includes('fb') ||
           docRef.includes('facebook.com') || docRef.includes('fb.com')) {
-        return fbclid ? 'Quảng cáo Facebook (Meta Ads)' : 'Facebook';
+        return /^(cpc|ppc|paid|paid_social)$/i.test(urlParams.get('utm_medium') || '') ? 'Quảng cáo Facebook (Meta Ads)' : 'Facebook';
       }
 
       // 2. TỪ TIKTOK ADS (ttclid, tiktok)
@@ -1842,7 +1842,9 @@
         return 'Tìm kiếm & AI Research';
       }
 
-      // 8. TRUY CẬP TRỰC TIẾP (DIRECT URL / BOOKMARK)
+      if (utm) return 'UTM: ' + utm;
+      if (ref) return 'Nguồn: ' + ref;
+      try { if (docRef && new URL(docRef).origin !== window.location.origin) return 'Giới thiệu: ' + new URL(docRef).hostname; } catch(e) {}
       return 'Truy cập trực tiếp';
     }
 
@@ -1853,19 +1855,51 @@
 
     // Dữ liệu khách truy cập (Chạy ngầm, không hiện ra ngoài cho khách)
     let visitorData = {
-      ip: '127.0.0.1',
-      location: 'Việt Nam',
+      ip: '',
+      location: '',
       device: navigator.userAgent.includes('Mobile') ? 'Điện thoại' : 'Máy tính',
-      browser: navigator.userAgent.includes('Chrome') ? 'Google Chrome' : (navigator.userAgent.includes('Safari') ? 'Safari' : 'Trình duyệt khác'),
+      browser: /Edg\//.test(navigator.userAgent) ? 'Microsoft Edge' : /Firefox\//.test(navigator.userAgent) ? 'Firefox' : /Chrome\//.test(navigator.userAgent) ? 'Google Chrome' : /Safari\//.test(navigator.userAgent) ? 'Safari' : 'Trình duyệt khác',
       referrer: getTrafficSource(),
       fullUrl: window.location.href,
       rawReferrer: document.referrer || '',
       fbclid: _fbclid,
       utmSource: _utmSource,
       utmCampaign: _utmCampaign,
+      utmMedium: _urlParams.get('utm_medium') || '',
+      utmContent: _urlParams.get('utm_content') || '',
+      utmTerm: _urlParams.get('utm_term') || '',
+      gclid: _urlParams.get('gclid') || '',
+      ttclid: _urlParams.get('ttclid') || '',
+      userAgent: navigator.userAgent,
+      landingAt: new Date().toISOString(),
       isFromAd: Boolean(_fbclid || _utmSource || _utmCampaign)
     };
 
+    // Keep attribution across refreshes and the customer's return from their banking app.
+    try {
+      const cached = JSON.parse(sessionStorage.getItem('crm_attribution') || 'null');
+      const externalRef = document.referrer && new URL(document.referrer).origin !== window.location.origin;
+      const tagged = _urlParams.has('utm_source') || _urlParams.has('fbclid') || _urlParams.has('gclid') || _urlParams.has('ttclid');
+      if (cached && !externalRef && !tagged) visitorData = Object.assign(visitorData, cached);
+      visitorData.sessionId = visitorData.sessionId || crypto.randomUUID();
+      sessionStorage.setItem('crm_attribution', JSON.stringify(visitorData));
+    } catch(e) {}
+    function orderTracking() { return Object.assign({}, visitorData, {domain: window.location.hostname.toLowerCase()}); }
+    const completingOrders = new Set();
+    let firstPollTimeout = null;
+    async function syncCustomerOrder(order) {
+      try {
+        const res = await smartApiFetch('/api/orders', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(order)});
+        if (res && res.ok) {
+          const result = await res.json();
+          if (result.status === 'success' && result.sheetSync !== 'error') return result;
+          if (result.status === 'success') return Object.assign(result, {status: 'queued'});
+        }
+      } catch(e) { console.warn('Order backend unavailable:', e); }
+      // The same idempotent Apps Script endpoint handles static hosting and retry delivery.
+      try { return await postOrderToWebhook(order); }
+      catch(e) { return {status: 'queued'}; }
+    }
     let currentOrder = { name: '', phone: '', email: '', memo: '', orderId: '' };
     let pollInterval = null;
 
@@ -1873,7 +1907,7 @@
     async function captureVisitorIpSilently() {
       // 1. Thử qua ipwho.is trước (nhanh, miễn phí, trả về cả IP và Thành phố/Quốc gia trong 1 request)
       try {
-        const res = await fetch('https://ipwho.is/');
+        const res = await fetch('https://ipwho.is/', {signal: AbortSignal.timeout(4000)});
         if (res.ok) {
           const data = await res.json();
           if (data && data.success !== false && data.ip) {
@@ -1888,13 +1922,13 @@
       // 2. Fallback nếu chưa lấy được IP
       if (!visitorData.ip || visitorData.ip === '127.0.0.1') {
         try {
-          const res = await fetch('https://api.ipify.org?format=json');
+          const res = await fetch('https://api.ipify.org?format=json', {signal: AbortSignal.timeout(4000)});
           if (res.ok) {
             const ipJson = await res.json();
             visitorData.ip = ipJson.ip;
 
             try {
-              const locRes = await fetch(`https://ipapi.co/${ipJson.ip}/json/`);
+              const locRes = await fetch(`https://ipapi.co/${ipJson.ip}/json/`, {signal: AbortSignal.timeout(4000)});
               if (locRes.ok) {
                 const locJson = await locRes.json();
                 visitorData.location = `${locJson.city || ''}, ${locJson.country_name || 'VN'}`;
@@ -1908,8 +1942,8 @@
       try {
         const visitPayload = {
           time: new Date().toLocaleString('vi-VN'),
-          ip: visitorData.ip || '127.0.0.1',
-          location: visitorData.location || 'Việt Nam',
+          ip: visitorData.ip || '',
+          location: visitorData.location || '',
           device: visitorData.device || 'Thiết bị di động/PC',
           browser: visitorData.browser || 'Trình duyệt Web',
           domain: (window.location.hostname || window.location.host || '').toLowerCase(),
@@ -1936,9 +1970,10 @@
       } catch(e) {}
 
       // Đồng bộ về webhook nếu có cấu hình
+      try { sessionStorage.setItem('crm_attribution', JSON.stringify(visitorData)); } catch(e) {}
       logTrafficToWebhook();
     }
-    captureVisitorIpSilently();
+    const visitorReady = captureVisitorIpSilently();
 
     function logTrafficToWebhook() {
       if (!CONFIG.googleAppsScriptUrl || CONFIG.googleAppsScriptUrl.includes("SAMPLE")) return;
@@ -1946,8 +1981,9 @@
         fetch(CONFIG.googleAppsScriptUrl, {
           method: 'POST',
           mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
+            ...orderTracking(),
             action: 'track_visit',
             ip: visitorData.ip,
             location: visitorData.location,
@@ -2029,32 +2065,23 @@
 
     function handleQrError(img) {
       if (!img) return;
-      const memo = (currentOrder && currentOrder.memo) ? currentOrder.memo : 'PRO18T';
-      const step = parseInt(img.dataset.qrStep || '1', 10);
-      
-      // Ẩn spinner ngay khi gặp lỗi để chuyển ảnh tức thì
+      const memo = currentOrder.memo || '';
+      const amount = currentOrder.amountRaw || CONFIG.amount;
       const spinner = document.getElementById('qrLoadingSpinner');
       if (spinner) spinner.classList.add('hidden');
-
-      if (step === 1) {
-        // Dự phòng 1: Dùng server CDN api.vietqr.io
+      if ((img.dataset.qrStep || '1') === '1') {
         img.dataset.qrStep = '2';
-        img.src = `https://api.vietqr.io/image/${CONFIG.bankBin}-${CONFIG.accountNo}-compact2.jpg?amount=${CONFIG.amount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(CONFIG.accountName)}`;
-      } else if (step === 2) {
-        // Dự phòng 2: Thử proxy backend nếu đang chạy localhost
-        img.dataset.qrStep = '3';
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-          img.src = `/api/qr-image?memo=${encodeURIComponent(memo)}&amount=${CONFIG.amount}&t=${Date.now()}`;
-        } else {
-          // Nếu trên hosting công khai (Mắt Bão) thì dùng ngay mã QR Base64 chuẩn
-          if (defaultQrDataUri) img.src = defaultQrDataUri;
-        }
-      } else {
-        // Dự phòng 3: Nạp mã QR Base64 tích hợp sẵn trong mã nguồn (100% thành công không cần mạng)
-        if (defaultQrDataUri) {
-          img.src = defaultQrDataUri;
-        }
+        img.src = `https://api.vietqr.io/image/${CONFIG.bankBin}-${CONFIG.accountNo}-compact2.jpg?amount=${amount}&addInfo=${encodeURIComponent(memo)}&accountName=${encodeURIComponent(CONFIG.accountName)}`;
+        return;
       }
+      // A cached QR from another checkout cannot carry this order's unique payment memo.
+      img.style.display = 'none';
+      let error = document.getElementById('qrImageError');
+      if (!error) {
+        error = document.createElement('p'); error.id = 'qrImageError';
+        error.className = 'text-sm text-red-700 p-4'; img.insertAdjacentElement('afterend', error);
+      }
+      error.textContent = 'Không tải được mã QR. Vui lòng chuyển khoản thủ công theo số tài khoản, số tiền và nội dung của đơn đang hiển thị.';
     }
 
     // Xử lý khi khách bấm MỞ MÃ QR
@@ -2095,9 +2122,13 @@
       const couponCode = appliedCoupon ? appliedCoupon.code : '';
       const discountAmount = appliedCoupon ? appliedCoupon.discountAmount : 0;
 
-      const memo = `PRO18T ${phone}`;
-      const orderId = '#' + Math.floor(1000 + Math.random() * 9000);
+      const orderId = '#GEM-' + crypto.randomUUID().replace(/-/g, '').toUpperCase();
+      const memo = `PRO18T ${phone} ${orderId.slice(-8)}`;
       currentOrder = {
+        ...orderTracking(),
+        createdAt: new Date().toISOString(),
+        time: new Date().toLocaleString('vi-VN', {timeZone: 'Asia/Ho_Chi_Minh'}),
+        status: 'Chờ thanh toán (Đang mở QR)',
         name,
         phone,
         email,
@@ -2160,6 +2191,9 @@
         if (!defaultQrDataUri && qrImg.src && qrImg.src.startsWith('data:image')) {
           defaultQrDataUri = qrImg.src;
         }
+        qrImg.style.display = '';
+        const oldQrError = document.getElementById('qrImageError');
+        if (oldQrError) oldQrError.remove();
         qrImg.dataset.qrStep = '1';
         qrImg.onload = function() {
           const sp = document.getElementById('qrLoadingSpinner');
@@ -2180,7 +2214,10 @@
         .then(r => r.json())
         .then(data => {
           if (data && data.status === 'success' && data.publicId) {
+            if (!currentOrder || currentOrder.orderId !== orderId || currentOrder.paymentComplete) return;
             currentOrder.apipayPublicId = data.publicId;
+            localStorage.setItem('crm_pending_order', JSON.stringify(currentOrder));
+            syncCustomerOrder(Object.assign({}, currentOrder));
             if (data.accountNumber) {
               const stkDisp = document.getElementById('modalStkDisplay');
               if (stkDisp) stkDisp.innerText = data.accountNumber;
@@ -2196,37 +2233,16 @@
       trackPixelEvent('Lead', { content_name: 'Đăng Ký Gemini Pro 18T', value: orderAmount, currency: 'VND' });
       trackPixelEvent('InitiateCheckout', { content_name: 'Google Gemini Pro 18 Tháng', value: orderAmount, currency: 'VND', num_items: 1 });
 
-      // Lưu đơn tạm thời lên Server (orders.json) và thông báo Telegram có khách đang mở QR
-      try {
-        smartApiFetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orderId: orderId,
-            name: name,
-            phone: phone,
-            email: email,
-            package: 'Gemini Pro 18 Tháng',
-            amount: orderAmountStr,
-            amountRaw: orderAmount,
-            couponCode: couponCode,
-            discountAmount: discountAmount,
-            memo: memo,
-            domain: (window.location.hostname || window.location.host || '').toLowerCase(),
-            time: new Date().toLocaleString('vi-VN'),
-            ip: (visitorData && visitorData.ip) ? visitorData.ip : '127.0.0.1',
-            location: (visitorData && visitorData.location) ? visitorData.location : 'Việt Nam',
-            device: (visitorData && visitorData.device) ? visitorData.device : 'Thiết bị di động/PC',
-            referrer: (visitorData && visitorData.referrer) ? visitorData.referrer : 'Trực tiếp',
-            fullUrl: (visitorData && visitorData.fullUrl) ? visitorData.fullUrl : window.location.href,
-            rawReferrer: (visitorData && visitorData.rawReferrer) ? visitorData.rawReferrer : (document.referrer || ''),
-            fbclid: (visitorData && visitorData.fbclid) ? visitorData.fbclid : '',
-            utmSource: (visitorData && visitorData.utmSource) ? visitorData.utmSource : '',
-            utmCampaign: (visitorData && visitorData.utmCampaign) ? visitorData.utmCampaign : '',
-            status: 'Chờ thanh toán (Đang mở QR)'
-          })
-        }).catch(() => {});
-      } catch(e) {}
+      const pendingSnapshot = currentOrder;
+      syncCustomerOrder(Object.assign({}, pendingSnapshot)).then(result => {
+        if (!pendingSnapshot.paymentComplete && (!result || result.status !== 'success')) localStorage.setItem('crm_order_retry_' + orderId, JSON.stringify(pendingSnapshot));
+      });
+      visitorReady.then(() => {
+        if (!pendingSnapshot.paymentComplete) {
+          Object.assign(pendingSnapshot, orderTracking());
+          syncCustomerOrder(Object.assign({}, pendingSnapshot));
+        }
+      }).catch(() => {});
 
       // BẮT ĐẦU QUÉT KIỂM TRA BIẾN ĐỘNG SỐ DƯ THỰC TẾ QUA API PAY (KHÔNG TỰ XÁC NHẬN GIẢ LẬP)
       startPaymentPolling();
@@ -2326,7 +2342,7 @@
       }
 
       // Quét ngay lần đầu sau 1.5s
-      setTimeout(() => checkPaymentRealStatus(), 1500);
+      firstPollTimeout = setTimeout(() => checkPaymentRealStatus(), 1500);
 
       // Quét tự động mỗi 3 giây
       pollInterval = setInterval(() => {
@@ -2335,12 +2351,12 @@
     }
 
     function stopPaymentPolling() {
+      if (firstPollTimeout) { clearTimeout(firstPollTimeout); firstPollTimeout = null; }
       if (pollInterval) {
         clearInterval(pollInterval);
         pollInterval = null;
       }
       stopQrCountdown();
-      isPollingCheck = false;
     }
 
     async function queryPaymentApi(memo, phone, amount) {
@@ -2385,7 +2401,7 @@
         if (res && res.ok) {
           const data = await res.json();
           if (data && data.paid) {
-            return { paid: true, transaction: data.transaction, source: data.source || 'APIPay Live Cloud' };
+            return { paid: true, transaction: Object.assign({}, data.transaction, {licenseLink: data.order && data.order.licenseLink, paymentTxId: data.order && data.order.paymentTxId}), source: data.source || 'APIPay Live Cloud' };
           }
         }
       } catch (err) {
@@ -2395,7 +2411,9 @@
       // 3. Kiểm tra Google Apps Script nếu có
       if (CONFIG.googleAppsScriptUrl && !CONFIG.googleAppsScriptUrl.includes('SAMPLE')) {
         try {
-          const gasRes = await window.fetch(`${CONFIG.googleAppsScriptUrl}?action=check_payment&memo=${encodeURIComponent(memo)}&phone=${encodeURIComponent(phone)}&amount=${encodeURIComponent(amount || 0)}`);
+          const health = await (await window.fetch(CONFIG.googleAppsScriptUrl + '?action=health')).json();
+          if (health.protocolVersion !== 2) return {paid: false};
+          const gasRes = await window.fetch(`${CONFIG.googleAppsScriptUrl}?action=check_payment&memo=${encodeURIComponent(memo)}&phone=${encodeURIComponent(phone)}&amount=${encodeURIComponent(amount || 0)}&orderId=${encodeURIComponent(currentOrder.orderId || '')}`);
           if (gasRes.ok) {
             const gasData = await gasRes.json();
             if (gasData && gasData.paid) {
@@ -2409,9 +2427,10 @@
     }
 
     async function checkPaymentRealStatus() {
-      if (isPollingCheck) return false;
+      if (!currentOrder || isPollingCheck || currentOrder.paymentComplete || completingOrders.has(currentOrder.orderId)) return false;
       if (!currentOrder || !currentOrder.phone) return false;
 
+      const checkingOrderId = currentOrder.orderId;
       isPollingCheck = true;
       pollScanCount++;
 
@@ -2425,14 +2444,12 @@
 
       try {
         const result = await queryPaymentApi(currentOrder.memo, currentOrder.phone, orderAmt);
-        if (result && result.paid) {
+        if (result && result.paid && currentOrder.orderId === checkingOrderId) {
           stopPaymentPolling();
           if (listeningEl) {
             listeningEl.innerHTML = `✅ <b>Đã nhận được ${orderAmtStr} từ MBBank!</b> Đang mở link kích hoạt...`;
           }
-          setTimeout(() => {
-            triggerPaymentSuccess(result.transaction);
-          }, 600);
+          await triggerPaymentSuccess(result.transaction);
           return true;
         }
       } catch(e) {
@@ -2444,7 +2461,8 @@
     }
 
     async function manualVerifyPaymentClick() {
-      if (!currentOrder || !currentOrder.phone) return;
+      if (!currentOrder || !currentOrder.phone || currentOrder.paymentComplete || completingOrders.has(currentOrder.orderId)) return;
+      const verifyingOrderId = currentOrder.orderId;
       const btn = document.getElementById('btnVerifyPayment');
       const btnText = document.getElementById('btnVerifyText');
       const originalText = btnText ? btnText.innerText : 'Tôi đã chuyển tiền rồi';
@@ -2457,9 +2475,9 @@
 
       try {
         const result = await queryPaymentApi(currentOrder.memo, currentOrder.phone, orderAmt);
-        if (result && result.paid) {
+        if (result && result.paid && currentOrder.orderId === verifyingOrderId) {
           stopPaymentPolling();
-          triggerPaymentSuccess(result.transaction);
+          await triggerPaymentSuccess(result.transaction);
           return;
         } else {
           const listeningEl = document.getElementById('listeningText');
@@ -2643,250 +2661,240 @@
 
     // Khi thanh toán hoàn tất qua API Pay
     async function triggerPaymentSuccess(txData) {
-      stopPaymentPolling();
+      if (!currentOrder || !currentOrder.orderId || currentOrder.paymentComplete || completingOrders.has(currentOrder.orderId)) return;
+      const completingOrder = Object.assign({}, currentOrder);
+      completingOrders.add(completingOrder.orderId);
+      try {
+        stopPaymentPolling();
 
-      // 0. Đảm bảo modal chính hiển thị
-      const modal = document.getElementById('paymentModal');
-      if (modal) {
-        modal.classList.remove('hidden');
-        modal.style.setProperty('display', 'flex', 'important');
-      }
+        // 0. Đảm bảo modal chính hiển thị
+        const modal = document.getElementById('paymentModal');
+        if (modal) {
+          modal.classList.remove('hidden');
+          modal.style.setProperty('display', 'flex', 'important');
+        }
 
-      // 1. CHUYỂN NGAY SANG BƯỚC THÀNH CÔNG VÀ HIỆN LINK KÍCH HOẠT TỨC THÌ (0.0 GIÂY)
-      const stepQR = document.getElementById('modalStepQR');
-      const stepSuccess = document.getElementById('modalStepSuccess');
-      if (stepQR) {
-        stepQR.classList.add('hidden');
-        stepQR.style.setProperty('display', 'none', 'important');
-      }
-      if (stepSuccess) {
-        stepSuccess.classList.remove('hidden');
-        stepSuccess.style.setProperty('display', 'block', 'important');
-      }
+        // 1. CHUYỂN NGAY SANG BƯỚC THÀNH CÔNG VÀ HIỆN LINK KÍCH HOẠT TỨC THÌ (0.0 GIÂY)
+        const stepQR = document.getElementById('modalStepQR');
+        const stepSuccess = document.getElementById('modalStepSuccess');
+        if (stepQR) {
+          stepQR.classList.add('hidden');
+          stepQR.style.setProperty('display', 'none', 'important');
+        }
+        if (stepSuccess) {
+          stepSuccess.classList.remove('hidden');
+          stepSuccess.style.setProperty('display', 'block', 'important');
+        }
 
-      // 2. Điền thông tin an toàn (tránh lỗi null)
-      if ((!currentOrder || !currentOrder.amount || !currentOrder.orderId) && localStorage.getItem('crm_pending_order')) {
-        try {
-          const pending = JSON.parse(localStorage.getItem('crm_pending_order'));
-          if (pending && typeof pending === 'object') {
-            currentOrder = Object.assign({}, pending, currentOrder || {});
-          }
-        } catch(e) {}
-      }
-      const custEmail = (currentOrder && currentOrder.email) ? currentOrder.email : '';
-      const custPhone = (currentOrder && currentOrder.phone) ? currentOrder.phone : '';
-      const custName = (currentOrder && currentOrder.name) ? currentOrder.name : 'Quý khách';
-      const custOrderId = (currentOrder && currentOrder.orderId) ? currentOrder.orderId : ('#' + Math.floor(1000 + Math.random() * 9000));
-      const custMemo = (currentOrder && currentOrder.memo) ? currentOrder.memo : `PRO18T ${custPhone}`;
+        const custEmail = (completingOrder && completingOrder.email) ? completingOrder.email : '';
+        const custPhone = (completingOrder && completingOrder.phone) ? completingOrder.phone : '';
+        const custName = (completingOrder && completingOrder.name) ? completingOrder.name : 'Quý khách';
+        const custOrderId = (completingOrder && completingOrder.orderId) ? completingOrder.orderId : ('#' + Math.floor(1000 + Math.random() * 9000));
+        const custMemo = (completingOrder && completingOrder.memo) ? completingOrder.memo : `PRO18T ${custPhone}`;
 
-      // Xác định số tiền thực tế khách thanh toán (hỗ trợ mã giảm giá 69k hoặc các mức khác)
-      let finalAmtStr = (typeof CONFIG !== 'undefined' && CONFIG.amount) ? formatVnd(CONFIG.amount) : '90.000đ';
-      let finalAmtRaw = (typeof CONFIG !== 'undefined' && CONFIG.amount) ? CONFIG.amount : 90000;
+        // Xác định số tiền thực tế khách thanh toán (hỗ trợ mã giảm giá 69k hoặc các mức khác)
+        let finalAmtStr = (typeof CONFIG !== 'undefined' && CONFIG.amount) ? formatVnd(CONFIG.amount) : '90.000đ';
+        let finalAmtRaw = (typeof CONFIG !== 'undefined' && CONFIG.amount) ? CONFIG.amount : 90000;
 
-      if (currentOrder && currentOrder.amount) {
-        finalAmtStr = currentOrder.amount;
-        finalAmtRaw = currentOrder.amountRaw || 90000;
-      } else if (typeof currentOrderAmount !== 'undefined' && currentOrderAmount) {
-        finalAmtRaw = currentOrderAmount;
-        finalAmtStr = `${finalAmtRaw.toLocaleString('vi-VN')}đ`;
-      }
-
-      // Nếu có txData từ ngân hàng MBBank/APIPay
-      if (txData && txData.amount) {
-        const txAmt = Number(txData.amount);
-        if (txAmt > 0) {
-          finalAmtRaw = txAmt;
+        if (completingOrder && completingOrder.amount) {
+          finalAmtStr = completingOrder.amount;
+          finalAmtRaw = completingOrder.amountRaw || 90000;
+        } else if (typeof currentOrderAmount !== 'undefined' && currentOrderAmount) {
+          finalAmtRaw = currentOrderAmount;
           finalAmtStr = `${finalAmtRaw.toLocaleString('vi-VN')}đ`;
-          if (currentOrder) {
-            currentOrder.amount = finalAmtStr;
-            currentOrder.amountRaw = finalAmtRaw;
+        }
+
+        // Nếu có txData từ ngân hàng MBBank/APIPay
+        if (txData && txData.amount) {
+          const txAmt = Number(txData.amount);
+          if (txAmt > 0) {
+            finalAmtRaw = txAmt;
+            finalAmtStr = `${finalAmtRaw.toLocaleString('vi-VN')}đ`;
+            if (completingOrder) {
+              completingOrder.amount = finalAmtStr;
+              completingOrder.amountRaw = finalAmtRaw;
+            }
           }
         }
-      }
 
-      const couponCode = (currentOrder && currentOrder.couponCode) ? currentOrder.couponCode : (typeof appliedCoupon !== 'undefined' && appliedCoupon ? appliedCoupon.code : '');
-      const discountAmt = (currentOrder && currentOrder.discountAmount) ? currentOrder.discountAmount : (typeof appliedCoupon !== 'undefined' && appliedCoupon ? appliedCoupon.discountAmount : 0);
+        const couponCode = (completingOrder && completingOrder.couponCode) ? completingOrder.couponCode : (typeof appliedCoupon !== 'undefined' && appliedCoupon ? appliedCoupon.code : '');
+        const discountAmt = (completingOrder && completingOrder.discountAmount) ? completingOrder.discountAmount : (typeof appliedCoupon !== 'undefined' && appliedCoupon ? appliedCoupon.discountAmount : 0);
 
-      const finalEmailEl = document.getElementById('finalEmail');
-      if (finalEmailEl) finalEmailEl.innerText = custEmail;
+        const finalEmailEl = document.getElementById('finalEmail');
+        if (finalEmailEl) finalEmailEl.innerText = custEmail;
 
-      const finalPhoneEl = document.getElementById('finalPhone');
-      if (finalPhoneEl) finalPhoneEl.innerText = custPhone;
+        const finalPhoneEl = document.getElementById('finalPhone');
+        if (finalPhoneEl) finalPhoneEl.innerText = custPhone;
 
-      const finalOrderIdEl = document.getElementById('finalOrderId');
-      if (finalOrderIdEl) finalOrderIdEl.innerText = custOrderId;
+        const finalOrderIdEl = document.getElementById('finalOrderId');
+        if (finalOrderIdEl) finalOrderIdEl.innerText = custOrderId;
 
-      // Cập nhật tiêu đề xác nhận đúng số tiền khách thanh toán
-      const successTitleText = document.getElementById('successTitleText');
-      if (successTitleText) {
-        successTitleText.innerText = `Xác Nhận Thanh Toán ${finalAmtStr} Thành Công!`;
-      }
-      const successPaymentAmountText = document.getElementById('successPaymentAmountText');
-      if (successPaymentAmountText) {
-        successPaymentAmountText.innerText = finalAmtStr;
-      }
-      const pendingSuccessAmt = document.getElementById('pendingSuccessAmt');
-      if (pendingSuccessAmt) {
-        pendingSuccessAmt.innerText = finalAmtStr;
-      }
-      const pendingOrderAmtNotice = document.getElementById('pendingOrderAmtNotice');
-      if (pendingOrderAmtNotice) {
-        pendingOrderAmtNotice.innerHTML = `Đơn hàng <strong class="text-slate-900 font-extrabold">${finalAmtStr}</strong> của bạn đã được hệ thống ghi nhận thành công 100%`;
-      }
-      const successCouponNotice = document.getElementById('successCouponNotice');
-      if (successCouponNotice) {
-        if (couponCode) {
-          successCouponNotice.innerText = `🏷️ Đã áp mã voucher: ${couponCode} (-${Number(discountAmt).toLocaleString('vi-VN')}đ)`;
-          successCouponNotice.classList.remove('hidden');
-        } else {
-          successCouponNotice.classList.add('hidden');
+        // Cập nhật tiêu đề xác nhận đúng số tiền khách thanh toán
+        const successTitleText = document.getElementById('successTitleText');
+        if (successTitleText) {
+          successTitleText.innerText = `Xác Nhận Thanh Toán ${finalAmtStr} Thành Công!`;
         }
-      }
-
-      // 3. Nhận license từ kho server tập trung (FIFO + TỰ MUA từ bot nếu hết kho)
-      let claimResult = null;
-      try {
-        const claimResponse = await smartApiFetch('/api/licenses/auto-claim', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: custName,
-            orderId: custOrderId,
-            phone: custPhone,
-            email: custEmail
-          })
-        });
-        if (claimResponse && claimResponse.ok) {
-          claimResult = await claimResponse.json();
+        const successPaymentAmountText = document.getElementById('successPaymentAmountText');
+        if (successPaymentAmountText) {
+          successPaymentAmountText.innerText = finalAmtStr;
         }
-      } catch (e) {
-        console.warn('License auto-claim warning:', e);
-      }
+        const pendingSuccessAmt = document.getElementById('pendingSuccessAmt');
+        if (pendingSuccessAmt) {
+          pendingSuccessAmt.innerText = finalAmtStr;
+        }
+        const pendingOrderAmtNotice = document.getElementById('pendingOrderAmtNotice');
+        if (pendingOrderAmtNotice) {
+          pendingOrderAmtNotice.innerHTML = `Đơn hàng <strong class="text-slate-900 font-extrabold">${finalAmtStr}</strong> của bạn đã được hệ thống ghi nhận thành công 100%`;
+        }
+        const successCouponNotice = document.getElementById('successCouponNotice');
+        if (successCouponNotice) {
+          if (couponCode) {
+            successCouponNotice.innerText = `🏷️ Đã áp mã voucher: ${couponCode} (-${Number(discountAmt).toLocaleString('vi-VN')}đ)`;
+            successCouponNotice.classList.remove('hidden');
+          } else {
+            successCouponNotice.classList.add('hidden');
+          }
+        }
 
-      const licenseLink = claimResult && claimResult.status === 'success' ? claimResult.licenseLink : '';
-      const hasRealLink = Boolean(licenseLink);
-      const remainingStock = claimResult && Number.isFinite(Number(claimResult.available)) ? Number(claimResult.available) : 0;
+        // 3. Nhận license từ kho server tập trung (FIFO + TỰ MUA từ bot nếu hết kho)
+        let claimResult = null;
+        try {
+          if (txData && txData.licenseLink) claimResult = {status: 'success', licenseLink: txData.licenseLink};
+          const claimResponse = claimResult ? null : await smartApiFetch('/api/licenses/auto-claim', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: custName,
+              orderId: custOrderId,
+              phone: custPhone,
+              email: custEmail
+            })
+          });
+          if (claimResponse && claimResponse.ok) {
+            claimResult = await claimResponse.json();
+          }
+        } catch (e) {
+          console.warn('License auto-claim warning:', e);
+        }
 
-      // Cập nhật cache cục bộ chỉ để Admin hiện ngay khi cùng trình duyệt; server vẫn là nguồn chính.
-      try {
-        let cachedInventory = JSON.parse(localStorage.getItem('crm_inventory') || '[]');
+        const licenseLink = claimResult && claimResult.status === 'success' ? claimResult.licenseLink : '';
+        const hasRealLink = Boolean(licenseLink);
+        const remainingStock = claimResult && Number.isFinite(Number(claimResult.available)) ? Number(claimResult.available) : 0;
+
+        // Cập nhật cache cục bộ chỉ để Admin hiện ngay khi cùng trình duyệt; server vẫn là nguồn chính.
+        try {
+          let cachedInventory = JSON.parse(localStorage.getItem('crm_inventory') || '[]');
+          if (hasRealLink) {
+            const cachedItem = cachedInventory.find(i => i && i.link === licenseLink);
+            if (cachedItem) {
+              cachedItem.status = 'Đã cấp';
+              cachedItem.assignedTo = `${custName} (${custOrderId})`;
+            }
+            localStorage.setItem('crm_inventory', JSON.stringify(cachedInventory));
+          }
+        } catch (e) {}
+
+        // 3.1 Cập nhật hiển thị màn hình Thành công: CÓ LINK hay HẾT LINK
+        const hasLinkView = document.getElementById('successHasLinkView');
+        const pendingLinkView = document.getElementById('successPendingLinkView');
+        const finalEmailNotice = document.getElementById('finalEmailNoticeBox');
+        const finalLicenseEl = document.getElementById('finalLicenseLink');
+        const directBtn = document.getElementById('directOpenLinkBtn');
+
         if (hasRealLink) {
-          const cachedItem = cachedInventory.find(i => i && i.link === licenseLink);
-          if (cachedItem) {
-            cachedItem.status = 'Đã cấp';
-            cachedItem.assignedTo = `${custName} (${custOrderId})`;
+          if (hasLinkView) hasLinkView.classList.remove('hidden');
+          if (pendingLinkView) pendingLinkView.classList.add('hidden');
+          if (finalEmailNotice) finalEmailNotice.classList.remove('hidden');
+          if (finalLicenseEl) finalLicenseEl.innerText = licenseLink;
+          if (directBtn) directBtn.href = licenseLink;
+          const sentEmailDisplay = document.getElementById('sentEmailDisplay');
+          if (sentEmailDisplay) sentEmailDisplay.innerText = custEmail;
+        } else {
+          // Trường hợp hết link: Hiện thông báo Admin sẽ gửi link tới Zalo hoặc Gmail bạn trong ít phút
+          if (hasLinkView) hasLinkView.classList.add('hidden');
+          if (pendingLinkView) pendingLinkView.classList.remove('hidden');
+          if (finalEmailNotice) finalEmailNotice.classList.remove('hidden');
+
+          const pendingPhoneEl = document.getElementById('pendingCustomerPhone');
+          if (pendingPhoneEl) pendingPhoneEl.innerText = custPhone;
+          const pendingEmailEl = document.getElementById('pendingCustomerEmail');
+          if (pendingEmailEl) pendingEmailEl.innerText = custEmail;
+
+          const pendingZaloBtn = document.getElementById('btnClaimViaZalo');
+          if (pendingZaloBtn) {
+            const zaloMsg = encodeURIComponent(`Chào shop, mình vừa thanh toán ${finalAmtStr} đơn hàng ${custOrderId} (SĐT: ${custPhone}, Gmail: ${custEmail}). Gửi giúp mình link kích hoạt Gemini Pro 18 Tháng nhé!`);
+            pendingZaloBtn.href = `https://zalo.me/0567960777?text=${zaloMsg}`;
           }
-          localStorage.setItem('crm_inventory', JSON.stringify(cachedInventory));
         }
-      } catch (e) {}
 
-      // 3.1 Cập nhật hiển thị màn hình Thành công: CÓ LINK hay HẾT LINK
-      const hasLinkView = document.getElementById('successHasLinkView');
-      const pendingLinkView = document.getElementById('successPendingLinkView');
-      const finalEmailNotice = document.getElementById('finalEmailNoticeBox');
-      const finalLicenseEl = document.getElementById('finalLicenseLink');
-      const directBtn = document.getElementById('directOpenLinkBtn');
+        // finalAmtStr, finalAmtRaw, couponCode, discountAmt đã được khởi tạo và cập nhật ở trên
 
-      if (hasRealLink) {
-        if (hasLinkView) hasLinkView.classList.remove('hidden');
-        if (pendingLinkView) pendingLinkView.classList.add('hidden');
-        if (finalEmailNotice) finalEmailNotice.classList.remove('hidden');
-        if (finalLicenseEl) finalLicenseEl.innerText = licenseLink;
-        if (directBtn) directBtn.href = licenseLink;
-        const sentEmailDisplay = document.getElementById('sentEmailDisplay');
-        if (sentEmailDisplay) sentEmailDisplay.innerText = custEmail;
-      } else {
-        // Trường hợp hết link: Hiện thông báo Admin sẽ gửi link tới Zalo hoặc Gmail bạn trong ít phút
-        if (hasLinkView) hasLinkView.classList.add('hidden');
-        if (pendingLinkView) pendingLinkView.classList.remove('hidden');
-        if (finalEmailNotice) finalEmailNotice.classList.remove('hidden');
+        // Bắn sự kiện Meta Pixel: Purchase (Thanh toán thành công)
+        trackPixelEvent('Purchase', {
+          content_name: 'Google Gemini Pro 18 Tháng',
+          value: finalAmtRaw,
+          currency: 'VND',
+          transaction_id: custOrderId
+        });
 
-        const pendingPhoneEl = document.getElementById('pendingCustomerPhone');
-        if (pendingPhoneEl) pendingPhoneEl.innerText = custPhone;
-        const pendingEmailEl = document.getElementById('pendingCustomerEmail');
-        if (pendingEmailEl) pendingEmailEl.innerText = custEmail;
+        const newOrder = {
+          ...completingOrder,
+          ...orderTracking(),
+          createdAt: completingOrder.createdAt,
+          paidAt: (txData && (txData.paidAt || txData.transactionDateTime || txData.time)) || new Date().toISOString(),
+          orderId: custOrderId,
+          name: custName,
+          phone: custPhone,
+          email: custEmail,
+          package: 'Gemini Pro 18 Tháng',
+          amount: finalAmtStr,
+          amountRaw: finalAmtRaw,
+          couponCode: couponCode,
+          discountAmount: discountAmt,
+          memo: custMemo,
+          domain: (window.location.hostname || window.location.host || '').toLowerCase(),
+          time: new Date().toLocaleString('vi-VN'),
+          ip: (typeof visitorData !== 'undefined' && visitorData && visitorData.ip) ? visitorData.ip : '',
+          location: (typeof visitorData !== 'undefined' && visitorData && visitorData.location) ? visitorData.location : '',
+          device: (typeof visitorData !== 'undefined' && visitorData && visitorData.device) ? visitorData.device : 'Điện thoại/PC',
+          referrer: (typeof visitorData !== 'undefined' && visitorData && visitorData.referrer) ? visitorData.referrer : 'Trực tiếp',
+          fullUrl: (typeof visitorData !== 'undefined' && visitorData && visitorData.fullUrl) ? visitorData.fullUrl : window.location.href,
+          rawReferrer: (typeof visitorData !== 'undefined' && visitorData && visitorData.rawReferrer) ? visitorData.rawReferrer : (document.referrer || ''),
+          fbclid: (typeof visitorData !== 'undefined' && visitorData && visitorData.fbclid) ? visitorData.fbclid : '',
+          utmSource: (typeof visitorData !== 'undefined' && visitorData && visitorData.utmSource) ? visitorData.utmSource : '',
+          utmCampaign: (typeof visitorData !== 'undefined' && visitorData && visitorData.utmCampaign) ? visitorData.utmCampaign : '',
+          isFromAd: (typeof visitorData !== 'undefined' && visitorData && visitorData.isFromAd) ? visitorData.isFromAd : false,
 
-        const pendingZaloBtn = document.getElementById('btnClaimViaZalo');
-        if (pendingZaloBtn) {
-          const zaloMsg = encodeURIComponent(`Chào shop, mình vừa thanh toán ${finalAmtStr} đơn hàng ${custOrderId} (SĐT: ${custPhone}, Gmail: ${custEmail}). Gửi giúp mình link kích hoạt Gemini Pro 18 Tháng nhé!`);
-          pendingZaloBtn.href = `https://zalo.me/0567960777?text=${zaloMsg}`;
+          licenseLink: licenseLink,
+          status: hasRealLink ? 'Đã thanh toán (MBBank)' : 'Đã thanh toán (Chờ cấp link)',
+          paymentTxId: (txData && (txData.paymentTxId || txData.transactionId || txData.publicId || txData.id)) || '',
+          paymentSource: (txData && txData.source) ? txData.source : 'API Pay VietQR MBBank',
+          emailStatus: hasRealLink ? 'Chờ xác nhận gửi Gmail' : 'Hết link (Chờ Admin gửi Zalo/Gmail)',
+          adminNote: hasRealLink ? ((claimResult && claimResult.source === 'auto_buy') ? '🤖 Tự mua từ bot @shopxoainon_bot' : '') : `⚠️ ${(claimResult && claimResult.message) || 'Kho hết link - Admin gửi thủ công qua Zalo/Gmail'}`
+        };
+
+        // 4. Lưu đơn hàng vào localStorage và Backend Server Database (orders.json)
+        try {
+          let orders = JSON.parse(localStorage.getItem('crm_orders') || '[]');
+          orders = orders.filter(o => o.orderId !== newOrder.orderId);
+          orders.unshift(newOrder);
+          localStorage.setItem('crm_orders', JSON.stringify(orders));
+        } catch(e) {}
+
+        if (currentOrder.orderId === completingOrder.orderId) currentOrder.paymentComplete = true;
+        const syncResult = await syncCustomerOrder(newOrder);
+        if (syncResult && syncResult.status === 'success') {
+          if (currentOrder.orderId === completingOrder.orderId) currentOrder.paymentComplete = true;
+          localStorage.removeItem('crm_pending_order');
+        } else {
+          localStorage.setItem('crm_order_retry_' + newOrder.orderId, JSON.stringify(newOrder));
+          showToast('Đã ghi nhận thanh toán; đang chờ đồng bộ đơn hàng.', 4000);
         }
-      }
 
-      // finalAmtStr, finalAmtRaw, couponCode, discountAmt đã được khởi tạo và cập nhật ở trên
-
-      // Bắn sự kiện Meta Pixel: Purchase (Thanh toán thành công)
-      trackPixelEvent('Purchase', {
-        content_name: 'Google Gemini Pro 18 Tháng',
-        value: finalAmtRaw,
-        currency: 'VND',
-        transaction_id: custOrderId
-      });
-
-      const newOrder = {
-        orderId: custOrderId,
-        name: custName,
-        phone: custPhone,
-        email: custEmail,
-        package: 'Gemini Pro 18 Tháng',
-        amount: finalAmtStr,
-        amountRaw: finalAmtRaw,
-        couponCode: couponCode,
-        discountAmount: discountAmt,
-        memo: custMemo,
-        domain: (window.location.hostname || window.location.host || '').toLowerCase(),
-        time: new Date().toLocaleString('vi-VN'),
-        ip: (typeof visitorData !== 'undefined' && visitorData && visitorData.ip) ? visitorData.ip : '127.0.0.1',
-        location: (typeof visitorData !== 'undefined' && visitorData && visitorData.location) ? visitorData.location : 'Việt Nam',
-        device: (typeof visitorData !== 'undefined' && visitorData && visitorData.device) ? visitorData.device : 'Điện thoại/PC',
-        referrer: (typeof visitorData !== 'undefined' && visitorData && visitorData.referrer) ? visitorData.referrer : 'Trực tiếp',
-        fullUrl: (typeof visitorData !== 'undefined' && visitorData && visitorData.fullUrl) ? visitorData.fullUrl : window.location.href,
-        rawReferrer: (typeof visitorData !== 'undefined' && visitorData && visitorData.rawReferrer) ? visitorData.rawReferrer : (document.referrer || ''),
-        fbclid: (typeof visitorData !== 'undefined' && visitorData && visitorData.fbclid) ? visitorData.fbclid : '',
-        utmSource: (typeof visitorData !== 'undefined' && visitorData && visitorData.utmSource) ? visitorData.utmSource : '',
-        utmCampaign: (typeof visitorData !== 'undefined' && visitorData && visitorData.utmCampaign) ? visitorData.utmCampaign : '',
-        isFromAd: (typeof visitorData !== 'undefined' && visitorData && visitorData.isFromAd) ? visitorData.isFromAd : false,
-        paidNotified: true,
-        licenseLink: licenseLink,
-        status: hasRealLink ? 'Đã thanh toán (MBBank)' : 'Đã thanh toán (Chờ cấp link)',
-        paymentTxId: (txData && txData.id) ? txData.id : ('APIPAY-' + Math.floor(100000 + Math.random() * 900000)),
-        paymentSource: (txData && txData.source) ? txData.source : 'API Pay VietQR MBBank',
-        emailStatus: hasRealLink ? 'Đã gửi Gmail' : 'Hết link (Chờ Admin gửi Zalo/Gmail)',
-        adminNote: hasRealLink ? ((claimResult && claimResult.source === 'auto_buy') ? '🤖 Tự mua từ bot @shopxoainon_bot' : '') : `⚠️ ${(claimResult && claimResult.message) || 'Kho hết link - Admin gửi thủ công qua Zalo/Gmail'}`
-      };
-
-      // 4. Lưu đơn hàng vào localStorage và Backend Server Database (orders.json)
-      try {
-        let orders = JSON.parse(localStorage.getItem('crm_orders') || '[]');
-        orders.unshift(newOrder);
-        localStorage.setItem('crm_orders', JSON.stringify(orders));
-      } catch(e) {}
-
-      try {
-        smartApiFetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newOrder)
-        }).catch(err => console.warn('Order sync warning:', err));
-      } catch(e) {}
-
-      // 5. Tự động bắn thông báo Telegram
-      try {
-        const remainingStock = Number.isFinite(Number(claimResult && claimResult.available)) ? Number(claimResult.available) : 0;
-        notifyTelegramCustomerOrder(newOrder, remainingStock, !hasRealLink);
-      } catch(e) {}
-
-      // 6. Đồng bộ Webhook nếu có
-      postOrderToWebhook(newOrder);
-
-      // 7. Khi còn link: Tự động gửi link kích hoạt về Gmail khách
-      if (hasRealLink && licenseLink) {
-        sendCustomerActivationEmail(newOrder, licenseLink);
-      }
-
-      if (typeof confetti === 'function') {
-        try { confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } }); } catch(e) {}
-      }
+        if (typeof confetti === 'function') {
+          try { confetti({ particleCount: 90, spread: 75, origin: { y: 0.6 } }); } catch(e) {}
+        }
+      } finally { completingOrders.delete(completingOrder.orderId); }
     }
 
     async function sendCustomerActivationEmail(order, licenseLink) {
@@ -3078,33 +3086,30 @@
       } catch(e) {}
     }
 
-    function postOrderToWebhook(order) {
-      if (!CONFIG.googleAppsScriptUrl || CONFIG.googleAppsScriptUrl.includes("SAMPLE")) return;
-      try {
-        fetch(CONFIG.googleAppsScriptUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'new_order',
-            orderId: order.orderId,
-            time: order.time || new Date().toLocaleString('vi-VN'),
-            name: order.name,
-            phone: order.phone,
-            email: order.email,
-            product: order.package || (CONFIG.packageName || 'Google Gemini Pro 18 Tháng'),
-            amount: order.amount || formatVnd(CONFIG.amount),
-            memo: order.memo,
-            licenseLink: order.licenseLink || '',
-            ip: (typeof visitorData !== 'undefined' && visitorData && visitorData.ip) ? visitorData.ip : '127.0.0.1',
-            location: (typeof visitorData !== 'undefined' && visitorData && visitorData.location) ? visitorData.location : 'Việt Nam',
-            device: (typeof visitorData !== 'undefined' && visitorData && visitorData.device) ? visitorData.device : 'Điện thoại/PC',
-            referrer: (typeof visitorData !== 'undefined' && visitorData && visitorData.referrer) ? visitorData.referrer : 'Trực tiếp',
-            status: order.status || 'Đã thanh toán (MBBank)'
-          })
-        });
-      } catch(e) {}
+    async function postOrderToWebhook(order) {
+      if (!CONFIG.googleAppsScriptUrl || CONFIG.googleAppsScriptUrl.includes('SAMPLE')) return null;
+      const paid = /đã thanh toán|thành công|^paid$/i.test(order.status || '');
+      const healthResponse = await fetch(CONFIG.googleAppsScriptUrl + '?action=health');
+      const health = await healthResponse.json();
+      if (health.protocolVersion !== 2) return {status: 'pending_deployment'};
+      const response = await fetch(CONFIG.googleAppsScriptUrl, {
+        method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain;charset=utf-8'},
+        body: JSON.stringify(Object.assign({}, order, {action: paid ? 'new_order' : 'pending_order', product: order.package || CONFIG.packageName}))
+      });
+      // Opaque response is not confirmation that Sheet accepted the data.
+      return {status: 'queued', opaque: response.type === 'opaque'};
     }
+    window.addEventListener('online', retryOrderSync);
+    async function retryOrderSync() {
+      for (const key of Object.keys(localStorage).filter(k => k.startsWith('crm_order_retry_'))) {
+        try {
+          const result = await syncCustomerOrder(JSON.parse(localStorage.getItem(key)));
+          if (result && result.status === 'success') localStorage.removeItem(key);
+        } catch(e) {}
+      }
+    }
+    setTimeout(retryOrderSync, 5000);
+    setInterval(retryOrderSync, 30000);
 
     function copyData(text) {
       const done = () => showToast(`Đã sao chép: ${text}`, 2000);
