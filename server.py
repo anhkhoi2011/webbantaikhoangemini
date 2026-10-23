@@ -47,6 +47,9 @@ VISIT_SYNC_LOCK = threading.Lock()
 VISIT_SYNC_EVENT = threading.Event()
 ADMIN_TOKENS = {}
 ADMIN_TOKEN_TTL = 8 * 60 * 60
+ADMIN_LOGIN_EVENTS = {}
+ADMIN_LOGIN_EVENTS_LOCK = threading.Lock()
+ADMIN_LOGIN_EVENT_TTL = 10 * 60
 DEFAULT_ADMIN_HASH = "c5bc82fc5c9d4553a39af5ea2f18257e2ba60b2822fdf93725abcd4451c0bada"
 
 def allowed_origins():
@@ -1363,9 +1366,25 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
         # 7. API: Cảnh báo đăng nhập Admin
         if path == "/api/admin-login-notify":
             try:
+                # Idempotency guard: retries from the browser/proxy must not create
+                # another Telegram alert for the same real login event.
+                event_id = str(body.get("loginEventId") or "").strip()
+                if event_id:
+                    now = datetime.now().timestamp()
+                    with ADMIN_LOGIN_EVENTS_LOCK:
+                        expired = [key for key, seen_at in ADMIN_LOGIN_EVENTS.items()
+                                   if now - seen_at > ADMIN_LOGIN_EVENT_TTL]
+                        for key in expired:
+                            ADMIN_LOGIN_EVENTS.pop(key, None)
+                        if event_id in ADMIN_LOGIN_EVENTS:
+                            return self.send_json({"status": "success", "duplicate": True})
+                        ADMIN_LOGIN_EVENTS[event_id] = now
+
                 import telegram_sender
                 msg = telegram_sender.get_admin_login_template(body)
-                telegram_sender.send_telegram_raw(msg)
+                ok = telegram_sender.send_telegram_raw(msg)
+                if not ok:
+                    return self.send_json({"status": "error", "message": "Telegram send failed"}, 502)
                 return self.send_json({"status": "success"})
             except Exception as e:
                 return self.send_json({"status": "error", "message": str(e)}, 500)

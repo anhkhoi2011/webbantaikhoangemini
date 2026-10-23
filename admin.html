@@ -4982,6 +4982,8 @@
       pinInput.type = (pinInput.type === 'password') ? 'text' : 'password';
     }
 
+    let adminLoginNotifyInFlight = false;
+
     function checkAdminAuth() {
       const pinModal = document.getElementById('adminPinModal');
       const appWrapper = document.getElementById('adminAppWrapper');
@@ -5008,57 +5010,62 @@
     }
 
     async function verifyAdminPin() {
+      if (adminLoginNotifyInFlight) return;
+      adminLoginNotifyInFlight = true;
       const input = document.getElementById('adminPinInput');
       const error = document.getElementById('adminPinError');
       const entered = input ? input.value.trim() : '';
-      if (!entered) return;
+      if (!entered) {
+        adminLoginNotifyInFlight = false;
+        return;
+      }
 
       const enteredHash = await hashAdminSecret(entered);
       const savedHash = localStorage.getItem('admin_security_hash');
       const legacyPin = localStorage.getItem('admin_security_pin');
-      
-      // Khóa băm SHA-256 bảo mật cao của mã quản trị gốc
       const DEFAULT_ADMIN_HASH = 'c5bc82fc5c9d4553a39af5ea2f18257e2ba60b2822fdf93725abcd4451c0bada';
       const expectedHash = savedHash || DEFAULT_ADMIN_HASH;
-
       const isValid = (enteredHash === expectedHash) || (legacyPin && entered === legacyPin);
 
-      if (isValid) {
-        try {
-          const authBase = getAdminApiBase();
-          const authRes = await fetch(`${authBase}/api/admin-login`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: entered })
-          });
-          const authData = await authRes.json();
-          if (!authRes.ok || !authData.token) throw new Error('Server authentication failed');
-          sessionStorage.setItem('admin_api_token', authData.token);
-        } catch (e) {
-          if (error) error.classList.remove('hidden');
-          return;
-        }
-        sessionStorage.setItem('admin_authenticated', 'true');
-        const pinModal = document.getElementById('adminPinModal');
-        const appWrapper = document.getElementById('adminAppWrapper');
-
-        if (pinModal) pinModal.style.setProperty('display', 'none', 'important');
-        if (appWrapper) appWrapper.style.setProperty('display', 'block', 'important');
-        if (error) error.classList.add('hidden');
-
-        showToast('✓ Đăng nhập Quản Trị Viên thành công!');
-
-        // BẮN THÔNG BÁO BẢO MẬT VỀ TELEGRAM BOT NGAY LẬP TỨC
-        notifyAdminLoginSuccess();
-
-        // Nạp và đồng bộ toàn bộ dữ liệu quản trị
-        renderAllData();
-      } else {
+      if (!isValid) {
         if (error) error.classList.remove('hidden');
         if (input) {
           input.value = '';
           input.focus();
         }
+        adminLoginNotifyInFlight = false;
+        return;
       }
+
+      try {
+        const authBase = getAdminApiBase();
+        const authRes = await fetch(`${authBase}/api/admin-login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: entered })
+        });
+        const authData = await authRes.json();
+        if (!authRes.ok || !authData.token) throw new Error('Server authentication failed');
+        sessionStorage.setItem('admin_api_token', authData.token);
+      } catch (e) {
+        if (error) error.classList.remove('hidden');
+        adminLoginNotifyInFlight = false;
+        return;
+      }
+
+      sessionStorage.setItem('admin_authenticated', 'true');
+      const pinModal = document.getElementById('adminPinModal');
+      const appWrapper = document.getElementById('adminAppWrapper');
+      if (pinModal) pinModal.style.setProperty('display', 'none', 'important');
+      if (appWrapper) appWrapper.style.setProperty('display', 'block', 'important');
+      if (error) error.classList.add('hidden');
+        showToast('✓ Đăng nhập Quản Trị Viên thành công!');
+
+      // One notification is sent for each real login.
+      notifyAdminLoginSuccess().finally(() => {
+        adminLoginNotifyInFlight = false;
+      });
+      renderAllData();
     }
 
     function logoutAdmin() {
@@ -5073,54 +5080,44 @@
     async function notifyAdminLoginSuccess() {
       try {
         let clientIp = '127.0.0.1';
-        let clientLocation = 'Việt Nam';
-
-        // Lấy nhanh IP thật của thiết bị đăng nhập qua ipify
+        let clientLocation = 'Vietnam';
         try {
           const ipRes = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(2500) });
           if (ipRes.ok) {
             const ipData = await ipRes.json();
             if (ipData.ip) clientIp = ipData.ip;
           }
-        } catch(e) {}
+        } catch (e) {}
 
         const ua = navigator.userAgent;
-        let deviceName = 'Máy tính PC';
-        if (/Android/i.test(ua)) deviceName = 'Điện thoại Android';
-        else if (/iPhone|iPad|iPod/i.test(ua)) deviceName = 'Thiết bị iOS (iPhone/iPad)';
+        let deviceName = 'Desktop PC';
+        if (/Android/i.test(ua)) deviceName = 'Android phone';
+        else if (/iPhone|iPad|iPod/i.test(ua)) deviceName = 'iOS device';
         else if (/Macintosh/i.test(ua)) deviceName = 'Apple macOS';
         else if (/Windows/i.test(ua)) deviceName = 'Windows PC';
 
-        let browserName = 'Trình duyệt Web';
+        let browserName = 'Web browser';
         if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) browserName = 'Google Chrome';
         else if (/Edg/i.test(ua)) browserName = 'Microsoft Edge';
         else if (/Firefox/i.test(ua)) browserName = 'Mozilla Firefox';
         else if (/Safari/i.test(ua)) browserName = 'Apple Safari';
 
-        const loginMsg = `🛡️ <b>ĐĂNG NHẬP ADMIN THÀNH CÔNG</b>\n` +
-          `Thời gian: ${new Date().toLocaleString('vi-VN')}\n` +
-          `Quyền hạn: <b>Quản Trị Viên Cấp Cao (Super Admin)</b>\n` +
-          `IP: <code>${clientIp}</code> (${clientLocation})\n` +
-          `Thiết bị: ${deviceName} • ${browserName}`;
-
-        // Bắn thông báo Telegram (100% gửi trực tiếp về Bot Token & Chat ID)
-        await sendTelegramMessage(loginMsg);
-
-        // Ghi nhận log phía backend
-        try {
-          await adminApiFetch('/api/admin-login-notify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              time: new Date().toLocaleString('vi-VN'),
-              ip: clientIp,
-              location: clientLocation,
-              device: `${deviceName} • ${browserName}`
-            })
-          });
-        } catch(e) {}
-      } catch(err) {
-        console.warn('Lỗi gửi thông báo admin login:', err);
+        const loginEventId = (window.crypto && typeof window.crypto.randomUUID === 'function')
+          ? window.crypto.randomUUID()
+          : `admin-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        await adminApiFetch('/api/admin-login-notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            loginEventId,
+            time: new Date().toLocaleString('vi-VN'),
+            ip: clientIp,
+            location: clientLocation,
+            device: `${deviceName} / ${browserName}`
+          })
+        });
+      } catch (err) {
+        console.warn('Admin login notification error:', err);
       }
     }
 
