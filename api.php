@@ -251,11 +251,18 @@ if (strpos($requestUri, '/api/track-visit') !== false && $method === 'POST') {
     $device = trim($body['device'] ?? '') ?: (preg_match('/Mobile|Android|iPhone|iPad/i', $ua) ? 'Điện thoại' : 'Máy tính');
     $deviceKey = preg_match('/Mobile|Android|iPhone|iPad|Điện thoại/i', $device) ? 'mobile' : (preg_match('/Máy tính|PC|Desktop/i', $device) ? 'desktop' : 'other');
     $data['devices'][$deviceKey] = intval($data['devices'][$deviceKey] ?? 0) + 1;
-    $ref = strtolower(trim($body['referrer'] ?? ($body['rawReferrer'] ?? '')));
-    $url = strtolower($body['fullUrl'] ?? '');
-    $source = strpos($ref, 'facebook') !== false || strpos($url, 'fbclid') !== false ? 'facebook' : (strpos($ref, 'tiktok') !== false || strpos($url, 'ttclid') !== false ? 'tiktok' : (strpos($ref, 'google') !== false || strpos($url, 'gclid') !== false ? 'google' : (strpos($ref, 'zalo') !== false ? 'zalo' : (empty($ref) || strpos($ref, 'direct') !== false ? 'direct' : 'other'))));
+    $refLabel = trim($body['referrer'] ?? '');
+    $ref = strtolower($refLabel ?: ($body['rawReferrer'] ?? ''));
+    parse_str(parse_url($body['fullUrl'] ?? '', PHP_URL_QUERY) ?: '', $query);
+    if (strpos($ref, 'facebook') !== false || in_array($ref, ['fb', 'meta'], true) || (!$refLabel && isset($query['fbclid']))) { $source = 'facebook'; $refLabel = $refLabel ?: 'Facebook'; }
+    elseif (strpos($ref, 'tiktok') !== false || (!$refLabel && isset($query['ttclid']))) { $source = 'tiktok'; $refLabel = $refLabel ?: 'TikTok'; }
+    elseif (strpos($ref, 'google') !== false || (!$refLabel && isset($query['gclid']))) { $source = 'google'; $refLabel = $refLabel ?: 'Tìm kiếm Google'; }
+    elseif (strpos($ref, 'zalo') !== false) { $source = 'zalo'; $refLabel = $refLabel ?: 'Zalo Chat'; }
+    elseif (!$ref || strpos($ref, 'trực tiếp') !== false || in_array($ref, ['direct', 'truc tiep'], true)) { $source = 'direct'; $refLabel = $refLabel ?: 'Truy cập trực tiếp'; }
+    else { $source = 'other'; $refLabel = $refLabel ?: 'Khác'; }
     $data['sources'][$source] = intval($data['sources'][$source] ?? 0) + 1;
-    $entry = ['time' => $body['time'] ?? date('H:i:s d/m/Y'), 'ip' => $body['ip'] ?? ($_SERVER['REMOTE_ADDR'] ?? ''), 'location' => $body['location'] ?? 'Việt Nam', 'device' => $device, 'browser' => $body['browser'] ?? 'Trình duyệt Web', 'domain' => $body['domain'] ?? '', 'referrer' => $source, 'fullUrl' => $body['fullUrl'] ?? '', 'rawReferrer' => $body['rawReferrer'] ?? ''];
+    $entry = ['time' => $body['time'] ?? date('H:i:s d/m/Y'), 'ip' => $body['ip'] ?? ($_SERVER['REMOTE_ADDR'] ?? ''), 'location' => $body['location'] ?? 'Việt Nam', 'device' => $device, 'browser' => $body['browser'] ?? 'Trình duyệt Web', 'domain' => $body['domain'] ?? '', 'referrer' => $refLabel, 'fullUrl' => $body['fullUrl'] ?? '', 'rawReferrer' => $body['rawReferrer'] ?? ''];
+    foreach (['utmSource', 'utmMedium', 'utmCampaign', 'utmContent', 'utmTerm', 'fbclid', 'gclid', 'ttclid', 'sessionId', 'landingAt', 'userAgent'] as $key) $entry[$key] = $body[$key] ?? '';
     array_unshift($data['visits'], $entry); $data['visits'] = array_slice($data['visits'], 0, 1000);
     writeJsonFile('visits.json', $data);
     echo json_encode(['status' => 'success', 'totalVisits' => $data['totalVisits'], 'todayVisits' => $data['todayVisits']]); exit();

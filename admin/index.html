@@ -2927,20 +2927,18 @@
               const utmCamp = ord.utmCampaign || ord.utm_campaign || '';
               const utmSrc = ord.utmSource || ord.utm_source || '';
               const ref = ord.referrer || '';
-              const isAd = Boolean(fbclid || utmCamp || utmSrc || ref.toLowerCase().includes('ads') || ref.toLowerCase().includes('quảng cáo') || ref.toLowerCase().includes('facebook'));
+              const isAd = /^(cpc|ppc|paid|paid_social|paid_search|paid-social|display|cpm|cpv|ads)$/i.test(ord.utmMedium || '') || /ads|quảng cáo/i.test(ref) || Boolean(ord.gclid || ord.ttclid);
 
-              if (isAd || fbclid || utmSrc) {
-                const badgeText = (fbclid || utmSrc.toLowerCase().includes('fb') || ref.toLowerCase().includes('facebook')) ? '🔵 Facebook Ads' :
-                                  utmSrc.toLowerCase().includes('tiktok') ? '⚫ TikTok Ads' :
-                                  utmSrc.toLowerCase().includes('google') ? '🔴 Google Ads' : '📢 Quảng Cáo';
+              if (isAd || fbclid || utmSrc || utmCamp || fullUrl) {
+                const badgeText = ref || (utmSrc ? 'UTM: ' + utmSrc : 'Truy cập trực tiếp');
                 return `
                   <div class="mt-1 space-y-0.5">
                     <span class="inline-block bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded border border-blue-300 shadow-2xs">${badgeText}</span>
                     ${utmCamp ? `<div class="text-[10px] text-indigo-700 font-mono font-bold truncate max-w-[170px]" title="Chiến dịch: ${utmCamp}">🏷️ ${utmCamp}</div>` : ''}
                     ${fullUrl ? `
                       <div class="flex items-center gap-1 max-w-[170px] mt-0.5">
-                        <a href="${fullUrl}" target="_blank" class="text-[10px] text-blue-600 underline font-mono truncate font-semibold" title="${fullUrl}">🔗 Link quảng cáo</a>
-                        <button onclick="navigator.clipboard.writeText('${fullUrl.replace(/'/g, "\\'")}'); showToast('Đã chép link quảng cáo!');" class="text-blue-600 hover:text-blue-800 shrink-0 p-0.5 rounded hover:bg-blue-100 transition cursor-pointer" title="Sao chép link đầy đủ">
+                        <a href="${fullUrl}" target="_blank" class="text-[10px] text-blue-600 underline font-mono truncate font-semibold" title="${fullUrl}">🔗 ${isAd ? 'Link quảng cáo' : 'Link truy cập'}</a>
+                        <button onclick="navigator.clipboard.writeText('${fullUrl.replace(/'/g, "\\'")}'); showToast('Đã chép link truy cập!');" class="text-blue-600 hover:text-blue-800 shrink-0 p-0.5 rounded hover:bg-blue-100 transition cursor-pointer" title="Sao chép link đầy đủ">
                           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                         </button>
                       </div>
@@ -3749,6 +3747,18 @@
       renderTraffic();
     }
 
+    function trafficChannel(referrer) {
+      const ref = String(referrer || '').toLowerCase().trim();
+      if (/^(x|twitter|t\.co)(\b|$)/.test(ref)) return 'X';
+      if (ref.includes('threads')) return 'THREADS';
+      if (ref.includes('tiktok')) return 'TIKTOK';
+      if (/facebook|\bmeta\b|^fb$/.test(ref)) return 'FACEBOOK';
+      if (/tìm kiếm|research|google|search|organic|bing|coccoc|chatgpt|perplexity|claude/.test(ref)) return 'RESEARCH';
+      if (ref.includes('zalo')) return 'ZALO';
+      if (!ref || /trực tiếp|^direct$|^truc tiep$/.test(ref)) return 'DIRECT';
+      return 'OTHER';
+    }
+
     function calculateTrafficSources() {
       const visits = getVisits();
       const days = currentTrafficDays;
@@ -3761,7 +3771,8 @@
         { key: 'ZALO',     name: "💬 Zalo Chat (Tin Nhắn & Nhóm AI)", code: "Zalo Chat", count: 0, color: "bg-sky-500", barColor: "bg-sky-500", desc: "Link chia sẻ qua tin nhắn Zalo, nhóm AI" },
         { key: 'DIRECT',   name: "🌐 Truy Cập Trực Tiếp (Direct URL)", code: "Truy cập trực tiếp", count: 0, color: "bg-slate-500", barColor: "bg-slate-400", desc: "Khách gõ trực tiếp tên miền hoặc mở bookmark" },
         { key: 'X',        name: "🐦 X / Twitter (Bài Viết & Tech)", code: "X (Twitter)", count: 0, color: "bg-slate-900", barColor: "bg-slate-900", desc: "Cộng đồng lập trình viên, tin công nghệ trên X" },
-        { key: 'THREADS',  name: "🧵 Threads (Bình Luận & Viral Post)", code: "Threads", count: 0, color: "bg-pink-600", barColor: "bg-pink-500", desc: "Bài đăng viral và giới thiệu công cụ trên Threads" }
+        { key: 'THREADS',  name: "🧵 Threads (Bình Luận & Viral Post)", code: "Threads", count: 0, color: "bg-pink-600", barColor: "bg-pink-500", desc: "Bài đăng viral và giới thiệu công cụ trên Threads" },
+        { key: 'OTHER', name: "Nguồn khác", code: "Khác", count: 0, color: "bg-gray-500", barColor: "bg-gray-500", desc: "Nguồn UTM tùy chỉnh và website giới thiệu" }
       ];
 
       // Đếm số lượt thực tế từ crm_visits phù hợp với khung ngày đang lọc
@@ -3783,22 +3794,7 @@
         if (!isWithinRange) return;
         if (currentDomainFilter !== 'ALL' && extractDomain(v) !== currentDomainFilter) return;
 
-        const ref = (v.referrer || '').toLowerCase();
-        if (ref.includes('x') || ref.includes('twitter')) {
-          channels.find(c => c.key === 'X').count++;
-        } else if (ref.includes('threads')) {
-          channels.find(c => c.key === 'THREADS').count++;
-        } else if (ref.includes('tiktok')) {
-          channels.find(c => c.key === 'TIKTOK').count++;
-        } else if (ref.includes('facebook') || ref.includes('meta') || ref.includes('fb')) {
-          channels.find(c => c.key === 'FACEBOOK').count++;
-        } else if (ref.includes('research') || ref.includes('google') || ref.includes('search') || ref.includes('organic')) {
-          channels.find(c => c.key === 'RESEARCH').count++;
-        } else if (ref.includes('zalo')) {
-          channels.find(c => c.key === 'ZALO').count++;
-        } else {
-          channels.find(c => c.key === 'DIRECT').count++;
-        }
+        channels.find(c => c.key === trafficChannel(v.referrer)).count++;
       });
 
       const totalAll = channels.reduce((acc, c) => acc + c.count, 0);
@@ -3839,7 +3835,7 @@
 
     function filterTrafficBySource(src) {
       currentSourceFilter = src;
-      const allFilterKeys = ['ALL', 'Tìm kiếm & Research', 'Facebook', 'TikTok', 'X (Twitter)', 'Threads', 'Zalo Chat', 'Truy cập trực tiếp'];
+      const allFilterKeys = ['ALL', 'Tìm kiếm & Research', 'Facebook', 'TikTok', 'X (Twitter)', 'Threads', 'Zalo Chat', 'Truy cập trực tiếp', 'Khác'];
       allFilterKeys.forEach(s => {
         const btn = document.getElementById(`srcFilter-${s}`);
         if (!btn) return;
@@ -4013,30 +4009,7 @@
 
         // Lọc theo Nguồn Truy Cập
         if (currentSourceFilter !== 'ALL') {
-          const vRef = (v.referrer || '').toLowerCase();
-          const target = currentSourceFilter.toLowerCase();
-          if (target.includes('research') || target.includes('google')) {
-            return vRef.includes('research') || vRef.includes('google') || vRef.includes('search');
-          }
-          if (target.includes('facebook')) {
-            return vRef.includes('facebook') || vRef.includes('meta') || vRef.includes('fb');
-          }
-          if (target.includes('tiktok')) {
-            return vRef.includes('tiktok');
-          }
-          if (target.includes('x') || target.includes('twitter')) {
-            return vRef.includes('x') || vRef.includes('twitter');
-          }
-          if (target.includes('threads')) {
-            return vRef.includes('threads');
-          }
-          if (target.includes('zalo')) {
-            return vRef.includes('zalo');
-          }
-          if (target.includes('trực tiếp') || target.includes('direct')) {
-            return vRef.includes('trực tiếp') || vRef.includes('direct');
-          }
-          return vRef.includes(target);
+          return trafficChannel(v.referrer) === trafficChannel(currentSourceFilter);
         }
         return true;
       });
@@ -4141,8 +4114,8 @@
       }
       const todayDateStr = new Date().toLocaleDateString('vi-VN');
       const localTodayVisits = visits.filter(v => v.time && v.time.includes(todayDateStr)).length;
-      const todayVisits = (serverVisitsData && typeof serverVisitsData.todayVisits === 'number') ? Math.max(serverVisitsData.todayVisits, localTodayVisits) : localTodayVisits;
-      const totalVisits = (serverVisitsData && typeof serverVisitsData.totalVisits === 'number') ? Math.max(serverVisitsData.totalVisits, visits.length) : visits.length;
+      const todayVisits = (currentDomainFilter === 'ALL' && serverVisitsData && typeof serverVisitsData.todayVisits === 'number') ? Math.max(serverVisitsData.todayVisits, localTodayVisits) : localTodayVisits;
+      const totalVisits = (currentDomainFilter === 'ALL' && serverVisitsData && typeof serverVisitsData.totalVisits === 'number') ? Math.max(serverVisitsData.totalVisits, visits.length) : visits.length;
       const todayOrders = orders.filter(o => o.time && (o.time.includes(todayDateStr) || o.time.includes('Vừa xong'))).length;
 
       const badgeElem = document.getElementById('todayLiveDateBadge');
@@ -4192,18 +4165,12 @@
         { key: 'ZALO',     name: 'Zalo', short: 'Zalo', count: 0, color: 'bg-sky-500' },
         { key: 'X',        name: 'X / Twitter', short: 'X', count: 0, color: 'bg-slate-900' },
         { key: 'DIRECT',   name: 'Direct', short: 'Direct', count: 0, color: 'bg-slate-400' },
-        { key: 'THREADS',  name: 'Threads', short: 'Threads', count: 0, color: 'bg-pink-600' }
+        { key: 'THREADS',  name: 'Threads', short: 'Threads', count: 0, color: 'bg-pink-600' },
+        { key: 'OTHER', name: 'Nguồn khác', short: 'Khác', count: 0, color: 'bg-gray-500' }
       ];
 
       todayVisitsList.forEach(v => {
-        const ref = (v.referrer || '').toLowerCase();
-        if (ref.includes('x') || ref.includes('twitter')) todayChannels.find(c => c.key === 'X').count++;
-        else if (ref.includes('threads')) todayChannels.find(c => c.key === 'THREADS').count++;
-        else if (ref.includes('tiktok')) todayChannels.find(c => c.key === 'TIKTOK').count++;
-        else if (ref.includes('facebook') || ref.includes('meta') || ref.includes('fb')) todayChannels.find(c => c.key === 'FACEBOOK').count++;
-        else if (ref.includes('research') || ref.includes('google') || ref.includes('search') || ref.includes('organic')) todayChannels.find(c => c.key === 'RESEARCH').count++;
-        else if (ref.includes('zalo')) todayChannels.find(c => c.key === 'ZALO').count++;
-        else todayChannels.find(c => c.key === 'DIRECT').count++;
+        todayChannels.find(c => c.key === trafficChannel(v.referrer)).count++;
       });
 
       const todayTotal = todayVisitsList.length;

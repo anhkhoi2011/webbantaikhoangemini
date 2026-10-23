@@ -41,7 +41,7 @@ function jsonOutput_(value) {
 
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || "health";
-  if (action !== "check_payment") return jsonOutput_({ status: "success", service: "Gemini CRM Apps Script", protocolVersion: 2, columns: ORDER_COLUMNS.length });
+  if (action !== "check_payment") return jsonOutput_({ status: "success", service: "Gemini CRM Apps Script", protocolVersion: 2, columns: ORDER_COLUMNS.length, build: "2026-10-23-attribution" });
 
   const memo = String((e.parameter && e.parameter.memo) || "").replace(/\s+/g, "").toUpperCase();
   const orderId = String(e.parameter.orderId || "");
@@ -401,7 +401,20 @@ function upsertOrder_(ss, data, notify) {
 }
 function sendOrderTelegram_(order, chatId) {
   const fields = [["Mã đơn", order.orderId], ["Khách", order.name], ["SĐT", order.phone], ["Email", order.email], ["Thanh toán lúc (GMT+7)", order.paidAt], ["Tạo đơn lúc", order.createdAt], ["Vào trang lúc", order.landingAt], ["IP", order.ip || "Không xác định"], ["Vị trí IP (ước lượng)", order.location || "Không xác định"], ["Thiết bị / Trình duyệt", [order.device, order.browser].filter(Boolean).join(" / ")], ["Nguồn khách", order.referrer || "Không xác định"], ["Tên miền", order.domain], ["URL vào trang", order.fullUrl], ["Referrer gốc", order.rawReferrer], ["UTM Source / Medium", [order.utmSource, order.utmMedium].filter(Boolean).join(" / ")], ["Chiến dịch", order.utmCampaign], ["UTM Content / Term", [order.utmContent, order.utmTerm].filter(Boolean).join(" / ")], ["FB / Google / TikTok Click ID", [order.fbclid, order.gclid, order.ttclid].filter(Boolean).join(" / ")], ["Nội dung CK", order.memo], ["Mã giao dịch", order.paymentTxId], ["Cổng thanh toán", order.paymentSource], ["Voucher", order.couponCode], ["Link cấp", order.licenseLink || "Chờ cấp link"], ["Trạng thái", order.status]];
-  const text = "🟢 <b>ĐƠN HÀNG ĐÃ THANH TOÁN (" + html_(money_(order.amountRaw || order.amount).toLocaleString("vi-VN")) + "đ)</b>\n" + fields.filter(pair => pair[1]).map(pair => "<b>" + pair[0] + ":</b> <code>" + html_(String(pair[0].includes("lúc") ? displayTime_(pair[1]) : pair[1]).slice(0, 90)) + "</code>").join("\n");
+  const title = "🟢 <b>ĐƠN HÀNG ĐÃ THANH TOÁN (" + html_(money_(order.amountRaw || order.amount).toLocaleString("vi-VN")) + "đ)</b>\n";
+  const entries = fields.filter(pair => pair[1]).map(pair => ({
+    label: pair[0], value: String(pair[0].includes("lúc") ? displayTime_(pair[1]) : pair[1]),
+    limit: ["URL vào trang", "Link cấp"].includes(pair[0]) ? 1500 : pair[0] === "Referrer gốc" ? 300 : 120
+  }));
+  const render = () => title + entries.map(entry => "<b>" + entry.label + ":</b> <code>" + html_(entry.value.length > entry.limit ? entry.value.slice(0, entry.limit) + "…" : entry.value) + "</code>").join("\n");
+  let text = render();
+  // Preserve ordinary complete campaign URLs while keeping Telegram's message within its size limit.
+  while (text.length > 4000) {
+    const entry = entries.filter(item => item.limit > 8 && item.value.length > 8).sort((a, b) => Math.min(b.limit, b.value.length) - Math.min(a.limit, a.value.length))[0];
+    if (!entry) break;
+    entry.limit = Math.max(8, Math.min(entry.limit, entry.value.length) - Math.max(16, Math.ceil((text.length - 4000) / 4)));
+    text = render();
+  }
   const response = UrlFetchApp.fetch("https://api.telegram.org/bot" + BOT_CONFIG.TELEGRAM_BOT_TOKEN + "/sendMessage", {method: "post", contentType: "application/json", muteHttpExceptions: true, payload: JSON.stringify({chat_id: chatId, text: text, parse_mode: "HTML", disable_web_page_preview: true})});
   const result = JSON.parse(response.getContentText() || "{}");
   if (!result.ok) Logger.log("Telegram " + chatId + ": " + String(result.description));

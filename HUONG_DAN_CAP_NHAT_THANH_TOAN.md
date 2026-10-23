@@ -25,3 +25,15 @@ Kiểm thử tại thư mục project:
     python -m unittest discover -s tests -p test_payment_flow.py -v
 
 Các kiểm thử dùng dữ liệu tạm/mô phỏng, không gửi đơn/email/Telegram thật và không sửa orders.json thực tế.
+
+
+Cập nhật bổ sung nguồn khách và thống kê theo link:
+
+- Link khác (kể cả chỉ dùng ref/source hoặc chỉ đổi chiến dịch) tạo ngữ cảnh truy cập mới; không dùng nguồn và UTM của link trước. Tải lại cùng link giữ phiên trong 30 phút; bộ nhớ phiên cũ được làm mới tự động.
+- Đơn giữ link, nguồn và chiến dịch tại lúc tạo. Khi khách quay lại từ ngân hàng hoặc mở link khác, bước hoàn tất không ghi đè nguồn của đơn bằng phiên mới.
+- Nhật ký truy cập backend giữ nhãn nguồn và toàn bộ UTM. Admin lọc tên miền không dùng tổng lượt truy cập toàn hệ thống; nguồn tùy chỉnh vào nhóm Khác, không bị gộp thành trực tiếp/X hoặc tự gắn nhãn quảng cáo.
+- Telegram giữ URL chiến dịch thông thường dài hơn 90 ký tự. Tin quá dài vẫn được rút gọn có dấu … để vừa giới hạn; Google Sheet giữ URL đầy đủ. Thay đổi Telegram cần dán và triển khai lại Apps Script, dù health vẫn là protocolVersion 2/40 cột.
+- Không tự sửa dữ liệu đơn cũ hoặc gửi lại thông báo cũ: cần link gốc để đối chiếu, không suy đoán dữ liệu bị thiếu.
+- Kiểm thử bổ sung: node tests/test_attribution.cjs.
+
+- Để xác nhận đúng bản sửa nguồn khách mới nhất, health cần có thêm build: 2026-10-23-attribution.

@@ -1795,95 +1795,80 @@
       trackPixelEvent('ViewContent', { content_name: 'Google Gemini Pro 18 Tháng', value: 90000, currency: 'VND' });
     }, 1000);
 
-    // Bắt nguồn truy cập thông minh & Chuẩn xác 100% (Phát hiện thật từ Referrer & Query Params)
-    function getTrafficSource() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const utm = (urlParams.get('utm_source') || '').toLowerCase();
-      const ref = (urlParams.get('ref') || urlParams.get('source') || '').toLowerCase();
-      const fbclid = urlParams.get('fbclid');
-      const ttclid = urlParams.get('ttclid');
-      const gclid = urlParams.get('gclid');
-      const docRef = (document.referrer || '').toLowerCase();
-
-      // 1. TỪ FACEBOOK ADS / META ADS (fbclid, utm_source=fb/facebook)
-      if (fbclid || utm.includes('facebook') || utm.includes('fb') || ref.includes('facebook') || ref.includes('fb') ||
-          docRef.includes('facebook.com') || docRef.includes('fb.com')) {
-        return /^(cpc|ppc|paid|paid_social)$/i.test(urlParams.get('utm_medium') || '') ? 'Quảng cáo Facebook (Meta Ads)' : 'Facebook';
+    // Explicit link tags take priority over click IDs and the referring application.
+    function getTrafficSource(href = window.location.href, rawReferrer = document.referrer || '') {
+      const params = new URL(href).searchParams;
+      const utm = (params.get('utm_source') || '').trim().toLowerCase();
+      const ref = (params.get('ref') || params.get('source') || '').trim().toLowerCase();
+      const paid = /^(cpc|ppc|paid|paid_social|paid_search|paid-social|display|cpm|cpv|ads)$/i.test(params.get('utm_medium') || '');
+      function label(source) {
+        if (/^(facebook|fb|meta|instagram|ig)([ _-]|$)/.test(source)) return paid ? 'Quảng cáo Facebook (Meta Ads)' : 'Facebook';
+        if (/^tiktok([ _-]|$)/.test(source)) return paid || params.has('ttclid') ? 'Quảng cáo TikTok (TikTok Ads)' : 'TikTok';
+        if (/^google([ _-]|$)/.test(source)) return paid || params.has('gclid') ? 'Quảng cáo Google (Google Ads)' : 'Tìm kiếm Google';
+        if (/^(x|twitter|t\.co)$/.test(source)) return 'X (Twitter)';
+        if (/^threads([ _-]|$)/.test(source)) return 'Threads';
+        if (/^zalo([ _-]|$)/.test(source)) return paid ? 'Quảng cáo Zalo (Zalo Ads)' : 'Zalo Chat';
+        if (/^(search|research|bing|coccoc|chatgpt|perplexity|claude)([ _-]|$)/.test(source)) return 'Tìm kiếm & AI Research';
+        return '';
       }
-
-      // 2. TỪ TIKTOK ADS (ttclid, tiktok)
-      if (ttclid || utm.includes('tiktok') || ref.includes('tiktok') || docRef.includes('tiktok.com')) {
-        return ttclid ? 'Quảng cáo TikTok (TikTok Ads)' : 'TikTok';
-      }
-
-      // 3. TỪ GOOGLE ADS / SEARCH (gclid, google)
-      if (gclid || utm.includes('google') || docRef.includes('google.')) {
-        return gclid ? 'Quảng cáo Google (Google Ads)' : 'Tìm kiếm Google';
-      }
-
-      // 4. TỪ X / TWITTER (x.com, twitter.com, t.co)
-      if (utm === 'x' || utm.includes('twitter') || utm.includes('t.co') || ref === 'x' || ref.includes('twitter') ||
-          docRef.includes('t.co') || docRef.includes('x.com') || docRef.includes('twitter.com')) {
-        return 'X (Twitter)';
-      }
-
-      // 5. TỪ THREADS (threads.net)
-      if (utm.includes('threads') || ref.includes('threads') || docRef.includes('threads.net')) {
-        return 'Threads';
-      }
-
-      // 6. TỪ ZALO CHAT (zalo.me)
-      if (utm.includes('zalo') || ref.includes('zalo') || docRef.includes('zalo.me')) {
-        return 'Zalo Chat';
-      }
-
-      // 7. TÌM KIẾM TỰ NHIÊN / RESEARCH KHÁC
-      if (utm.includes('search') || utm.includes('research') || docRef.includes('bing.com') || docRef.includes('coccoc.com') || docRef.includes('chatgpt.com') || docRef.includes('perplexity.ai') || docRef.includes('claude.ai')) {
-        return 'Tìm kiếm & AI Research';
-      }
-
-      if (utm) return 'UTM: ' + utm;
-      if (ref) return 'Nguồn: ' + ref;
-      try { if (docRef && new URL(docRef).origin !== window.location.origin) return 'Giới thiệu: ' + new URL(docRef).hostname; } catch(e) {}
+      if (utm || ref) return label(utm || ref) || (utm ? 'UTM: ' + utm : 'Nguồn: ' + ref);
+      if (params.has('gclid')) return 'Quảng cáo Google (Google Ads)';
+      if (params.has('ttclid')) return 'Quảng cáo TikTok (TikTok Ads)';
+      if (params.has('fbclid')) return paid ? 'Quảng cáo Facebook (Meta Ads)' : 'Facebook';
+      try {
+        const referring = new URL(rawReferrer);
+        if (referring.origin === new URL(href).origin) return 'Truy cập trực tiếp';
+        const host = referring.hostname.toLowerCase();
+        const isHost = domain => host === domain || host.endsWith('.' + domain);
+        if (['facebook.com','fb.com','instagram.com'].some(isHost)) return paid ? 'Quảng cáo Facebook (Meta Ads)' : 'Facebook';
+        if (isHost('tiktok.com')) return 'TikTok';
+        if (/^(.*\.)?google\.[a-z.]+$/.test(host)) return 'Tìm kiếm Google';
+        if (['x.com','twitter.com','t.co'].some(isHost)) return 'X (Twitter)';
+        if (['threads.net','threads.com'].some(isHost)) return 'Threads';
+        if (['zalo.me','zaloapp.com','zalo.vn'].some(isHost)) return 'Zalo Chat';
+        if (['bing.com','coccoc.com','chatgpt.com','perplexity.ai','claude.ai'].some(isHost)) return 'Tìm kiếm & AI Research';
+        return 'Giới thiệu: ' + host;
+      } catch(e) {}
       return 'Truy cập trực tiếp';
     }
 
-    const _urlParams = new URLSearchParams(window.location.search);
-    const _fbclid = _urlParams.get('fbclid') || '';
-    const _utmSource = _urlParams.get('utm_source') || '';
-    const _utmCampaign = _urlParams.get('utm_campaign') || '';
-
-    // Dữ liệu khách truy cập (Chạy ngầm, không hiện ra ngoài cho khách)
-    let visitorData = {
-      ip: '',
-      location: '',
-      device: navigator.userAgent.includes('Mobile') ? 'Điện thoại' : 'Máy tính',
-      browser: /Edg\//.test(navigator.userAgent) ? 'Microsoft Edge' : /Firefox\//.test(navigator.userAgent) ? 'Firefox' : /Chrome\//.test(navigator.userAgent) ? 'Google Chrome' : /Safari\//.test(navigator.userAgent) ? 'Safari' : 'Trình duyệt khác',
-      referrer: getTrafficSource(),
-      fullUrl: window.location.href,
-      rawReferrer: document.referrer || '',
-      fbclid: _fbclid,
-      utmSource: _utmSource,
-      utmCampaign: _utmCampaign,
-      utmMedium: _urlParams.get('utm_medium') || '',
-      utmContent: _urlParams.get('utm_content') || '',
-      utmTerm: _urlParams.get('utm_term') || '',
-      gclid: _urlParams.get('gclid') || '',
-      ttclid: _urlParams.get('ttclid') || '',
-      userAgent: navigator.userAgent,
-      landingAt: new Date().toISOString(),
-      isFromAd: Boolean(_fbclid || _utmSource || _utmCampaign)
-    };
-
-    // Keep attribution across refreshes and the customer's return from their banking app.
-    try {
-      const cached = JSON.parse(sessionStorage.getItem('crm_attribution') || 'null');
-      const externalRef = document.referrer && new URL(document.referrer).origin !== window.location.origin;
-      const tagged = _urlParams.has('utm_source') || _urlParams.has('fbclid') || _urlParams.has('gclid') || _urlParams.has('ttclid');
-      if (cached && !externalRef && !tagged) visitorData = Object.assign(visitorData, cached);
-      visitorData.sessionId = visitorData.sessionId || crypto.randomUUID();
-      sessionStorage.setItem('crm_attribution', JSON.stringify(visitorData));
-    } catch(e) {}
+    function createVisitorData() {
+      const url = new URL(window.location.href);
+      const params = url.searchParams;
+      const data = {
+        ip: '', location: '',
+        device: /Mobile|Android|iPhone|iPad/.test(navigator.userAgent) ? 'Điện thoại' : 'Máy tính',
+        browser: /Edg\//.test(navigator.userAgent) ? 'Microsoft Edge' : /Firefox\//.test(navigator.userAgent) ? 'Firefox' : /Chrome\//.test(navigator.userAgent) ? 'Google Chrome' : /Safari\//.test(navigator.userAgent) ? 'Safari' : 'Trình duyệt khác',
+        referrer: getTrafficSource(), fullUrl: url.href, rawReferrer: document.referrer || '',
+        fbclid: params.get('fbclid') || '', utmSource: params.get('utm_source') || '',
+        utmCampaign: params.get('utm_campaign') || '', utmMedium: params.get('utm_medium') || '',
+        utmContent: params.get('utm_content') || '', utmTerm: params.get('utm_term') || '',
+        gclid: params.get('gclid') || '', ttclid: params.get('ttclid') || '',
+        userAgent: navigator.userAgent, landingAt: new Date().toISOString(),
+        sessionId: crypto.randomUUID(), attributionVersion: 2,
+        attributionUpdatedAt: Date.now(),
+        isFromAd: /^(cpc|ppc|paid|paid_social|paid_search|paid-social|display|cpm|cpv|ads)$/i.test(params.get('utm_medium') || '') || Boolean(params.get('gclid') || params.get('ttclid'))
+      };
+      try {
+        const cached = JSON.parse(sessionStorage.getItem('crm_attribution') || 'null');
+        const comparableUrl = value => { const u = new URL(value); u.hash = ''; return u.href; };
+        const navigation = typeof performance !== 'undefined' && performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
+        const restoring = navigation && ['reload','back_forward'].includes(navigation.type);
+        const externalRef = document.referrer && new URL(document.referrer).origin !== url.origin;
+        const age = cached ? Date.now() - Number(cached.attributionUpdatedAt) : Infinity;
+        // Keep a reload of the same link; a different URL starts a fresh visit, including ref/source-only links.
+        if (cached && cached.attributionVersion === 2 && age >= 0 && age < 30 * 60 * 1000 &&
+            comparableUrl(cached.fullUrl) === comparableUrl(url.href) && (!externalRef || restoring)) {
+          data.sessionId = cached.sessionId || data.sessionId;
+          data.landingAt = cached.landingAt || data.landingAt;
+          data.referrer = cached.referrer || data.referrer;
+          data.rawReferrer = cached.rawReferrer || data.rawReferrer;
+        }
+        sessionStorage.setItem('crm_attribution', JSON.stringify(data));
+      } catch(e) {}
+      return data;
+    }
+    let visitorData = createVisitorData();
     function orderTracking() { return Object.assign({}, visitorData, {domain: window.location.hostname.toLowerCase()}); }
     const completingOrders = new Set();
     let firstPollTimeout = null;
@@ -1940,20 +1925,9 @@
 
       // Gửi đồng bộ lượt truy cập tập trung về máy chủ (Server Backend)
       try {
-        const visitPayload = {
-          time: new Date().toLocaleString('vi-VN'),
-          ip: visitorData.ip || '',
-          location: visitorData.location || '',
-          device: visitorData.device || 'Thiết bị di động/PC',
-          browser: visitorData.browser || 'Trình duyệt Web',
-          domain: (window.location.hostname || window.location.host || '').toLowerCase(),
-          referrer: visitorData.referrer || 'Truy cập trực tiếp',
-          fullUrl: window.location.href,
-          rawReferrer: document.referrer || '(Trực tiếp / Bookmark)',
-          fbclid: (new URLSearchParams(window.location.search)).get('fbclid') || '',
-          utmSource: (new URLSearchParams(window.location.search)).get('utm_source') || '',
-          utmCampaign: (new URLSearchParams(window.location.search)).get('utm_campaign') || ''
-        };
+        const visitPayload = Object.assign({}, orderTracking(), {
+          time: new Date().toLocaleString('vi-VN', {timeZone: 'Asia/Ho_Chi_Minh'})
+        });
 
         // Gửi ngầm tới backend (không làm chậm trang web)
         smartApiFetch('/api/track-visit', {
@@ -2239,7 +2213,7 @@
       });
       visitorReady.then(() => {
         if (!pendingSnapshot.paymentComplete) {
-          Object.assign(pendingSnapshot, orderTracking());
+          for (const key of ['ip', 'location']) if (visitorData[key]) pendingSnapshot[key] = visitorData[key];
           syncCustomerOrder(Object.assign({}, pendingSnapshot));
         }
       }).catch(() => {});
@@ -2838,8 +2812,8 @@
         });
 
         const newOrder = {
-          ...completingOrder,
           ...orderTracking(),
+          ...completingOrder,
           createdAt: completingOrder.createdAt,
           paidAt: (txData && (txData.paidAt || txData.transactionDateTime || txData.time)) || new Date().toISOString(),
           orderId: custOrderId,
@@ -2852,18 +2826,10 @@
           couponCode: couponCode,
           discountAmount: discountAmt,
           memo: custMemo,
-          domain: (window.location.hostname || window.location.host || '').toLowerCase(),
-          time: new Date().toLocaleString('vi-VN'),
-          ip: (typeof visitorData !== 'undefined' && visitorData && visitorData.ip) ? visitorData.ip : '',
-          location: (typeof visitorData !== 'undefined' && visitorData && visitorData.location) ? visitorData.location : '',
-          device: (typeof visitorData !== 'undefined' && visitorData && visitorData.device) ? visitorData.device : 'Điện thoại/PC',
-          referrer: (typeof visitorData !== 'undefined' && visitorData && visitorData.referrer) ? visitorData.referrer : 'Trực tiếp',
-          fullUrl: (typeof visitorData !== 'undefined' && visitorData && visitorData.fullUrl) ? visitorData.fullUrl : window.location.href,
-          rawReferrer: (typeof visitorData !== 'undefined' && visitorData && visitorData.rawReferrer) ? visitorData.rawReferrer : (document.referrer || ''),
-          fbclid: (typeof visitorData !== 'undefined' && visitorData && visitorData.fbclid) ? visitorData.fbclid : '',
-          utmSource: (typeof visitorData !== 'undefined' && visitorData && visitorData.utmSource) ? visitorData.utmSource : '',
-          utmCampaign: (typeof visitorData !== 'undefined' && visitorData && visitorData.utmCampaign) ? visitorData.utmCampaign : '',
-          isFromAd: (typeof visitorData !== 'undefined' && visitorData && visitorData.isFromAd) ? visitorData.isFromAd : false,
+          domain: completingOrder.domain || window.location.hostname.toLowerCase(),
+          time: new Date().toLocaleString('vi-VN', {timeZone: 'Asia/Ho_Chi_Minh'}),
+          ip: completingOrder.ip || visitorData.ip || '',
+          location: completingOrder.location || visitorData.location || '',
 
           licenseLink: licenseLink,
           status: hasRealLink ? 'Đã thanh toán (MBBank)' : 'Đã thanh toán (Chờ cấp link)',

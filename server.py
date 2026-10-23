@@ -988,29 +988,30 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 else:
                     devices["other"] = devices.get("other", 0) + 1
 
-                # Phân loại nguồn
-                ref = (body.get("referrer") or body.get("rawReferrer") or "").lower()
-                full_url = (body.get("fullUrl") or "").lower()
-                sources = visits_data.setdefault("sources", {"facebook": 0, "tiktok": 0, "google": 0, "zalo": 0, "direct": 0, "other": 0})
-                
-                if "facebook" in ref or "fb" in ref or "fbclid" in full_url:
-                    sources["facebook"] = sources.get("facebook", 0) + 1
-                    ref_label = "Facebook Ads" if ("fbclid" in full_url or "ads" in ref) else "Facebook"
-                elif "tiktok" in ref or "ttclid" in full_url:
-                    sources["tiktok"] = sources.get("tiktok", 0) + 1
-                    ref_label = "TikTok Ads" if "ttclid" in full_url else "TikTok"
-                elif "google" in ref or "search" in ref or "gclid" in full_url:
-                    sources["google"] = sources.get("google", 0) + 1
-                    ref_label = "Google Search"
+                # The browser resolves explicit URL tags before referrers. Preserve that label.
+                ref_label = str(body.get("referrer") or "").strip()
+                ref = (ref_label or body.get("rawReferrer") or "").lower()
+                query = urllib.parse.parse_qs(urllib.parse.urlparse(body.get("fullUrl") or "").query)
+                sources = visits_data.setdefault("sources", {})
+                if "facebook" in ref or ref in ("fb", "meta") or (not ref_label and "fbclid" in query):
+                    source = "facebook"
+                    ref_label = ref_label or "Facebook"
+                elif "tiktok" in ref or (not ref_label and "ttclid" in query):
+                    source = "tiktok"
+                    ref_label = ref_label or "TikTok"
+                elif "google" in ref or (not ref_label and "gclid" in query):
+                    source = "google"
+                    ref_label = ref_label or "Tìm kiếm Google"
                 elif "zalo" in ref:
-                    sources["zalo"] = sources.get("zalo", 0) + 1
-                    ref_label = "Zalo Chat"
-                elif not ref or "trực tiếp" in ref or "direct" in ref:
-                    sources["direct"] = sources.get("direct", 0) + 1
-                    ref_label = "Truy cập trực tiếp"
+                    source = "zalo"
+                    ref_label = ref_label or "Zalo Chat"
+                elif not ref or "trực tiếp" in ref or ref in ("direct", "truc tiep"):
+                    source = "direct"
+                    ref_label = ref_label or "Truy cập trực tiếp"
                 else:
-                    sources["other"] = sources.get("other", 0) + 1
-                    ref_label = body.get("referrer") or "Khác"
+                    source = "other"
+                    ref_label = ref_label or "Khác"
+                sources[source] = sources.get(source, 0) + 1
 
                 # Trích xuất và phân loại Tên Miền (Multi-Domain Tracking)
                 domain = str(body.get("domain") or "").strip().lower()
@@ -1041,6 +1042,8 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                     "fullUrl": full_url_str,
                     "rawReferrer": body.get("rawReferrer") or ""
                 }
+                for key in ("utmSource", "utmMedium", "utmCampaign", "utmContent", "utmTerm", "fbclid", "gclid", "ttclid", "sessionId", "landingAt", "userAgent"):
+                    visit_entry[key] = body.get(key) or ""
 
                 visits_list = visits_data.setdefault("visits", [])
                 visits_list.insert(0, visit_entry)

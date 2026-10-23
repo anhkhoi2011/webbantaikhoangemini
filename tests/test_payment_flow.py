@@ -104,6 +104,18 @@ class PaymentFlowTests(unittest.TestCase):
         self.assertEqual(calls[-1]["utmCampaign"], "Campaign")
         self.assertEqual(calls[-1]["ip"], "203.0.113.5")
         self.assertEqual(calls[-1]["action"], "pending_order")
+    def test_visit_keeps_explicit_source_and_full_tracking(self):
+        payload = dict(self.order, referrer="Zalo Chat", fullUrl="https://example.invalid/?utm_source=zalo&fbclid=old", utmSource="zalo", utmMedium="zalo", utmContent="new_link", sessionId="VISIT-1", landingAt="2026-10-23T05:00:00Z")
+        self.post("/api/track-visit", payload)
+        data = server.read_json_file(server.VISITS_FILE, {})
+        self.assertEqual(data["sources"].get("zalo"), 1)
+        self.assertEqual(data["sources"].get("facebook", 0), 0)
+        visit = data["visits"][0]
+        for key in ("referrer", "fullUrl", "utmSource", "utmMedium", "utmContent", "sessionId", "landingAt"):
+            self.assertEqual(visit[key], payload[key])
+        self.post("/api/track-visit", {"referrer": "Truy cập trực tiếp", "fullUrl": "https://example.invalid/"})
+        self.assertEqual(server.read_json_file(server.VISITS_FILE, {})["sources"]["direct"], 1)
+
     def test_old_script_rejected_without_posting(self):
         server.write_json_file("payment_config.json", {"googleSheetWebhookUrl": "https://example.invalid/webhook"})
         class Response:

@@ -86,6 +86,19 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
  const result=e.post({...base,action:'new_order',orderId:'#OTHER',paymentTxId:'early-bank',name:'Wrong customer'});
  assert.equal(result.status,'error');assert.equal(e.sheets.get('DON_HANG').rows[1][4],before);
  assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).columns,40);
+ assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).build,'2026-10-23-attribution');
  assert.equal(e.ctx.money_(90000.0),90000);assert.equal(e.ctx.money_('90.000đ'),90000);assert.equal(e.ctx.money_('-90000'),-90000);
+}
+{
+ const e=environment();
+ const longUrl='https://example.invalid/?utm_source=zalo&utm_medium=zalo&utm_campaign='+('campaign'.repeat(20))+'&utm_content=EXPECTED_END';
+ e.post({...base,action:'new_order',fullUrl:longUrl});
+ assert.ok(e.sends[0].text.includes('utm_content=EXPECTED_END'),'Telegram must retain an ordinary full campaign URL beyond 90 characters');
+ assert.equal(e.sheets.get('DON_HANG').rows[1][19],longUrl);
+ const crowded=environment();
+ const huge='&'.repeat(3000);
+ crowded.post({...base,action:'new_order',fullUrl:huge,name:huge,email:huge,phone:huge,referrer:huge,rawReferrer:huge,location:huge,userAgent:huge,utmCampaign:huge,utmContent:huge,licenseLink:huge});
+ assert.ok(crowded.sends[0].text.length<=4000,'oversized metadata must stay within Telegram message budget');
+ assert.equal(crowded.sheets.get('DON_HANG').rows[1][19],huge,'Sheet keeps the original full URL');
 }
 console.log('PASS Apps Script: routing, four retries, changed UUID, row upsert, tracking, two chats, partial failure retry, late pending, unmatched/debit/pending events');
