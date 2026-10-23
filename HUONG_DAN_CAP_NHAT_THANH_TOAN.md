@@ -1,57 +1,46 @@
-Bản sửa thanh toán và thông báo ngày 23/10/2026
+Bản sửa ngày 23/10/2026 — build 2026-10-23-visit-orders
 
-Đã sửa lỗi payload new_order có amount bị nhận nhầm là webhook ngân hàng. Một mã đơn cập nhật một dòng, giao dịch gửi lại không tạo UUID/đơn mới. Apps Script dùng khóa khi ghi Sheet và lưu trạng thái Telegram theo từng chat. Nhóm cũ -1004413665683 và nhóm mới -5585627393 đều nhận đơn.
+Mục tiêu: nối đúng lượt truy cập → link/nguồn → mã đơn → thanh toán → Telegram và Google Sheet.
+Tài liệu này hướng dẫn tích hợp Google Sheet đang dùng. Chưa có URL hoặc cấu hình một Google Form riêng.
 
-Google Sheet giữ 12 cột cũ và bổ sung thành 40 cột: tên miền; lúc tạo đơn, thanh toán, vào trang; IP/vị trí ước lượng; thiết bị/trình duyệt; URL/referrer; UTM source/medium/campaign/content/term; fbclid/gclid/ttclid; mã/khóa giao dịch; cổng thanh toán; voucher/giảm giá; phiên truy cập; user agent và trạng thái gửi. Giá trị không có dữ liệu được để trống hoặc ghi Không xác định. Thời gian hiển thị GMT+7. Telegram rút gọn giá trị quá dài; Sheet giữ dữ liệu đầy đủ.
+Dữ liệu được ghi
 
-Thứ tự cập nhật bắt buộc:
+- DON_HANG: 41 cột. Giữ nguyên vị trí 40 cột cũ, thêm Mã lượt truy cập ở cột 41.
+- TRUY_CAP: 25 cột. Giữ nguyên 18 cột cũ; thêm mã lượt, giờ vào trang, mã đơn tạo ra từ lượt này, mã đơn đã thanh toán, trạng thái từng đơn, giờ thanh toán và giờ tạo đơn. Thời gian hiển thị GMT+7.
+- Một lượt có thể tạo nhiều đơn: các mã đơn và trạng thái được ghi trên cùng dòng lượt truy cập. Lượt chưa tạo đơn để trống mã đơn.
+- Mỗi lần tải trang có visitId mới; tải lại cùng URL có thể giữ sessionId trong 30 phút nhưng vẫn là một lượt mới. Gửi lại dữ liệu hoặc bổ sung IP dùng cùng visitId nên không tăng lượt.
+- Đơn mới có visitId đã được ghi nhận sẽ lấy link/nguồn từ lượt đó. Sau khi tạo, các lần gửi lại giữ nguyên nguồn, URL, UTM, click ID và mã lượt của đơn, kể cả UTM ban đầu trống. IP/vị trí có thể được bổ sung.
+- Đơn và lượt nối bằng visitId, không dựa vào IP/số điện thoại. Dữ liệu cũ thiếu visitId chỉ nối theo sessionId + đúng URL khi duy nhất một lượt có thể khớp; trường hợp không rõ để trống.
+- Telegram thông báo đơn đã thanh toán về cả -1004413665683 và -5585627393, có mã đơn, mã lượt, mã phiên, URL, nguồn, chiến dịch, giờ tạo/thanh toán/vào trang, IP/vị trí ước lượng và thông tin khách.
+- Một mã đơn chỉ có một thông báo mỗi chat. Khi có link cấp sau đó, sửa tin đã gửi; lỗi một chat chỉ thử lại chat đó. Đồng bộ im lặng sync_order không gửi/sửa Telegram hay gửi email.
+- Telegram có giới hạn độ dài nên thông tin quá dài có dấu …; Sheet giữ URL/UTM đầy đủ. Không tự suy ra nguồn/IP/vị trí chưa thu thập được.
 
-1. Mở project Apps Script hiện đang liên kết trong payment_config.json (appsScriptProjectUrl).
-2. Thay nội dung file script trong project Google bằng toàn bộ GoogleAppsScript_CRM_AutoBot.js ở thư mục này rồi lưu.
-3. Chọn Deploy → Manage deployments → biểu tượng sửa của Web App đang dùng → Version: New version → Deploy. Dùng lại deployment hiện tại để giữ nguyên URL /exec trong cấu hình.
-4. Mở URL googleSheetWebhookUrl kèm ?action=health. Phản hồi phải có protocolVersion: 2 và columns: 40.
-5. Cập nhật các file website/backend từ thư mục này lên hosting đang chạy. Nếu chạy Windows, khởi động lại START_SERVER.bat/server.ps1; server.ps1 hiện gọi backend Python chung để tránh ba phiên bản xử lý khác nhau. Máy cần Python 3.8+.
-6. Vào Admin → Đồng bộ toàn bộ đơn sang Google Sheet để cập nhật dữ liệu cũ. Đồng bộ dùng sync_order: cập nhật cùng mã đơn, không gửi lại Telegram/email hay cấp thêm link. Chỉ có thể bổ sung các trường đã từng thu thập; không thể suy ra IP/nguồn khách chưa được lưu trước đây.
-7. Thử một giao dịch mới có nội dung chuyển khoản riêng của đơn. Kiểm tra DON_HANG, GIAO_DICH và cả hai chat Telegram. Không tự tạo đơn thanh toán giả trong dữ liệu thật để kiểm tra.
+Cập nhật lên hệ thống thật
 
-Backend kiểm tra protocolVersion trước khi gửi đơn để không gửi payload mới vào Apps Script cũ đang lỗi. Python tự thử lại cập nhật Sheet/Telegram còn thiếu mỗi 30 giây; trình duyệt giữ các đơn chờ đồng bộ trong localStorage và thử lại khi online. PHP thử đồng bộ khi đơn được ghi/kiểm tra hoặc webhook tới; có thể dùng nút đồng bộ Admin nếu cần gửi lại sau lỗi mạng. Phản hồi no-cors từ trình duyệt không được coi là xác nhận ghi thành công.
+1. Mở Apps Script đang dùng, thay toàn bộ nội dung bằng GoogleAppsScript_CRM_AutoBot.js rồi lưu.
+2. Deploy → Manage deployments → sửa Web App hiện tại → Version: New version → Deploy. Giữ nguyên URL /exec.
+3. Mở URL /exec thêm ?action=health. Phải thấy: protocolVersion: 2, build: 2026-10-23-visit-orders, columns: 41, trafficColumns: 25.
+4. Trên Vibe Host, mở đúng ứng dụng và bấm Triển khai lại từ main mới nhất. Máy chủ dùng Dockerfile Python tại gốc repo. Công tắc tự triển khai hiện tắt nên Git push chưa tự cập nhật website.
+5. Mở website lại để nhận JavaScript mới. Dùng URL quảng cáo có utm_source=facebook&utm_medium=paid_social; thêm chiến dịch/nhóm/mẫu trong các trường UTM tương ứng. Link sạch không đủ bằng chứng để xác nhận quảng cáo Facebook.
+6. Dùng lượt truy cập và giao dịch hợp lệ tiếp theo để kiểm tra: visitId trong TRUY_CAP = visitId trong DON_HANG = Mã lượt truy cập trong Telegram; URL/nguồn phải giống nhau, mã đơn đã thanh toán chỉ có khi đã thanh toán.
 
-Việc triển khai lên tài khoản Google cần phiên đăng nhập/quyền sở hữu Apps Script. File local không tự thay đổi Web App đã triển khai. Khi kiểm tra ngày 23/10/2026, Web App hiện tại vẫn trả health bản cũ, chưa có protocolVersion. Chat mới đã nhận được một tin kiểm tra kết nối (message_id 4).
+Độ tin cậy và giới hạn
 
-Kiểm thử tại thư mục project:
+- Website ghi lượt ngay khi vào trang rồi bổ sung IP trên cùng mã. Backend lưu dữ liệu trước khi trả thành công và có luồng riêng thử lại đồng bộ lượt với Sheet; luồng thanh toán chạy riêng.
+- Apps Script cũ chưa hỗ trợ upsert lượt sẽ không nhận lượt gửi lại từ bản mới, tránh tăng lượt ảo. Trong thời gian chờ cập nhật Google, backend giữ lượt chờ đồng bộ.
+- Trình duyệt giữ lượt/đơn chưa được backend xác nhận trong localStorage và thử lại khi online hoặc theo lịch. Phản hồi no-cors không được coi là đã ghi Sheet thành công. Backend từ chối dữ liệu thì trình duyệt không chuyển vòng qua Apps Script.
+- Nếu khách chặn toàn bộ tracking, xóa bộ nhớ trước khi gửi được dữ liệu, hoặc mất mạng rồi không quay lại, không thể bảo đảm thu được lượt đó. Vị trí theo IP chỉ là ước lượng.
+- Backend hiện giữ tối đa 1.000 lượt và 500 đơn trong các file JSON; Sheet là nơi lưu lịch sử đã đồng bộ. Hosting chưa được xác minh có ổ lưu trữ bền qua redeploy. Cần giữ bản sao dữ liệu trước khi triển khai; bản sao orders thật đã lưu ở Downloads khi kiểm tra trước đó.
+- Dán code local không tự cập nhật Web App Google. Mình chưa có phiên đăng nhập/quyền triển khai Google để làm thay thao tác này.
+- Bản sửa không tự sửa lịch sử đã ghi sai nguồn từ đầu và không tự tạo link bản quyền khi kho chưa có link.
+
+Kiểm thử local (dữ liệu tạm/mô phỏng, không tạo đơn hoặc tin Telegram thật)
 
     node tests/test_apps_script.cjs
     node tests/test_checkout.cjs
-    python -m unittest discover -s tests -p test_payment_flow.py -v
+    node tests/test_attribution.cjs
+    node tests/test_visit_sync.cjs
+    node tests/test_sales_reporting.cjs
+    python -m unittest discover -s tests -p test_payment_flow.py -q
 
-Các kiểm thử dùng dữ liệu tạm/mô phỏng, không gửi đơn/email/Telegram thật và không sửa orders.json thực tế.
-
-
-Cập nhật bổ sung nguồn khách và thống kê theo link:
-
-- Link khác (kể cả chỉ dùng ref/source hoặc chỉ đổi chiến dịch) tạo ngữ cảnh truy cập mới; không dùng nguồn và UTM của link trước. Tải lại cùng link giữ phiên trong 30 phút; bộ nhớ phiên cũ được làm mới tự động.
-- Đơn giữ link, nguồn và chiến dịch tại lúc tạo. Khi khách quay lại từ ngân hàng hoặc mở link khác, bước hoàn tất không ghi đè nguồn của đơn bằng phiên mới.
-- Nhật ký truy cập backend giữ nhãn nguồn và toàn bộ UTM. Admin lọc tên miền không dùng tổng lượt truy cập toàn hệ thống; nguồn tùy chỉnh vào nhóm Khác, không bị gộp thành trực tiếp/X hoặc tự gắn nhãn quảng cáo.
-- Telegram giữ URL chiến dịch thông thường dài hơn 90 ký tự. Tin quá dài vẫn được rút gọn có dấu … để vừa giới hạn; Google Sheet giữ URL đầy đủ. Thay đổi Telegram cần dán và triển khai lại Apps Script, dù health vẫn là protocolVersion 2/40 cột.
-- Không tự sửa dữ liệu đơn cũ hoặc gửi lại thông báo cũ: cần link gốc để đối chiếu, không suy đoán dữ liệu bị thiếu.
-- Kiểm thử bổ sung: node tests/test_attribution.cjs.
-
-- Để xác nhận đúng bản sửa nguồn khách mới nhất, health cần có thêm build: 2026-10-23-payments.
-
-Rà soát bổ sung thanh toán và doanh thu:
-
-- Nhánh tra cứu Apps Script dùng cùng bộ đọc tiền với webhook: 90000.00 là 90.000đ; không xóa dấu thập phân rồi tăng sai số tiền.
-- Doanh thu, chuyển đổi mua hàng và báo cáo ngày chỉ tính đơn có trạng thái đã thanh toán; đơn chờ/hủy không cộng vào tiền đã thu. Số tiền không có dữ liệu không tự gán 90.000đ.
-- Thống kê ngày chuẩn hóa ngày có/không số 0 và thời điểm ISO về GMT+7; ưu tiên paidAt cho doanh thu ngày thanh toán. Bộ lọc nguồn áp dụng đồng thời cho lượt truy cập và đơn đã thanh toán.
-
-
-Cập nhật nguồn khách và tin Telegram: 2026-10-23-source-lock
-
-- Website hiện chạy Python qua Dockerfile trên Vibe Host. Git push không tự cập nhật website khi công tắc tự triển khai đang tắt; cần bấm Triển khai lại.
-- Khi tạo đơn, lưu URL, nguồn, UTM, click ID, phiên và thời gian vào trang thành một bộ dữ liệu. Các lần đồng bộ sau giữ bộ dữ liệu ban đầu, kể cả trường UTM để trống, tránh bản Zalo cũ ghi đè Facebook. IP/vị trí vẫn được bổ sung nếu có dữ liệu.
-- Website kiểm tra lại URL lúc tạo đơn nếu trang đổi URL trong cùng phiên. Backend lấy tên miền từ URL và từ chối đơn mới có URL khác nguồn Origin của trình duyệt đã được cho phép.
-- Apps Script giữ nguồn ban đầu và sửa tin Telegram đã gửi khi có link cấp, không gửi thêm một tin đơn mới. Lỗi sửa tin ở một chat chỉ thử lại chat đó. Đồng bộ im lặng sync_order vẫn không sửa/gửi Telegram.
-- Thay Apps Script bằng file mới rồi chọn phiên bản triển khai mới trên URL /exec hiện tại. Kiểm tra health phải có build: 2026-10-23-source-lock. Số cột vẫn là 40.
-- Link sạch không cung cấp bằng chứng rằng khách đến từ quảng cáo. Trong quảng cáo Facebook, dùng URL có utm_source=facebook&utm_medium=paid_social; có thể thêm chiến dịch, nhóm và mẫu quảng cáo trong mục tham số URL của quảng cáo. Không tự gán toàn bộ đơn trên geminigiare.io.vn thành Facebook.
-- Đơn cũ có dữ liệu sai ngay từ lần ghi đầu không thể tự khôi phục nguồn/campaign. Cần đối chiếu bằng chứng của đúng mã đơn. Bản sửa không chỉnh hàng loạt lịch sử thành Facebook.
-- Kiểm thử mới tái hiện đơn Facebook bị đồng bộ Zalo gửi muộn ghi đè ở cả Python và Apps Script, giữ UTM trống, đổi URL trong cùng trang, chặn chuyển tiếp payload bị backend từ chối, sửa Telegram khi có link và thử lại từng chat.
+Kiểm tra live ngày 23/10/2026 trước khi triển khai bản này: Apps Script vẫn báo build 2026-10-23-payments / 40 cột; cả geminigiare.io.vn và tên miền hosting chưa có JavaScript visitId/source-lock mới.

@@ -262,7 +262,7 @@ if (strpos($requestUri, '/api/track-visit') !== false && $method === 'POST') {
     else { $source = 'other'; $refLabel = $refLabel ?: 'Khác'; }
     $data['sources'][$source] = intval($data['sources'][$source] ?? 0) + 1;
     $entry = ['time' => $body['time'] ?? date('H:i:s d/m/Y'), 'ip' => $body['ip'] ?? ($_SERVER['REMOTE_ADDR'] ?? ''), 'location' => $body['location'] ?? 'Việt Nam', 'device' => $device, 'browser' => $body['browser'] ?? 'Trình duyệt Web', 'domain' => $body['domain'] ?? '', 'referrer' => $refLabel, 'fullUrl' => $body['fullUrl'] ?? '', 'rawReferrer' => $body['rawReferrer'] ?? ''];
-    foreach (['utmSource', 'utmMedium', 'utmCampaign', 'utmContent', 'utmTerm', 'fbclid', 'gclid', 'ttclid', 'sessionId', 'landingAt', 'userAgent'] as $key) $entry[$key] = $body[$key] ?? '';
+    foreach (['utmSource', 'utmMedium', 'utmCampaign', 'utmContent', 'utmTerm', 'fbclid', 'gclid', 'ttclid', 'sessionId', 'visitId', 'visitedAt', 'landingAt', 'userAgent'] as $key) $entry[$key] = $body[$key] ?? '';
     array_unshift($data['visits'], $entry); $data['visits'] = array_slice($data['visits'], 0, 1000);
     writeJsonFile('visits.json', $data);
     echo json_encode(['status' => 'success', 'totalVisits' => $data['totalVisits'], 'todayVisits' => $data['todayVisits']]); exit();
@@ -316,7 +316,7 @@ function saveOrder($body) {
         foreach (['paidNotified','telegramSent','emailSent','sheetSyncError','sheetSyncedHash','couponCounted'] as $flag) unset($body[$flag]);
         $order = array_replace($previous, array_filter($body, function($value) { return $value !== '' && $value !== null; }));
         if (!empty($previous['fullUrl'])) {
-            foreach (['fullUrl','domain','referrer','rawReferrer','utmSource','utmMedium','utmCampaign','utmContent','utmTerm','fbclid','gclid','ttclid','sessionId','landingAt','isFromAd','attributionVersion','attributionUpdatedAt'] as $key) {
+            foreach (['fullUrl','domain','referrer','rawReferrer','utmSource','utmMedium','utmCampaign','utmContent','utmTerm','fbclid','gclid','ttclid','sessionId','visitId','visitedAt','landingAt','isFromAd','attributionVersion','attributionUpdatedAt'] as $key) {
                 $order[$key] = $previous[$key] ?? '';
             }
         } elseif (!empty($order['fullUrl'])) {

@@ -43,6 +43,8 @@ COUPONS_FILE = "coupons.json"
 COUPONS_LOCK = threading.Lock()
 VISITS_FILE = "visits.json"
 VISITS_LOCK = threading.Lock()
+VISIT_SYNC_LOCK = threading.Lock()
+VISIT_SYNC_EVENT = threading.Event()
 ADMIN_TOKENS = {}
 ADMIN_TOKEN_TTL = 8 * 60 * 60
 DEFAULT_ADMIN_HASH = "c5bc82fc5c9d4553a39af5ea2f18257e2ba60b2822fdf93725abcd4451c0bada"
@@ -196,7 +198,7 @@ def successful_tx(tx):
 ORDER_TRACKING_FIELDS = (
     "fullUrl", "domain", "referrer", "rawReferrer", "utmSource", "utmMedium",
     "utmCampaign", "utmContent", "utmTerm", "fbclid", "gclid", "ttclid",
-    "sessionId", "landingAt", "isFromAd", "attributionVersion", "attributionUpdatedAt",
+    "sessionId", "visitId", "visitedAt", "landingAt", "isFromAd", "attributionVersion", "attributionUpdatedAt",
 )
 
 def preserve_order_tracking(previous, updated):
@@ -259,6 +261,81 @@ def sync_order_integrations(order_id):
 def queue_order_sync(order_id):
     threading.Thread(target=sync_order_integrations, args=(order_id,), daemon=True).start()
 
+def visit_payload(visit):
+    fields = (*ORDER_TRACKING_FIELDS, "ip", "location", "device", "browser", "userAgent", "time")
+    return {"action": "track_visit", **{key: visit.get(key, "") for key in fields}}
+
+
+def visit_digest(visit):
+    return hashlib.sha256(json.dumps(visit_payload(visit), sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+
+
+def refresh_visit_order_links():
+    # Never acquire ORDER_LOCK while holding VISITS_LOCK.
+    with ORDER_LOCK:
+        orders = read_json_file("orders.json", [])
+    with VISITS_LOCK:
+        data = read_json_file(VISITS_FILE, {})
+        visits = data.get("visits", [])
+        by_id = {v["visitId"]: v for v in visits if v.get("visitId")}
+        by_session_url = {}
+        for visit in visits:
+            by_session_url.setdefault((visit.get("sessionId"), visit.get("fullUrl")), []).append(visit)
+            visit.update(orderIds=[], paidOrderIds=[], orders=[])
+        for order in orders:
+            visit = by_id.get(order.get("visitId"))
+            if not order.get("visitId") and order.get("sessionId") and order.get("fullUrl"):
+                candidates = by_session_url.get((order["sessionId"], order["fullUrl"]), [])
+                visit = candidates[0] if len(candidates) == 1 else None
+            if visit is not None:
+                visit["orderIds"].append(order["orderId"])
+                if is_paid_order(order):
+                    visit["paidOrderIds"].append(order["orderId"])
+                visit["orders"].append({key: order.get(key, "") for key in ("orderId", "status", "createdAt", "paidAt")})
+        if visits:
+            write_json_file(VISITS_FILE, data)
+
+
+def sync_visit_integrations(visit_id):
+    if not visit_id:
+        return
+    with VISIT_SYNC_LOCK:
+        with VISITS_LOCK:
+            visit = next((dict(v) for v in read_json_file(VISITS_FILE, {}).get("visits", []) if v.get("visitId") == visit_id), None)
+        if not visit:
+            return
+        digest = visit_digest(visit)
+        if visit.get("sheetSyncedHash") == digest:
+            return
+        webhook = read_json_file("payment_config.json", {}).get("googleSheetWebhookUrl") or ""
+        if not webhook or "SAMPLE" in webhook:
+            return
+        try:
+            with urllib.request.urlopen(webhook + "?action=health", timeout=15) as response:
+                health = json.loads(response.read().decode("utf-8"))
+            if health.get("protocolVersion") != 2 or health.get("trafficColumns", 0) < 25:
+                raise ValueError("Cần cập nhật Apps Script hỗ trợ mã lượt truy cập")
+            req = urllib.request.Request(webhook, data=json.dumps(visit_payload(visit), ensure_ascii=False).encode("utf-8"), headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=25) as response:
+                result = json.loads(response.read().decode("utf-8"))
+            if result.get("status") != "success" or result.get("visitId") != visit_id:
+                raise ValueError("Sheet chưa xác nhận đúng mã lượt truy cập")
+            updates = {"sheetSyncedHash": digest, "sheetSyncError": "", "sheetSyncedAt": now_vn()}
+        except Exception as exc:
+            updates = {"sheetSyncError": type(exc).__name__ + ": Sheet chưa xác nhận lượt truy cập, sẽ gửi lại"}
+        with VISITS_LOCK:
+            data = read_json_file(VISITS_FILE, {})
+            current = next((v for v in data.get("visits", []) if v.get("visitId") == visit_id), None)
+            if current:
+                current.update(updates)
+                write_json_file(VISITS_FILE, data)
+
+
+def queue_visit_sync(visit_id):
+    if visit_id:
+        VISIT_SYNC_EVENT.set()
+
+
 def mark_order_paid(order_id, tx_id=None, tx_data=None, source="API Pay"):
     tx = dict(tx_data or {})
     with ORDER_LOCK:
@@ -299,6 +376,7 @@ def mark_order_paid(order_id, tx_id=None, tx_data=None, source="API Pay"):
             order["couponCounted"] = True
         write_json_file("orders.json", orders)
         result = dict(order)
+    refresh_visit_order_links()
     queue_order_sync(order_id)
     return result
 
@@ -958,122 +1036,67 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
 
         # 1.3 API: Ghi nhận lượt truy cập tập trung từ mọi thiết bị & IP
         if path == "/api/track-visit":
+            visit_id = str(body.get("visitId") or "").strip()
+            full_url = str(body.get("fullUrl") or "")
+            landing = urllib.parse.urlparse(full_url)
+            origin = self.headers.get("Origin", "").rstrip("/")
+            if origin in allowed_origins() and full_url and origin != f"{landing.scheme}://{landing.netloc}":
+                return self.send_json({"status": "error", "message": "URL lượt truy cập không khớp trang hiện tại"}, 409)
+            client_ip = (self.headers.get("CF-Connecting-IP") or self.headers.get("X-Forwarded-For") or self.client_address[0]).split(",")[0].strip()
+            ip = body.get("ip") or client_ip
+            if ip in ("127.0.0.1", "::1") and client_ip not in ("127.0.0.1", "::1"):
+                ip = client_ip
+            ua = self.headers.get("User-Agent", "")
+            device = body.get("device") or ("Điện thoại" if any(k in ua for k in ("Mobile", "Android", "iPhone", "iPad")) else "Máy tính")
+            domain = (landing.hostname or self.headers.get("Host", "").split(":")[0] or "Khác").lower()
+            label = str(body.get("referrer") or "").strip()
+            ref = (label or body.get("rawReferrer") or "").lower()
+            query = urllib.parse.parse_qs(landing.query)
+            if "facebook" in ref or ref in ("fb", "meta") or (not label and "fbclid" in query):
+                source, label = "facebook", label or "Facebook"
+            elif "tiktok" in ref or (not label and "ttclid" in query):
+                source, label = "tiktok", label or "TikTok"
+            elif "google" in ref or (not label and "gclid" in query):
+                source, label = "google", label or "Tìm kiếm Google"
+            elif "zalo" in ref:
+                source, label = "zalo", label or "Zalo Chat"
+            elif not ref or "trực tiếp" in ref or ref in ("direct", "truc tiep"):
+                source, label = "direct", label or "Truy cập trực tiếp"
+            else:
+                source, label = "other", label or "Khác"
             with VISITS_LOCK:
-                default_data = {
-                    "totalVisits": 0,
-                    "todayVisits": 0,
-                    "lastDate": datetime.now().strftime("%d/%m/%Y"),
-                    "devices": {"mobile": 0, "desktop": 0, "other": 0},
-                    "sources": {"facebook": 0, "tiktok": 0, "google": 0, "zalo": 0, "direct": 0, "other": 0},
-                    "visits": []
-                }
-                visits_data = read_json_file(VISITS_FILE, default_data)
-                
-                today_str = datetime.now().strftime("%d/%m/%Y")
-                if visits_data.get("lastDate") != today_str:
-                    visits_data["lastDate"] = today_str
-                    visits_data["todayVisits"] = 0
-
-                visits_data["totalVisits"] = int(visits_data.get("totalVisits", 0)) + 1
-                visits_data["todayVisits"] = int(visits_data.get("todayVisits", 0)) + 1
-
-                # Trích xuất IP thật từ proxy hoặc header
-                client_ip = self.headers.get("CF-Connecting-IP") or self.headers.get("X-Forwarded-For")
-                if client_ip:
-                    client_ip = client_ip.split(",")[0].strip()
+                data = read_json_file(VISITS_FILE, {"totalVisits": 0, "todayVisits": 0, "visits": []})
+                today = datetime.now(timezone(timedelta(hours=7))).strftime("%d/%m/%Y")
+                if data.get("lastDate") != today:
+                    data.update(lastDate=today, todayVisits=0)
+                visits = data.setdefault("visits", [])
+                existing = next((v for v in visits if visit_id and v.get("visitId") == visit_id), None)
+                if existing:
+                    # Attribution and counting remain fixed; retries only enrich the same visit.
+                    for key, value in (("ip", ip), ("location", body.get("location")), ("device", body.get("device")), ("browser", body.get("browser"))):
+                        if value:
+                            existing[key] = value
+                    entry = existing
                 else:
-                    client_ip = self.client_address[0]
-                
-                ip = body.get("ip") or client_ip or "127.0.0.1"
-                if ip in ["127.0.0.1", "::1"] and client_ip and client_ip not in ["127.0.0.1", "::1"]:
-                    ip = client_ip
-
-                # Trích xuất thiết bị
-                ua = self.headers.get("User-Agent", "")
-                device = body.get("device")
-                if not device:
-                    if any(k in ua for k in ["Mobile", "Android", "iPhone", "iPad"]):
-                        device = "Điện thoại"
-                    else:
-                        device = "Máy tính"
-
-                devices = visits_data.setdefault("devices", {"mobile": 0, "desktop": 0, "other": 0})
-                if "Mobile" in device or "Điện thoại" in device:
-                    devices["mobile"] = devices.get("mobile", 0) + 1
-                elif "Máy tính" in device or "PC" in device:
-                    devices["desktop"] = devices.get("desktop", 0) + 1
-                else:
-                    devices["other"] = devices.get("other", 0) + 1
-
-                # The browser resolves explicit URL tags before referrers. Preserve that label.
-                ref_label = str(body.get("referrer") or "").strip()
-                ref = (ref_label or body.get("rawReferrer") or "").lower()
-                query = urllib.parse.parse_qs(urllib.parse.urlparse(body.get("fullUrl") or "").query)
-                sources = visits_data.setdefault("sources", {})
-                if "facebook" in ref or ref in ("fb", "meta") or (not ref_label and "fbclid" in query):
-                    source = "facebook"
-                    ref_label = ref_label or "Facebook"
-                elif "tiktok" in ref or (not ref_label and "ttclid" in query):
-                    source = "tiktok"
-                    ref_label = ref_label or "TikTok"
-                elif "google" in ref or (not ref_label and "gclid" in query):
-                    source = "google"
-                    ref_label = ref_label or "Tìm kiếm Google"
-                elif "zalo" in ref:
-                    source = "zalo"
-                    ref_label = ref_label or "Zalo Chat"
-                elif not ref or "trực tiếp" in ref or ref in ("direct", "truc tiep"):
-                    source = "direct"
-                    ref_label = ref_label or "Truy cập trực tiếp"
-                else:
-                    source = "other"
-                    ref_label = ref_label or "Khác"
-                sources[source] = sources.get(source, 0) + 1
-
-                # Trích xuất và phân loại Tên Miền (Multi-Domain Tracking)
-                domain = str(body.get("domain") or "").strip().lower()
-                full_url_str = body.get("fullUrl") or ""
-                if not domain and full_url_str:
-                    try:
-                        p_dom = urllib.parse.urlparse(full_url_str)
-                        domain = (p_dom.hostname or p_dom.netloc or "").strip().lower()
-                    except Exception:
-                        domain = ""
-                if not domain:
-                    host_hdr = self.headers.get("Host", "")
-                    domain = host_hdr.split(":")[0].strip().lower() if host_hdr else ""
-                if not domain:
-                    domain = "Khác"
-
-                domains_map = visits_data.setdefault("domains", {})
-                domains_map[domain] = domains_map.get(domain, 0) + 1
-
-                visit_entry = {
-                    "time": body.get("time") or datetime.now().strftime("%H:%M:%S %d/%m/%Y"),
-                    "ip": ip,
-                    "location": body.get("location") or "Việt Nam",
-                    "device": device,
-                    "browser": body.get("browser") or "Trình duyệt Web",
-                    "domain": domain,
-                    "referrer": ref_label,
-                    "fullUrl": full_url_str,
-                    "rawReferrer": body.get("rawReferrer") or ""
-                }
-                for key in ("utmSource", "utmMedium", "utmCampaign", "utmContent", "utmTerm", "fbclid", "gclid", "ttclid", "sessionId", "landingAt", "userAgent"):
-                    visit_entry[key] = body.get(key) or ""
-
-                visits_list = visits_data.setdefault("visits", [])
-                visits_list.insert(0, visit_entry)
-                if len(visits_list) > 1000:
-                    visits_data["visits"] = visits_list[:1000]
-
-                write_json_file(VISITS_FILE, visits_data)
-            return self.send_json({
-                "status": "success",
-                "totalVisits": visits_data["totalVisits"],
-                "todayVisits": visits_data["todayVisits"],
-                "clientIp": ip
-            })
+                    entry = {key: body.get(key) or "" for key in (*ORDER_TRACKING_FIELDS, "userAgent")}
+                    entry.update(visitId=visit_id, fullUrl=full_url, domain=domain, referrer=label,
+                                 time=body.get("time") or datetime.now(timezone(timedelta(hours=7))).strftime("%H:%M:%S %d/%m/%Y"), visitedAt=body.get("visitedAt") or now_vn(),
+                                 ip=ip, location=body.get("location") or "", device=device,
+                                 browser=body.get("browser") or "Trình duyệt Web")
+                    visits.insert(0, entry)
+                    data["totalVisits"] = int(data.get("totalVisits", 0)) + 1
+                    data["todayVisits"] = int(data.get("todayVisits", 0)) + 1
+                    bucket = "mobile" if "Mobile" in device or "Điện thoại" in device else "desktop" if "Máy tính" in device or "PC" in device else "other"
+                    for name, key in (("devices", bucket), ("sources", source), ("domains", domain)):
+                        counters = data.setdefault(name, {})
+                        counters[key] = counters.get(key, 0) + 1
+                    data["visits"] = visits[:1000]
+                if not write_json_file(VISITS_FILE, data):
+                    return self.send_json({"status": "error", "message": "Không lưu được lượt truy cập"}, 500)
+            refresh_visit_order_links()
+            queue_visit_sync(visit_id)
+            return self.send_json({"status": "success", "visitId": visit_id, "duplicate": existing is not None,
+                                   "totalVisits": data["totalVisits"], "todayVisits": data["todayVisits"], "clientIp": entry["ip"], "sheetSync": "queued"})
 
         # 1.4 API: Xóa lịch sử lượt truy cập
         if path == "/api/visits":
@@ -1166,6 +1189,16 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                     landing_origin = f"{landing.scheme}://{landing.netloc}"
                     if origin in allowed_origins() and origin != landing_origin:
                         return self.send_json({"status": "error", "message": "URL nguồn không khớp trang đang tạo đơn. Vui lòng tải lại trang trước khi đặt hàng."}, 409)
+                if not existing and body.get("visitId"):
+                    with VISITS_LOCK:
+                        captured_visit = next((v for v in read_json_file(VISITS_FILE, {}).get("visits", []) if v.get("visitId") == body["visitId"]), None)
+                    if captured_visit and captured_visit.get("fullUrl"):
+                        # One visit ID describes one original URL/source for both traffic and orders.
+                        for key in ORDER_TRACKING_FIELDS:
+                            body[key] = captured_visit.get(key, "")
+                        for key in ("ip", "location"):
+                            if captured_visit.get(key):
+                                body[key] = captured_visit[key]
                 merged = dict(existing)
                 merged.update({key: value for key, value in body.items() if value is not None and value != ""})
                 preserve_order_tracking(existing, merged)
@@ -1193,6 +1226,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                     orders.insert(0, merged)
                 if not write_json_file("orders.json", orders[:500]):
                     return self.send_json({"status": "error", "message": "Không lưu được đơn"}, 500)
+            refresh_visit_order_links()
             queue_order_sync(order_id)
             return self.send_json({"status": "success", "orderId": order_id, "order": merged, "sheetSync": "queued"})
 
@@ -1489,6 +1523,25 @@ def run():
                     sys.stderr.write(f"Integration retry: {type(exc).__name__}\n")
             time.sleep(30)
     threading.Thread(target=_integration_worker, daemon=True).start()
+    def _visit_integration_worker():
+        # Traffic retries have their own worker so they cannot delay paid order alerts.
+        retry_cursor = 0
+        while True:
+            VISIT_SYNC_EVENT.clear()
+            with VISITS_LOCK:
+                pending = [v["visitId"] for v in read_json_file(VISITS_FILE, {}).get("visits", [])
+                           if v.get("visitId") and v.get("sheetSyncedHash") != visit_digest(v)]
+            if pending:
+                start = retry_cursor % len(pending)
+                batch = (pending[start:] + pending[:start])[:10]
+                for visit_id in batch:
+                    try:
+                        sync_visit_integrations(visit_id)
+                    except Exception as exc:
+                        sys.stderr.write(f"Visit integration retry: {type(exc).__name__}\n")
+                retry_cursor = start + len(batch)
+            VISIT_SYNC_EVENT.wait(30)
+    threading.Thread(target=_visit_integration_worker, daemon=True).start()
     server = HTTPServer(("0.0.0.0", PORT), GeminiCRMHandler)
     try:
         server.serve_forever()

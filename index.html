@@ -1845,7 +1845,8 @@
         utmContent: params.get('utm_content') || '', utmTerm: params.get('utm_term') || '',
         gclid: params.get('gclid') || '', ttclid: params.get('ttclid') || '',
         userAgent: navigator.userAgent, landingAt: new Date().toISOString(),
-        sessionId: crypto.randomUUID(), attributionVersion: 2,
+        time: new Date().toLocaleString('vi-VN', {timeZone: 'Asia/Ho_Chi_Minh'}),
+        sessionId: crypto.randomUUID(), visitId: crypto.randomUUID(), visitedAt: new Date().toISOString(), attributionVersion: 2,
         attributionUpdatedAt: Date.now(),
         isFromAd: /^(cpc|ppc|paid|paid_social|paid_search|paid-social|display|cpm|cpv|ads)$/i.test(params.get('utm_medium') || '') || Boolean(params.get('gclid') || params.get('ttclid'))
       };
@@ -1879,6 +1880,7 @@
         visitorData = createVisitorData();
         visitorData.ip = previous.ip || '';
         visitorData.location = previous.location || '';
+        if (typeof recordVisit === 'function') recordVisit(Object.assign({}, visitorData, {domain: currentUrl.hostname.toLowerCase()}));
       }
       return Object.assign({}, visitorData, {domain: window.location.hostname.toLowerCase()});
     }
@@ -1905,91 +1907,106 @@
     let currentOrder = { name: '', phone: '', email: '', memo: '', orderId: '' };
     let pollInterval = null;
 
-    // Tự động bắt địa chỉ IP & Tỉnh thành ngầm để phục vụ quản trị CRM
+    const visitsInFlight = new Set();
+    async function syncVisitor(visit) {
+      const key = 'crm_visit_retry_' + visit.visitId;
+      if (visitsInFlight.has(visit.visitId)) return;
+      visitsInFlight.add(visit.visitId);
+      const serialized = JSON.stringify(visit);
+      try {
+        const response = await smartApiFetch('/api/track-visit', {
+          method: 'POST', headers: {'Content-Type': 'application/json'}, body: serialized, keepalive: true, signal: AbortSignal.timeout(10000)
+        });
+        if (response && response.ok) {
+          const result = await response.json();
+          if (result.status === 'success' && result.visitId === visit.visitId) {
+            // The backend persisted this visit and owns retries to Google Sheet.
+            if (localStorage.getItem(key) === serialized) localStorage.removeItem(key);
+            return;
+          }
+        } else if (response && [400, 401, 403, 409, 422].includes(response.status)) {
+          return;
+        }
+        await logTrafficToWebhook(visit);
+      } catch(e) {
+        try { await logTrafficToWebhook(visit); } catch(ignored) {}
+      } finally {
+        visitsInFlight.delete(visit.visitId);
+      }
+    }
+    function recordVisit(visit) {
+      if (!visit.visitId) return;
+      const snapshot = Object.assign({}, visit);
+      try {
+        localStorage.setItem('crm_visit_retry_' + snapshot.visitId, JSON.stringify(snapshot));
+        const visits = JSON.parse(localStorage.getItem('crm_visits') || '[]');
+        const prior = visits.findIndex(v => v.visitId === snapshot.visitId);
+        if (prior >= 0) visits[prior] = snapshot; else visits.unshift(snapshot);
+        localStorage.setItem('crm_visits', JSON.stringify(visits.slice(0, 80)));
+      } catch(e) {}
+      void syncVisitor(snapshot);
+    }
+    async function retryVisits() {
+      try {
+        const keys = Object.keys(localStorage).filter(k => k.startsWith('crm_visit_retry_'));
+        for (const key of keys.slice(0, 10)) {
+          try { await syncVisitor(JSON.parse(localStorage.getItem(key))); } catch(e) {}
+        }
+      } catch(e) {}
+    }
+    async function logTrafficToWebhook(visit) {
+      if (!CONFIG.googleAppsScriptUrl || CONFIG.googleAppsScriptUrl.includes('SAMPLE')) return;
+      const response = await fetch(CONFIG.googleAppsScriptUrl + '?action=health', {signal: AbortSignal.timeout(15000)});
+      const health = await response.json();
+      // Old deployments append on every delivery, so wait for the idempotent visit handler.
+      if (health.protocolVersion !== 2 || !(health.trafficColumns >= 25)) return;
+      await fetch(CONFIG.googleAppsScriptUrl, {
+        method: 'POST', mode: 'no-cors', headers: {'Content-Type': 'text/plain;charset=utf-8'},
+        body: JSON.stringify(Object.assign({}, visit, {action: 'track_visit'})), keepalive: true
+      });
+      // An opaque response is not an acknowledgement; retain the original visit for retry.
+    }
+
+    // Record immediately, then enrich the same visit after the IP lookup finishes.
     async function captureVisitorIpSilently() {
-      // 1. Thử qua ipwho.is trước (nhanh, miễn phí, trả về cả IP và Thành phố/Quốc gia trong 1 request)
+      const captured = visitorData;
+      const snapshot = Object.assign({}, captured, {domain: new URL(captured.fullUrl).hostname.toLowerCase()});
+      recordVisit(snapshot);
       try {
         const res = await fetch('https://ipwho.is/', {signal: AbortSignal.timeout(4000)});
         if (res.ok) {
           const data = await res.json();
           if (data && data.success !== false && data.ip) {
-            visitorData.ip = data.ip;
-            const city = data.city || data.region || '';
-            const country = data.country || 'Việt Nam';
-            visitorData.location = city ? `${city}, ${country}` : country;
+            snapshot.ip = data.ip;
+            snapshot.location = [data.city || data.region, data.country].filter(Boolean).join(', ');
           }
         }
-      } catch (err) {}
-
-      // 2. Fallback nếu chưa lấy được IP
-      if (!visitorData.ip || visitorData.ip === '127.0.0.1') {
+      } catch(e) {}
+      if (!snapshot.ip || snapshot.ip === '127.0.0.1') {
         try {
           const res = await fetch('https://api.ipify.org?format=json', {signal: AbortSignal.timeout(4000)});
           if (res.ok) {
-            const ipJson = await res.json();
-            visitorData.ip = ipJson.ip;
-
+            const data = await res.json();
+            snapshot.ip = data.ip || '';
             try {
-              const locRes = await fetch(`https://ipapi.co/${ipJson.ip}/json/`, {signal: AbortSignal.timeout(4000)});
+              const locRes = await fetch(`https://ipapi.co/${snapshot.ip}/json/`, {signal: AbortSignal.timeout(4000)});
               if (locRes.ok) {
-                const locJson = await locRes.json();
-                visitorData.location = `${locJson.city || ''}, ${locJson.country_name || 'VN'}`;
+                const loc = await locRes.json();
+                snapshot.location = [loc.city, loc.country_name].filter(Boolean).join(', ');
               }
             } catch(e) {}
           }
-        } catch (err) {}
+        } catch(e) {}
       }
-
-      // Gửi đồng bộ lượt truy cập tập trung về máy chủ (Server Backend)
-      try {
-        const visitPayload = Object.assign({}, orderTracking(), {
-          time: new Date().toLocaleString('vi-VN', {timeZone: 'Asia/Ho_Chi_Minh'})
-        });
-
-        // Gửi ngầm tới backend (không làm chậm trang web)
-        smartApiFetch('/api/track-visit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(visitPayload)
-        }).catch(() => {});
-
-        // Lưu localStorage phụ trợ
-        let visits = JSON.parse(localStorage.getItem('crm_visits') || '[]');
-        visits.unshift(visitPayload);
-        if (visits.length > 80) visits = visits.slice(0, 80);
-        localStorage.setItem('crm_visits', JSON.stringify(visits));
-      } catch(e) {}
-
-      // Đồng bộ về webhook nếu có cấu hình
-      try { sessionStorage.setItem('crm_attribution', JSON.stringify(visitorData)); } catch(e) {}
-      logTrafficToWebhook();
+      // IP requests can finish after navigation; they only enrich their captured visit.
+      captured.ip = snapshot.ip;
+      captured.location = snapshot.location;
+      if (visitorData.visitId === snapshot.visitId) {
+        try { sessionStorage.setItem('crm_attribution', JSON.stringify(visitorData)); } catch(e) {}
+      }
+      recordVisit(snapshot);
     }
     const visitorReady = captureVisitorIpSilently();
-
-    function logTrafficToWebhook() {
-      if (!CONFIG.googleAppsScriptUrl || CONFIG.googleAppsScriptUrl.includes("SAMPLE")) return;
-      try {
-        fetch(CONFIG.googleAppsScriptUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            ...orderTracking(),
-            action: 'track_visit',
-            ip: visitorData.ip,
-            location: visitorData.location,
-            device: visitorData.device,
-            browser: visitorData.browser,
-            referrer: visitorData.referrer,
-            fullUrl: visitorData.fullUrl || window.location.href,
-            fbclid: visitorData.fbclid || '',
-            utmSource: visitorData.utmSource || '',
-            utmCampaign: visitorData.utmCampaign || '',
-            domain: window.location.hostname || ''
-          })
-        });
-      } catch (e) {}
-    }
 
     // ==========================================
     // ĐẾM NGƯỢC THỜI GIAN FLASH SALE THỰC TẾ & CHÍNH XÁC
@@ -3084,6 +3101,7 @@
     }
     window.addEventListener('online', retryOrderSync);
     async function retryOrderSync() {
+      void retryVisits();
       for (const key of Object.keys(localStorage).filter(k => k.startsWith('crm_order_retry_'))) {
         try {
           const result = await syncCustomerOrder(JSON.parse(localStorage.getItem(key)));

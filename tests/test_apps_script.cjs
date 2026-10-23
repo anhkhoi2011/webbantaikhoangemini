@@ -86,8 +86,9 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
  const before=e.sheets.get('DON_HANG').rows[1][4];
  const result=e.post({...base,action:'new_order',orderId:'#OTHER',paymentTxId:'early-bank',name:'Wrong customer'});
  assert.equal(result.status,'error');assert.equal(e.sheets.get('DON_HANG').rows[1][4],before);
- assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).columns,40);
- assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).build,'2026-10-23-source-lock');
+ assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).columns,41);
+ assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).trafficColumns,25);
+ assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).build,'2026-10-23-visit-orders');
  assert.equal(e.ctx.money_(90000.0),90000);assert.equal(e.ctx.money_('90.000đ'),90000);assert.equal(e.ctx.money_('-90000'),-90000);
 }
 {
@@ -155,5 +156,44 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
  assert.equal(e.post(issued).notificationsComplete,true);
  assert.equal(e.sends.length,2,'an edit retry must never create a duplicate order notification');
  assert.deepEqual(e.edits.map(x=>x.chat_id),['-1004413665683','-5585627393','-5585627393']);
+}
+{
+ const e=environment();
+ const a={action:'track_visit',visitId:'VISIT-A',sessionId:'SAME-SESSION',fullUrl:'https://example.invalid/?utm_source=facebook',domain:'example.invalid',referrer:'Facebook',utmSource:'facebook',visitedAt:'2026-10-23T05:00:00Z',landingAt:'2026-10-23T05:00:00Z'};
+ for(let i=0;i<4;i++) assert.equal(e.post(a).status,'success');
+ assert.equal(e.sheets.get('TRUY_CAP').rows.length,2,'a visit retry must not add pageviews');
+ e.post({...a,visitId:'VISIT-B'});
+ e.post({...base,action:'pending_order',status:'Chờ thanh toán',paymentTxId:'',visitId:'VISIT-A',sessionId:a.sessionId});
+ let rows=e.sheets.get('TRUY_CAP').rows;
+ assert.equal(rows[1][20],base.orderId);assert.equal(rows[1][21],'');
+ assert.equal(rows[2][20],'','same session and URL must not merge two different pageviews');
+ e.post({...base,action:'new_order',visitId:'VISIT-A',sessionId:a.sessionId});
+ rows=e.sheets.get('TRUY_CAP').rows;
+ assert.equal(rows[1][21],base.orderId);
+ assert.ok(rows[1][23].includes(base.orderId));
+ assert.equal(rows[2][21],'');
+ assert.ok(e.sends.every(message=>message.text.includes('VISIT-A') && message.text.includes('SAME-SESSION')));
+ assert.ok(e.sends.every(message=>message.text.includes(a.fullUrl) && message.text.includes('Facebook')));
+ assert.equal(e.sheets.get('DON_HANG').rows[1][21], 'facebook');
+ e.post({...a,ip:'203.0.113.7',utmSource:'zalo',fullUrl:'https://wrong.invalid/'});
+ rows=e.sheets.get('TRUY_CAP').rows;
+ assert.equal(rows.length,3);assert.equal(rows[1][1],'203.0.113.7');
+ assert.equal(rows[1][6],a.fullUrl);assert.equal(rows[1][8],'facebook');assert.equal(rows[1][21],base.orderId);
+}
+{
+ const e=environment();
+ e.post({...base,action:'new_order',visitId:'LATE-VISIT',sessionId:'LATE-SESSION'});
+ e.post({action:'track_visit',visitId:'LATE-VISIT',sessionId:'LATE-SESSION',fullUrl:base.fullUrl});
+ const row=e.sheets.get('TRUY_CAP').rows[1];
+ assert.equal(row[20],base.orderId);assert.equal(row[21],base.orderId,'a visit arriving after payment must still link');
+ e.post({...base,orderId:'#TEST-B',memo:'OTHER-MEMO',paymentTxId:'BANK-2',action:'new_order',visitId:'LATE-VISIT',sessionId:'LATE-SESSION'});
+ assert.equal(e.sheets.get('TRUY_CAP').rows[1][20],base.orderId+'\n#TEST-B');
+ assert.equal(e.sheets.get('TRUY_CAP').rows.length,2,'two orders do not add visits');
+}
+{
+ const e=environment();
+ for(const id of ['A','B'])e.post({action:'track_visit',visitId:id,sessionId:'LEGACY',fullUrl:base.fullUrl,ip:base.ip});
+ e.post({...base,action:'new_order',sessionId:'LEGACY'});
+ assert.ok(e.sheets.get('TRUY_CAP').rows.slice(1).every(row=>!row[20]),'ambiguous legacy visits must not get guessed order IDs');
 }
 console.log('PASS Apps Script: routing, four retries, changed UUID, row upsert, tracking, two chats, partial failure retry, late pending, unmatched/debit/pending events');

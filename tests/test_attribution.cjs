@@ -23,9 +23,11 @@ const zaloLink = 'https://shop.example/?zarsrc=31&utm_source=zalo&utm_medium=zal
 const zalo = visit(zaloLink);
 assert.equal(zalo.referrer, 'Zalo Chat'); assert.equal(zalo.isFromAd, false);
 const reload = visit(zaloLink, '', 'reload');
+assert.notEqual(reload.visitId, zalo.visitId); assert.notEqual(reload.visitedAt, zalo.visitedAt);
 assert.equal(reload.sessionId, zalo.sessionId); assert.equal(reload.landingAt, zalo.landingAt);
 const facebook = visit('https://shop.example/?ref=facebook', zaloLink);
 assert.equal(facebook.referrer, 'Facebook'); assert.equal(facebook.utmSource, '');
+assert.notEqual(facebook.visitId, zalo.visitId);
 assert.equal(facebook.utmCampaign, ''); assert.notEqual(facebook.sessionId, zalo.sessionId);
 assert.equal(facebook.fullUrl, 'https://shop.example/?ref=facebook');
 const direct = visit('https://shop.example/');

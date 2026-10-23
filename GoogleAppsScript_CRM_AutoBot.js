@@ -41,7 +41,7 @@ function jsonOutput_(value) {
 
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || "health";
-  if (action !== "check_payment") return jsonOutput_({ status: "success", service: "Gemini CRM Apps Script", protocolVersion: 2, columns: ORDER_COLUMNS.length, build: "2026-10-23-source-lock" });
+  if (action !== "check_payment") return jsonOutput_({ status: "success", service: "Gemini CRM Apps Script", protocolVersion: 2, columns: ORDER_COLUMNS.length, trafficColumns: VISIT_COLUMNS.length, build: "2026-10-23-visit-orders" });
 
   const memo = String((e.parameter && e.parameter.memo) || "").replace(/\s+/g, "").toUpperCase();
   const orderId = String(e.parameter.orderId || "");
@@ -241,14 +241,7 @@ function doPost(e) {
       ensureOrderHeaders_(getOrdersSheet(ss));
       return jsonOutput_({status: "success", columns: ORDER_COLUMNS.length});
     }
-    if (action === "track_visit") {
-      const headers = ["Thời Gian", "IP Khách", "Vị trí (ước lượng)", "Thiết Bị", "Trình Duyệt", "Nguồn", "URL truy cập", "FB Click ID", "UTM Source", "UTM Campaign", "Tên Miền", "Referrer gốc", "UTM Medium", "UTM Content", "UTM Term", "Google Click ID", "TikTok Click ID", "Session ID"];
-      const sheet = ss.getSheetByName("TRUY_CAP") || ss.insertSheet("TRUY_CAP");
-      ensureColumns_(sheet, headers.length);
-      sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-      sheet.appendRow([nowVN_(), data.ip || "Không xác định", data.location || "Không xác định", data.device || "", data.browser || "", data.referrer || "", data.fullUrl || "", data.fbclid || "", data.utmSource || "", data.utmCampaign || "", data.domain || "", data.rawReferrer || "", data.utmMedium || "", data.utmContent || "", data.utmTerm || "", data.gclid || "", data.ttclid || "", data.sessionId || ""].map(sheetText_));
-      return jsonOutput_({status: "success"});
-    }
+    if (action === "track_visit") return jsonOutput_(upsertVisit_(ss, data));
     if (action) return jsonOutput_({status: "error", message: "Unknown action"});
     const incoming = Array.isArray(data) ? data : Array.isArray(data.transactions) ? data.transactions : Array.isArray(data.records) ? data.records : data.data && Array.isArray(data.data.records) ? data.data.records : Array.isArray(data.data) ? data.data : data.data && typeof data.data === "object" ? [data.data] : [data];
     let stored = 0;
@@ -304,8 +297,58 @@ function doPost(e) {
   }
 }
 
-const ORDER_EXTRA_FIELDS = ["domain", "createdAt", "paidAt", "ip", "location", "device", "browser", "fullUrl", "rawReferrer", "utmSource", "utmMedium", "utmCampaign", "utmContent", "utmTerm", "fbclid", "gclid", "ttclid", "paymentTxId", "paymentKey", "paymentSource", "couponCode", "discountAmount", "sessionId", "landingAt", "userAgent", "amountRaw", "telegramSent", "emailSent"];
-ORDER_COLUMNS.push("Tên miền", "Tạo đơn lúc", "Thanh toán lúc (GMT+7)", "IP", "Vị trí IP (ước lượng)", "Thiết bị", "Trình duyệt", "URL truy cập", "Referrer gốc", "UTM Source", "UTM Medium", "UTM Campaign", "UTM Content", "UTM Term", "FB Click ID", "Google Click ID", "TikTok Click ID", "Mã giao dịch", "Khóa giao dịch", "Cổng thanh toán", "Voucher", "Giảm giá", "Session ID", "Vào trang lúc", "User Agent", "Số tiền thực", "Telegram đã gửi", "Email đã gửi");
+const ORDER_EXTRA_FIELDS = ["domain", "createdAt", "paidAt", "ip", "location", "device", "browser", "fullUrl", "rawReferrer", "utmSource", "utmMedium", "utmCampaign", "utmContent", "utmTerm", "fbclid", "gclid", "ttclid", "paymentTxId", "paymentKey", "paymentSource", "couponCode", "discountAmount", "sessionId", "landingAt", "userAgent", "amountRaw", "telegramSent", "emailSent", "visitId"];
+ORDER_COLUMNS.push("Tên miền", "Tạo đơn lúc", "Thanh toán lúc (GMT+7)", "IP", "Vị trí IP (ước lượng)", "Thiết bị", "Trình duyệt", "URL truy cập", "Referrer gốc", "UTM Source", "UTM Medium", "UTM Campaign", "UTM Content", "UTM Term", "FB Click ID", "Google Click ID", "TikTok Click ID", "Mã giao dịch", "Khóa giao dịch", "Cổng thanh toán", "Voucher", "Giảm giá", "Session ID", "Vào trang lúc", "User Agent", "Số tiền thực", "Telegram đã gửi", "Email đã gửi", "Mã lượt truy cập");
+const VISIT_COLUMNS = ["Thời Gian", "IP Khách", "Vị trí (ước lượng)", "Thiết Bị", "Trình Duyệt", "Nguồn", "URL truy cập", "FB Click ID", "UTM Source", "UTM Campaign", "Tên Miền", "Referrer gốc", "UTM Medium", "UTM Content", "UTM Term", "Google Click ID", "TikTok Click ID", "Session ID", "Mã lượt truy cập", "Vào trang lúc (GMT+7)", "Mã đơn từ lượt này", "Mã đơn đã thanh toán", "Trạng thái từng đơn", "Thanh toán lúc (GMT+7)", "Tạo đơn lúc (GMT+7)"];
+function getVisitsSheet_(ss) {
+  const sheet = ss.getSheetByName("TRUY_CAP") || ss.insertSheet("TRUY_CAP");
+  ensureColumns_(sheet, VISIT_COLUMNS.length);
+  sheet.getRange(1, 1, 1, VISIT_COLUMNS.length).setValues([VISIT_COLUMNS]);
+  return sheet;
+}
+function visitMatchesOrder_(row, order, rows) {
+  if (order.visitId) return String(row[18]) === String(order.visitId);
+  const linked = String(row[20] || "").split("\n");
+  if (linked.includes(String(order.orderId))) return true;
+  // For old data only match a session+URL if there is exactly one possible visit.
+  if (!order.sessionId || !order.fullUrl) return false;
+  const candidates = rows.filter(r => String(r[17]) === String(order.sessionId) && String(r[6]) === String(order.fullUrl));
+  return candidates.length === 1 && candidates[0] === row;
+}
+function refreshVisitOrders_(ss, sheet, rowNumber, row, rows) {
+  const ordersSheet = getOrdersSheet(ss);
+  const orders = ordersSheet.getLastRow() > 1 ? ordersSheet.getRange(2, 1, ordersSheet.getLastRow() - 1, ORDER_COLUMNS.length).getValues().map(rowToOrder_) : [];
+  const linked = orders.filter(order => visitMatchesOrder_(row, order, rows));
+  const paid = linked.filter(isPaidOrder_);
+  const values = [linked.map(o => o.orderId).join("\n"), paid.map(o => o.orderId).join("\n"), linked.map(o => o.orderId + ": " + o.status).join("\n"), paid.map(o => o.orderId + ": " + displayTime_(o.paidAt)).join("\n"), linked.map(o => o.orderId + ": " + displayTime_(o.createdAt)).join("\n")];
+  sheet.getRange(rowNumber, 21, 1, values.length).setValues([values.map(sheetText_)]);
+}
+function linkOrderVisit_(ss, order) {
+  const sheet = ss.getSheetByName("TRUY_CAP");
+  if (!sheet || sheet.getLastRow() < 2) return;
+  getVisitsSheet_(ss);
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, VISIT_COLUMNS.length).getValues();
+  rows.forEach((row, i) => {
+    if (visitMatchesOrder_(row, order, rows)) refreshVisitOrders_(ss, sheet, i + 2, row, rows);
+  });
+}
+function upsertVisit_(ss, data) {
+  const sheet = getVisitsSheet_(ss);
+  const rows = sheet.getLastRow() > 1 ? sheet.getRange(2, 1, sheet.getLastRow() - 1, VISIT_COLUMNS.length).getValues() : [];
+  const index = data.visitId ? rows.findIndex(row => String(row[18]) === String(data.visitId)) : -1;
+  const prior = index >= 0 ? rows[index] : null;
+  let values = [displayTime_(data.visitedAt || data.landingAt) || nowVN_(), data.ip || "Không xác định", data.location || "Không xác định", data.device || "", data.browser || "", data.referrer || "", data.fullUrl || "", data.fbclid || "", data.utmSource || "", data.utmCampaign || "", data.domain || "", data.rawReferrer || "", data.utmMedium || "", data.utmContent || "", data.utmTerm || "", data.gclid || "", data.ttclid || "", data.sessionId || "", data.visitId || "", displayTime_(data.landingAt || data.visitedAt), "", "", "", "", ""];
+  if (prior) {
+    // Retry/enrichment owns only missing IP/location and device details, never a new visit/source.
+    values = prior.slice();
+    ["ip", "location", "device", "browser"].forEach((key, i) => { if (data[key]) values[i + 1] = data[key]; });
+  }
+  const rowNumber = index >= 0 ? index + 2 : sheet.getLastRow() + 1;
+  sheet.getRange(rowNumber, 1, 1, VISIT_COLUMNS.length).setValues([values.map(sheetText_)]);
+  const updatedRows = sheet.getRange(2, 1, sheet.getLastRow() - 1, VISIT_COLUMNS.length).getValues();
+  refreshVisitOrders_(ss, sheet, rowNumber, updatedRows[rowNumber - 2], updatedRows);
+  return {status: "success", visitId: data.visitId || "", duplicate: index >= 0};
+}
 function displayTime_(value) {
   if (!value) return "";
   const parsed = value instanceof Date ? value : /^\d{4}-\d{2}-\d{2}T/.test(String(value)) ? new Date(value) : null;
@@ -351,10 +394,24 @@ function upsertOrder_(ss, data, notify) {
   if (previous.orderId && String(previous.orderId) !== String(data.orderId)) return {status: "error", message: "Giao dịch đã thuộc đơn khác", orderId: previous.orderId};
   const order = Object.assign({}, previous);
   Object.keys(data).forEach(key => { if (data[key] !== "" && data[key] !== null && data[key] !== undefined) order[key] = data[key]; });
+  if (!previous.orderId && order.visitId) {
+    const traffic = ss.getSheetByName("TRUY_CAP");
+    if (traffic && traffic.getLastRow() > 1) {
+      getVisitsSheet_(ss);
+      const visits = traffic.getRange(2, 1, traffic.getLastRow() - 1, VISIT_COLUMNS.length).getValues();
+      const visit = visits.find(row => String(row[18]) === String(order.visitId));
+      if (visit && visit[6]) {
+        const fields = {fullUrl: 6, domain: 10, referrer: 5, rawReferrer: 11, utmSource: 8, utmMedium: 12, utmCampaign: 9, utmContent: 13, utmTerm: 14, fbclid: 7, gclid: 15, ttclid: 16, sessionId: 17, visitId: 18, landingAt: 19};
+        Object.keys(fields).forEach(key => order[key] = visit[fields[key]] || "");
+        if (visit[1] && visit[1] !== "Không xác định") order.ip = visit[1];
+        if (visit[2] && visit[2] !== "Không xác định") order.location = visit[2];
+      }
+    }
+  }
   if (previous.orderId) order.orderId = previous.orderId;
   if (previous.fullUrl) {
     // The original visit owns attribution even when later payloads contain different links.
-    ["fullUrl", "domain", "referrer", "rawReferrer", "utmSource", "utmMedium", "utmCampaign", "utmContent", "utmTerm", "fbclid", "gclid", "ttclid", "sessionId", "landingAt"].forEach(key => {
+    ["fullUrl", "domain", "referrer", "rawReferrer", "utmSource", "utmMedium", "utmCampaign", "utmContent", "utmTerm", "fbclid", "gclid", "ttclid", "sessionId", "landingAt", "visitId"].forEach(key => {
       order[key] = previous[key] || "";
     });
   }
@@ -374,6 +431,7 @@ function upsertOrder_(ss, data, notify) {
     sheet.getRange(rowNumber, 1, 1, values.length).setValues([values.map(sheetText_)]);
   };
   write();
+  linkOrderVisit_(ss, order);
   if (!isPaidOrder_(order) && data.action !== "sync_order" && order.memo) {
     const txSheet = ss.getSheetByName("GIAO_DICH");
     if (txSheet && txSheet.getLastRow() > 1) {
@@ -412,7 +470,7 @@ function upsertOrder_(ss, data, notify) {
   return {status: "success", notificationsComplete: notificationsComplete, orderId: order.orderId, duplicate: index >= 0, allocatedLink: order.licenseLink || "", columns: ORDER_COLUMNS.length};
 }
 function orderTelegramText_(order) {
-  const fields = [["Mã đơn", order.orderId], ["Khách", order.name], ["SĐT", order.phone], ["Email", order.email], ["Thanh toán lúc (GMT+7)", order.paidAt], ["Tạo đơn lúc", order.createdAt], ["Vào trang lúc", order.landingAt], ["IP", order.ip || "Không xác định"], ["Vị trí IP (ước lượng)", order.location || "Không xác định"], ["Thiết bị / Trình duyệt", [order.device, order.browser].filter(Boolean).join(" / ")], ["Nguồn khách", order.referrer || "Không xác định"], ["Tên miền", order.domain], ["URL vào trang", order.fullUrl], ["Referrer gốc", order.rawReferrer], ["UTM Source / Medium", [order.utmSource, order.utmMedium].filter(Boolean).join(" / ")], ["Chiến dịch", order.utmCampaign], ["UTM Content / Term", [order.utmContent, order.utmTerm].filter(Boolean).join(" / ")], ["FB / Google / TikTok Click ID", [order.fbclid, order.gclid, order.ttclid].filter(Boolean).join(" / ")], ["Nội dung CK", order.memo], ["Mã giao dịch", order.paymentTxId], ["Cổng thanh toán", order.paymentSource], ["Voucher", order.couponCode], ["Link cấp", order.licenseLink || "Chờ cấp link"], ["Trạng thái", order.status]];
+  const fields = [["Mã đơn", order.orderId], ["Mã lượt truy cập", order.visitId], ["Mã phiên", order.sessionId], ["Khách", order.name], ["SĐT", order.phone], ["Email", order.email], ["Thanh toán lúc (GMT+7)", order.paidAt], ["Tạo đơn lúc", order.createdAt], ["Vào trang lúc", order.landingAt], ["IP", order.ip || "Không xác định"], ["Vị trí IP (ước lượng)", order.location || "Không xác định"], ["Thiết bị / Trình duyệt", [order.device, order.browser].filter(Boolean).join(" / ")], ["Nguồn khách", order.referrer || "Không xác định"], ["Tên miền", order.domain], ["URL vào trang", order.fullUrl], ["Referrer gốc", order.rawReferrer], ["UTM Source / Medium", [order.utmSource, order.utmMedium].filter(Boolean).join(" / ")], ["Chiến dịch", order.utmCampaign], ["UTM Content / Term", [order.utmContent, order.utmTerm].filter(Boolean).join(" / ")], ["FB / Google / TikTok Click ID", [order.fbclid, order.gclid, order.ttclid].filter(Boolean).join(" / ")], ["Nội dung CK", order.memo], ["Mã giao dịch", order.paymentTxId], ["Cổng thanh toán", order.paymentSource], ["Voucher", order.couponCode], ["Link cấp", order.licenseLink || "Chờ cấp link"], ["Trạng thái", order.status]];
   const title = "🟢 <b>ĐƠN HÀNG ĐÃ THANH TOÁN (" + html_(money_(order.amountRaw || order.amount).toLocaleString("vi-VN")) + "đ)</b>\n";
   const entries = fields.filter(pair => pair[1]).map(pair => ({
     label: pair[0], value: String(pair[0].includes("lúc") ? displayTime_(pair[1]) : pair[1]),

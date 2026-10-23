@@ -20,6 +20,8 @@ class PaymentFlowTests(unittest.TestCase):
         self.base.start()
         self.queue = patch.object(server, "queue_order_sync")
         self.queue.start()
+        self.visit_queue = patch.object(server, "queue_visit_sync")
+        self.visit_queue.start()
         server.write_json_file("payment_config.json", {"packagePrice": 90000})
         server.write_json_file("licenses.json", [{"id": 1, "link": "https://example.invalid/license", "status": "Sẵn sàng", "assignedTo": "-"}])
         self.order = {"orderId": "#TEST-A", "memo": "PRO18T 0900000000 AABBCCDD", "phone": "0900000000", "name": "Test", "email": "test@example.invalid", "amountRaw": 90000, "amount": "90.000đ", "status": "Chờ thanh toán", "ip": "203.0.113.5", "utmSource": "facebook", "utmCampaign": "Campaign", "browser": "Safari", "fullUrl": "https://example.invalid/?utm_source=facebook"}
@@ -32,6 +34,7 @@ class PaymentFlowTests(unittest.TestCase):
         self.http.shutdown()
         self.http.server_close()
         self.queue.stop()
+        self.visit_queue.stop()
         self.base.stop()
         self.temp.cleanup()
     def post(self, path, data, headers=None):
@@ -148,6 +151,99 @@ class PaymentFlowTests(unittest.TestCase):
         server.write_json_file("orders.json", [])
         self.post("/api/orders", dict(self.order, domain="stale-host.invalid"))
         self.assertEqual(server.read_json_file("orders.json", [])[0]["domain"], "example.invalid")
+
+    def test_visit_retries_count_once_and_freeze_attribution(self):
+        visit = dict(self.order, visitId="PAGE-A", sessionId="SESSION-A", referrer="Facebook", domain="wrong.invalid")
+        for index in range(4):
+            result = self.post("/api/track-visit", visit if index == 0 else dict(visit, referrer="Zalo Chat", utmSource="zalo", fullUrl="https://old.invalid/", ip="203.0.113.8", location="Test city"))
+            self.assertEqual(result["duplicate"], index > 0)
+        data = server.read_json_file(server.VISITS_FILE, {})
+        self.assertEqual(data["totalVisits"], 1)
+        self.assertEqual(data["todayVisits"], 1)
+        self.assertEqual(data["domains"], {"example.invalid": 1})
+        self.assertEqual(data["sources"], {"facebook": 1})
+        stored = data["visits"][0]
+        self.assertEqual(stored["fullUrl"], visit["fullUrl"])
+        self.assertEqual(stored["utmSource"], "facebook")
+        self.assertEqual(stored["ip"], "203.0.113.8")
+        self.assertEqual(stored["location"], "Test city")
+        self.post("/api/track-visit", dict(visit, visitId="PAGE-B"))
+        self.assertEqual(server.read_json_file(server.VISITS_FILE, {})["totalVisits"], 2)
+
+    def test_new_order_uses_recorded_visit_source_and_link(self):
+        server.write_json_file("orders.json", [])
+        original = dict(self.order, visitId="PAGE-A", sessionId="SESSION-A", referrer="Facebook", utmMedium="paid_social")
+        self.post("/api/track-visit", original)
+        self.post("/api/orders", dict(original, referrer="Zalo Chat", fullUrl="https://example.invalid/?utm_source=zalo", utmSource="zalo", utmMedium="zalo", fbclid="OLD-CLICK"))
+        stored = server.read_json_file("orders.json", [])[0]
+        for key in ("visitId", "sessionId", "referrer", "fullUrl", "utmSource", "utmMedium"):
+            self.assertEqual(stored[key], original[key])
+        self.assertFalse(stored.get("fbclid"))
+
+    def test_visits_link_exact_orders_before_and_after_payment(self):
+        server.write_json_file("orders.json", [])
+        visit = dict(self.order, visitId="PAGE-A", sessionId="SAME-SESSION")
+        self.post("/api/track-visit", visit)
+        self.post("/api/track-visit", dict(visit, visitId="PAGE-B"))
+        self.post("/api/orders", visit)
+        data = {v["visitId"]: v for v in server.read_json_file(server.VISITS_FILE, {})["visits"]}
+        self.assertEqual(data["PAGE-A"]["orderIds"], [self.order["orderId"]])
+        self.assertEqual(data["PAGE-A"]["paidOrderIds"], [])
+        self.assertEqual(data["PAGE-B"]["orderIds"], [])
+        server.mark_order_paid(self.order["orderId"], "BANK-A", {"amount": 90000, "description": self.order["memo"]})
+        self.post("/api/orders", dict(visit, visitId="PAGE-B", referrer="Zalo Chat"))
+        data = {v["visitId"]: v for v in server.read_json_file(server.VISITS_FILE, {})["visits"]}
+        self.assertEqual(data["PAGE-A"]["paidOrderIds"], [self.order["orderId"]])
+        self.assertTrue(data["PAGE-A"]["orders"][0]["paidAt"])
+        self.assertEqual(data["PAGE-B"]["orderIds"], [])
+        self.post("/api/orders", dict(visit, orderId="#TEST-B"))
+        self.post("/api/orders", dict(visit, orderId="#TEST-C", visitId="PAGE-C"))
+        self.post("/api/track-visit", dict(visit, visitId="PAGE-C"))
+        data = {v["visitId"]: v for v in server.read_json_file(server.VISITS_FILE, {})["visits"]}
+        self.assertEqual(len(data["PAGE-A"]["orderIds"]), 2)
+        self.assertEqual(data["PAGE-C"]["orderIds"], ["#TEST-C"])
+        self.assertEqual(server.read_json_file(server.VISITS_FILE, {})["totalVisits"], 3)
+
+    def test_visit_sync_requires_matching_ack_and_retries_changes(self):
+        visit = dict(self.order, visitId="PAGE-A", referrer="Facebook")
+        self.post("/api/track-visit", visit)
+        server.write_json_file("payment_config.json", {"googleSheetWebhookUrl": "https://example.invalid/webhook"})
+        class Response:
+            def __init__(self, payload): self.payload = payload
+            def __enter__(self): return self
+            def __exit__(self, *_): pass
+            def read(self): return json.dumps(self.payload).encode()
+        calls = []
+        def fake_urlopen(req, **kwargs):
+            if isinstance(req, str): return Response({"protocolVersion": 2, "trafficColumns": 25})
+            calls.append(json.loads(req.data))
+            return Response({"status": "success", "visitId": "WRONG" if len(calls) == 1 else "PAGE-A"})
+        with patch.object(server.urllib.request, "urlopen", side_effect=fake_urlopen):
+            server.sync_visit_integrations("PAGE-A")
+            self.assertNotIn("sheetSyncedHash", server.read_json_file(server.VISITS_FILE, {})["visits"][0])
+            server.sync_visit_integrations("PAGE-A")
+            server.sync_visit_integrations("PAGE-A")
+            self.assertEqual(len(calls), 2)
+            self.post("/api/track-visit", dict(visit, location="Updated city"))
+            server.sync_visit_integrations("PAGE-A")
+        self.assertEqual(len(calls), 3)
+        self.assertEqual(calls[-1]["location"], "Updated city")
+        self.assertEqual(calls[-1]["fullUrl"], visit["fullUrl"])
+        self.assertEqual(calls[-1]["visitId"], "PAGE-A")
+        self.assertEqual(calls[-1]["action"], "track_visit")
+        self.assertNotIn("sheetSyncedHash", calls[-1])
+
+    def test_legacy_script_cannot_receive_retried_visits(self):
+        self.post("/api/track-visit", dict(self.order, visitId="PAGE-A"))
+        server.write_json_file("payment_config.json", {"googleSheetWebhookUrl": "https://example.invalid/webhook"})
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self, *_): pass
+            def read(self): return b'{"protocolVersion":2,"columns":40}'
+        with patch.object(server.urllib.request, "urlopen", return_value=Response()) as opener:
+            server.sync_visit_integrations("PAGE-A")
+        self.assertEqual(opener.call_count, 1)
+        self.assertIn("sheetSyncError", server.read_json_file(server.VISITS_FILE, {})["visits"][0])
 
     def test_old_script_rejected_without_posting(self):
         server.write_json_file("payment_config.json", {"googleSheetWebhookUrl": "https://example.invalid/webhook"})
