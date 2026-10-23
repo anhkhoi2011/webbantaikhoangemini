@@ -1,0 +1,10 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+*.session
+*.session-journal
+*.log
+tests/
+index.html.backup_v1
+HUONG_DAN_CAI_DAT_STEYG_VSCODE.txt
