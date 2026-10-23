@@ -396,7 +396,7 @@ if (strpos($requestUri, '/api/simulate-payment') !== false) {
     $memo = $body['memo'] ?? "PRO18T {$phone}";
     $simTx = [
         "id" => "SIM_" . rand(100000, 999999),
-        "amount" => intval($body['amount'] ?? 90000),
+        "amount" => intval($body['amount'] ?? 119000),
         "description" => $memo,
         "bank" => "MBBank",
         "time" => date('Y-m-d H:i:s'),

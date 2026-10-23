@@ -70,7 +70,7 @@ def test_connection():
 def create_payment_request(phone, amount=None, memo=None):
     cfg = load_config()
     if amount is None or amount <= 0:
-        amount = cfg.get("packagePrice", 90000)
+        amount = cfg.get("packagePrice", 119000)
     if not memo:
         memo = f"PRO18T {phone}"
     headers = get_headers(cfg["accessKey"], cfg["secretKey"])
@@ -131,7 +131,7 @@ def check_recent_payment_requests(memo=None, phone=None, amount=None):
     """
     cfg = load_config()
     if amount is None or amount <= 0:
-        amount = cfg.get("packagePrice", 90000)
+        amount = cfg.get("packagePrice", 119000)
     headers = get_headers(cfg["accessKey"], cfg["secretKey"])
     url = "https://app.apipay.vn/v1/client/payment-requests"
     req = urllib.request.Request(url, headers=headers)
@@ -191,7 +191,7 @@ def check_recent_payment_requests(memo=None, phone=None, amount=None):
 def get_qr_base64(memo="PRO18T", amount=None):
     cfg = load_config()
     if amount is None or amount <= 0:
-        amount = cfg.get("packagePrice", 90000)
+        amount = cfg.get("packagePrice", 119000)
     bank_bin = cfg.get("bankBin", "970422")
     acc_no = cfg.get("vaNumber", cfg.get("accountNo", "VQRQAMRMQ5816"))
     acc_name = cfg.get("accountName", "NGUYEN TRAN HAN")
@@ -255,7 +255,7 @@ def main():
         output_json(res)
     elif cmd == "create":
         phone = sys.argv[2] if len(sys.argv) > 2 else "0901234567"
-        amount = int(sys.argv[3]) if len(sys.argv) > 3 else 90000
+        amount = int(sys.argv[3]) if len(sys.argv) > 3 else 119000
         memo = sys.argv[4] if len(sys.argv) > 4 else f"PRO18T {phone}"
         res = create_payment_request(phone, amount, memo)
         output_json(res)
@@ -265,7 +265,7 @@ def main():
         output_json(res)
     elif cmd == "qr":
         memo = sys.argv[2] if len(sys.argv) > 2 else "PRO18T"
-        amount = int(sys.argv[3]) if len(sys.argv) > 3 else 90000
+        amount = int(sys.argv[3]) if len(sys.argv) > 3 else 119000
         res = get_qr_base64(memo, amount)
         output_json(res)
     else:

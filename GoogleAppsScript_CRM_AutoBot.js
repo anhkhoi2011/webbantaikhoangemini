@@ -533,7 +533,7 @@ function sendInvoiceEmail(name, email, phone, orderId, link) {
       <div style="padding: 24px;">
         <p style="font-size: 14px; color: #334155; margin-top: 0;">Xin chào <strong>${name}</strong>,</p>
         <p style="font-size: 13px; color: #475569; line-height: 1.6;">
-          Hệ thống API Pay & Ngân hàng MBBank đã ghi nhận thành công giao dịch <strong>90.000 VNĐ</strong> của bạn.
+          Hệ thống API Pay & Ngân hàng MBBank đã ghi nhận thành công giao dịch <strong>119.000 VNĐ</strong> của bạn.
         </p>
 
         <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 16px; margin: 20px 0; text-align: center;">
@@ -608,7 +608,7 @@ function testAppendSampleOrder() {
         time: Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm:ss"),
         orderId: "#GEM-TEST99",
         product: "Google Gemini Pro 18 Tháng (5TB Cloud)",
-        amount: "90.000 VNĐ",
+        amount: "119.000 VNĐ",
         name: "Trần Anh Khoa",
         phone: "0908889999",
         email: "khoa.test@gmail.com",
@@ -630,7 +630,7 @@ function testTelegramAlert() {
     "Nguyễn Hoàng Nam",
     "0912345678",
     "hoangnam.ai@gmail.com",
-    "90.000 VNĐ",
+    "119.000 VNĐ",
     "PRO18T 0912345678",
     "https://one.google.com/promo/gemini-pro/ACT-NAM7492",
     Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm:ss")

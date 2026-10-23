@@ -78,10 +78,10 @@ def _requires_admin(path, method):
 def get_current_package_price():
     cfg = read_json_file("payment_config.json", {})
     try:
-        p = int(cfg.get("packagePrice") or 90000)
-        return p if p > 0 else 90000
+        p = int(cfg.get("packagePrice") or 119000)
+        return p if p > 0 else 119000
     except Exception:
-        return 90000
+        return 119000
 
 def calculate_coupon_discount(coupon, base_price=None):
     if base_price is None or base_price <= 0:
@@ -729,7 +729,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 "targetCount": 200,
                 "maxFomo": 195,
                 "currentSold": current_sold,
-                "currentPrice": "90.000đ",
+                "currentPrice": "119.000đ",
                 "nextPrice": "129.000đ"
             })
 
@@ -740,7 +740,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 "targetCount": 200,
                 "maxFomo": 195,
                 "remainingSlots": remaining,
-                "currentPrice": "90.000đ",
+                "currentPrice": "119.000đ",
                 "nextPrice": "129.000đ",
                 "clientIp": client_ip
             })
@@ -1261,7 +1261,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             orders_updated = False
 
             for it in items:
-                # Trích xuất số tiền an toàn (hỗ trợ cả int, float, string "90000", "90.000đ")
+                # Trích xuất số tiền an toàn (hỗ trợ cả int, float, string "119000", "119.000đ")
                 raw_amt = it.get("amount") or it.get("transferAmount") or it.get("creditAmount") or 0
                 try:
                     amt = parse_money(raw_amt, 0)
