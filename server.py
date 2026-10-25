@@ -81,10 +81,10 @@ def _requires_admin(path, method):
 def get_current_package_price():
     cfg = read_json_file("payment_config.json", {})
     try:
-        p = int(cfg.get("packagePrice") or 119000)
-        return p if p > 0 else 119000
+        p = int(cfg.get("packagePrice") or 129000)
+        return p if p > 0 else 129000
     except Exception:
-        return 119000
+        return 129000
 
 def calculate_coupon_discount(coupon, base_price=None):
     if base_price is None or base_price <= 0:
@@ -712,7 +712,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             except Exception as e:
                 return self.send_json({"status": "error", "message": str(e), "is_authorized": False}, 500)
 
-        # 10. API: Báo động lên giá (Mốc 200 đơn lên giá 129K, FOMO chạy từ 150 lên 195)
+        # 10. API: Báo động lên giá (Mốc 200 đơn lên giá 159K, FOMO chạy từ 150 lên 195)
         if path == "/api/fomo-stats" or path == "/api/sold-stats":
             client_ip = self.headers.get("CF-Connecting-IP") or self.headers.get("X-Forwarded-For")
             if client_ip:
@@ -726,14 +726,18 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             current_sold = min(195, max(150, 150 + paid_count))
             remaining = max(5, 200 - current_sold)
 
+            pricing = read_json_file("payment_config.json", {})
+            current_price = f"{get_current_package_price():,}đ".replace(",", ".")
+            next_price = f"{parse_money(pricing.get('nextPrice'), 159000):,}đ".replace(",", ".")
+
             # Đồng bộ lại sold_stats.json ở mốc chuẩn
             write_json_file("sold_stats.json", {
                 "baseCount": 150,
                 "targetCount": 200,
                 "maxFomo": 195,
                 "currentSold": current_sold,
-                "currentPrice": "119.000đ",
-                "nextPrice": "129.000đ"
+                "currentPrice": current_price,
+                "nextPrice": next_price
             })
 
             return self.send_json({
@@ -743,8 +747,8 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 "targetCount": 200,
                 "maxFomo": 195,
                 "remainingSlots": remaining,
-                "currentPrice": "119.000đ",
-                "nextPrice": "129.000đ",
+                "currentPrice": current_price,
+                "nextPrice": next_price,
                 "clientIp": client_ip
             })
 
@@ -1264,7 +1268,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             orders_updated = False
 
             for it in items:
-                # Trích xuất số tiền an toàn (hỗ trợ cả int, float, string "119000", "119.000đ")
+                # Trích xuất số tiền an toàn (hỗ trợ cả int, float, string "129000", "129.000đ")
                 raw_amt = it.get("amount") or it.get("transferAmount") or it.get("creditAmount") or 0
                 try:
                     amt = parse_money(raw_amt, 0)

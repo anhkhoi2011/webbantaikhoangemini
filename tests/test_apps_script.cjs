@@ -196,4 +196,11 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
  e.post({...base,action:'new_order',sessionId:'LEGACY'});
  assert.ok(e.sheets.get('TRUY_CAP').rows.slice(1).every(row=>!row[20]),'ambiguous legacy visits must not get guessed order IDs');
 }
+{
+ const e=environment();
+ for(const amount of [129000,90000,69000]) {
+  e.ctx.sendInvoiceEmail('Test',base.email,base.phone,base.orderId,'https://example.invalid/license',amount);
+  assert.ok(e.emails.at(-1)[3].htmlBody.includes(amount.toLocaleString('vi-VN')+' VNĐ'),'invoice must use the actual paid amount, including older orders and vouchers');
+ }
+}
 console.log('PASS Apps Script: routing, four retries, changed UUID, row upsert, tracking, two chats, partial failure retry, late pending, unmatched/debit/pending events');

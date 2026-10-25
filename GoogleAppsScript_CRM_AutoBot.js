@@ -32,8 +32,8 @@ const BOT_CONFIG = {
 };
 
 // API Pay fallback cho website tĩnh: không cần PHP/Python trên hosting.
-const APIPAY_ACCESS_KEY = "5a03a2c11ed56ea65b7e7e11107f638ec8acfb95165a6a50225c91a477a157c2";
-const APIPAY_SECRET_KEY = "LK00NYGOmyz8i7MhhNOD/gz0YcMBjUS4+DfD/l1zXmKcKXo1v5ScvycSlu8DcngsKUSLWJzF+fS+eysDi0B3gQ==";
+const APIPAY_ACCESS_KEY = "f316555d35e27b97ec26d5696298410a8fb02678317953c910cd3174225d052a";
+const APIPAY_SECRET_KEY = "n8YnRXUY98MgtOB+Y+MDhIJY5AXhwbzae3+9KuGi/46Ac1nJ4+dgYonFykg60dRj61iTFaNAQUCKaPgO+W7epw==";
 
 function jsonOutput_(value) {
   return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON);
@@ -464,7 +464,7 @@ function upsertOrder_(ss, data, notify) {
       } else notificationsComplete = false;
     }
     if (order.email && order.licenseLink && !order.emailSent && data.skipEmail !== true) {
-      try { sendInvoiceEmail(order.name, order.email, order.phone, order.orderId, order.licenseLink); order.emailSent = nowVN_(); write(); } catch (err) { Logger.log(String(err)); }
+      try { sendInvoiceEmail(order.name, order.email, order.phone, order.orderId, order.licenseLink, order.amountRaw || order.amount); order.emailSent = nowVN_(); write(); } catch (err) { Logger.log(String(err)); }
     }
   }
   return {status: "success", notificationsComplete: notificationsComplete, orderId: order.orderId, duplicate: index >= 0, allocatedLink: order.licenseLink || "", columns: ORDER_COLUMNS.length};
@@ -521,7 +521,8 @@ function allocateLicenseFromInventory(customerName, customerEmail) {
 }
 
 // ============================== 5. GỬI EMAIL TỰ ĐỘNG TỪ GMAIL CHUẨN HTML ==============================
-function sendInvoiceEmail(name, email, phone, orderId, link) {
+function sendInvoiceEmail(name, email, phone, orderId, link, amount) {
+  const paidAmount = (money_(amount) || 129000).toLocaleString("vi-VN") + " VNĐ";
   const subject = `[Gemini Enterprise] Kích hoạt thành công gói Google Gemini Pro 18T (Đơn ${orderId})`;
   const htmlBody = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: #ffffff;">
@@ -533,7 +534,7 @@ function sendInvoiceEmail(name, email, phone, orderId, link) {
       <div style="padding: 24px;">
         <p style="font-size: 14px; color: #334155; margin-top: 0;">Xin chào <strong>${name}</strong>,</p>
         <p style="font-size: 13px; color: #475569; line-height: 1.6;">
-          Hệ thống API Pay & Ngân hàng MBBank đã ghi nhận thành công giao dịch <strong>119.000 VNĐ</strong> của bạn.
+          Hệ thống API Pay & Ngân hàng MBBank đã ghi nhận thành công giao dịch <strong>${paidAmount}</strong> của bạn.
         </p>
 
         <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 16px; margin: 20px 0; text-align: center;">
@@ -608,7 +609,7 @@ function testAppendSampleOrder() {
         time: Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm:ss"),
         orderId: "#GEM-TEST99",
         product: "Google Gemini Pro 18 Tháng (5TB Cloud)",
-        amount: "119.000 VNĐ",
+        amount: "129.000 VNĐ",
         name: "Trần Anh Khoa",
         phone: "0908889999",
         email: "khoa.test@gmail.com",
@@ -630,7 +631,7 @@ function testTelegramAlert() {
     "Nguyễn Hoàng Nam",
     "0912345678",
     "hoangnam.ai@gmail.com",
-    "119.000 VNĐ",
+    "129.000 VNĐ",
     "PRO18T 0912345678",
     "https://one.google.com/promo/gemini-pro/ACT-NAM7492",
     Utilities.formatDate(new Date(), "GMT+7", "dd/MM/yyyy HH:mm:ss")

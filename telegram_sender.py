@@ -218,7 +218,7 @@ if __name__ == "__main__":
             "name": "Nguyễn Hoàng Nam",
             "phone": "0912345678",
             "email": "hoangnam.ai@gmail.com",
-            "amount": "90.000 VNĐ",
+            "amount": "129.000 VNĐ",
             "memo": "PRO18T 0912345678",
             "ip": "113.161.42.18",
             "location": "TP. Hồ Chí Minh",
@@ -229,7 +229,7 @@ if __name__ == "__main__":
         }
         
         # 1. Đơn thanh toán thành công
-        print("1. Bắn thông báo: Đơn hàng mới thanh toán thành công (90.000đ)...")
+        print("1. Bắn thông báo: Đơn hàng mới thanh toán thành công (129.000đ)...")
         send_telegram_raw(get_payment_success_template(sample_order), args.token, args.chat_id)
         time.sleep(1.2)
         

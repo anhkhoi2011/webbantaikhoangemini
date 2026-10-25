@@ -22,8 +22,8 @@ DEFAULT_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "
 
 def load_config():
     cfg = {
-        "accessKey": "5a03a2c11ed56ea65b7e7e11107f638ec8acfb95165a6a50225c91a477a157c2",
-        "secretKey": "LK00NYGOmyz8i7MhhNOD/gz0YcMBjUS4+DfD/l1zXmKcKXo1v5ScvycSlu8DcngsKUSLWJzF+fS+eysDi0B3gQ==",
+        "accessKey": "f316555d35e27b97ec26d5696298410a8fb02678317953c910cd3174225d052a",
+        "secretKey": "n8YnRXUY98MgtOB+Y+MDhIJY5AXhwbzae3+9KuGi/46Ac1nJ4+dgYonFykg60dRj61iTFaNAQUCKaPgO+W7epw==",
         "bankPublicId": "cmv2nmvn408tb01mny26u27ie",
         "accountNo": "517041996",
         "bankBin": "970422",
@@ -70,7 +70,7 @@ def test_connection():
 def create_payment_request(phone, amount=None, memo=None):
     cfg = load_config()
     if amount is None or amount <= 0:
-        amount = cfg.get("packagePrice", 119000)
+        amount = cfg.get("packagePrice", 129000)
     if not memo:
         memo = f"PRO18T {phone}"
     headers = get_headers(cfg["accessKey"], cfg["secretKey"])
@@ -131,7 +131,7 @@ def check_recent_payment_requests(memo=None, phone=None, amount=None):
     """
     cfg = load_config()
     if amount is None or amount <= 0:
-        amount = cfg.get("packagePrice", 119000)
+        amount = cfg.get("packagePrice", 129000)
     headers = get_headers(cfg["accessKey"], cfg["secretKey"])
     url = "https://app.apipay.vn/v1/client/payment-requests"
     req = urllib.request.Request(url, headers=headers)
@@ -191,7 +191,7 @@ def check_recent_payment_requests(memo=None, phone=None, amount=None):
 def get_qr_base64(memo="PRO18T", amount=None):
     cfg = load_config()
     if amount is None or amount <= 0:
-        amount = cfg.get("packagePrice", 119000)
+        amount = cfg.get("packagePrice", 129000)
     bank_bin = cfg.get("bankBin", "970422")
     acc_no = cfg.get("vaNumber", cfg.get("accountNo", "VQRQAMRMQ5816"))
     acc_name = cfg.get("accountName", "NGUYEN TRAN HAN")
@@ -255,7 +255,7 @@ def main():
         output_json(res)
     elif cmd == "create":
         phone = sys.argv[2] if len(sys.argv) > 2 else "0901234567"
-        amount = int(sys.argv[3]) if len(sys.argv) > 3 else 119000
+        amount = int(sys.argv[3]) if len(sys.argv) > 3 else 129000
         memo = sys.argv[4] if len(sys.argv) > 4 else f"PRO18T {phone}"
         res = create_payment_request(phone, amount, memo)
         output_json(res)
@@ -265,7 +265,7 @@ def main():
         output_json(res)
     elif cmd == "qr":
         memo = sys.argv[2] if len(sys.argv) > 2 else "PRO18T"
-        amount = int(sys.argv[3]) if len(sys.argv) > 3 else 119000
+        amount = int(sys.argv[3]) if len(sys.argv) > 3 else 129000
         res = get_qr_base64(memo, amount)
         output_json(res)
     else:

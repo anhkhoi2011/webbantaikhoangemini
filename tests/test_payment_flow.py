@@ -41,6 +41,40 @@ class PaymentFlowTests(unittest.TestCase):
         req = Request(f"http://127.0.0.1:{self.http.server_port}{path}", data=json.dumps(data).encode(), headers={"Content-Type": "application/json", **(headers or {})})
         with urlopen(req, timeout=5) as response:
             return json.load(response)
+    def test_current_pricing_drives_checkout_fomo_and_coupons(self):
+        server.write_json_file("payment_config.json", {"packagePrice": 129000, "nextPrice": 159000})
+        with urlopen(f"http://127.0.0.1:{self.http.server_port}/api/payment-config", timeout=5) as response:
+            config = json.load(response)
+        self.assertEqual(config["packagePrice"], 129000)
+        self.assertEqual(config["nextPrice"], 159000)
+        with urlopen(f"http://127.0.0.1:{self.http.server_port}/api/fomo-stats", timeout=5) as response:
+            stats = json.load(response)
+        self.assertEqual(stats["currentPrice"], "129.000\u0111")
+        self.assertEqual(stats["nextPrice"], "159.000\u0111")
+        self.assertEqual(server.read_json_file("sold_stats.json", {})["nextPrice"], stats["nextPrice"])
+        self.assertEqual(server.get_current_package_price(), 129000)
+        self.assertEqual(server.calculate_coupon_discount({"discountType": "percent", "discountValue": 10}), (12900, 116100))
+        self.assertEqual(server.read_json_file("orders.json", [])[0]["amountRaw"], 90000)
+        # Later configuration changes must also update the FOMO endpoint.
+        server.write_json_file("payment_config.json", {"packagePrice": 139000, "nextPrice": 169000})
+        with urlopen(f"http://127.0.0.1:{self.http.server_port}/api/fomo-stats", timeout=5) as response:
+            stats = json.load(response)
+        self.assertEqual(stats["currentPrice"], "139.000\u0111")
+        self.assertEqual(stats["nextPrice"], "169.000\u0111")
+
+    def test_bridge_creates_qr_for_current_configured_price(self):
+        config_path = str(Path(self.temp.name) / "payment_config.json")
+        server.write_json_file("payment_config.json", {"packagePrice": 129000})
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self, *_): pass
+            def read(self): return b'{"data":{"publicId":"TEST-QR"}}'
+        with patch.object(apipay_bridge, "DEFAULT_CONFIG_PATH", config_path), patch.object(apipay_bridge.urllib.request, "urlopen", return_value=Response()) as opener:
+            result = apipay_bridge.create_payment_request("0900000000")
+        self.assertEqual(result["status"], "success")
+        self.assertEqual(result["amount"], 129000)
+        self.assertEqual(json.loads(opener.call_args.args[0].data)["amount"], 129000)
+
     def test_four_bank_deliveries_one_paid_order_one_license(self):
         for i in range(4):
             self.post("/api/webhook", {"data": {"id": f"delivery-{i}", "amount": 90000, "content": self.order["memo"], "status": "COMPLETED"}})
