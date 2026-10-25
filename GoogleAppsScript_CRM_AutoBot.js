@@ -58,7 +58,7 @@ function paymentIsCurrent_(time, createdAt, memo) {
 
 function doGet(e) {
   const action = (e && e.parameter && e.parameter.action) || "health";
-  if (action !== "check_payment") return jsonOutput_({ status: "success", service: "Gemini CRM Apps Script", protocolVersion: 2, columns: ORDER_COLUMNS.length, trafficColumns: VISIT_COLUMNS.length, build: "2026-10-23-visit-orders" });
+  if (action !== "check_payment") return jsonOutput_({ status: "success", service: "Gemini CRM Apps Script", protocolVersion: 2, paymentProtocolVersion: 3, columns: ORDER_COLUMNS.length, trafficColumns: VISIT_COLUMNS.length, build: "2026-10-23-visit-orders" });
 
   const memo = String((e.parameter && e.parameter.memo) || "").replace(/\s+/g, "").toUpperCase();
   const orderId = String(e.parameter.orderId || "");

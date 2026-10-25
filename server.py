@@ -483,6 +483,10 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             self.path = "/admin.html"
             return super().do_GET()
 
+        if path == "/api/health":
+            cfg = read_json_file("payment_config.json", {})
+            return self.send_json({"status": "success", "build": "2026-10-26-verified-payments", "paymentVerificationVersion": 3, "paymentConfigured": bool(cfg.get("accessKey") and cfg.get("secretKey")), "bankCode": cfg.get("bankCode"), "testMode": cfg.get("testMode") is True})
+
         # 1. API: Cấu hình cổng thanh toán
         if path == "/api/payment-config":
             cfg = read_json_file("payment_config.json", {})

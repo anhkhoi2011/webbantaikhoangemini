@@ -2385,7 +2385,7 @@
       if (CONFIG.googleAppsScriptUrl && !CONFIG.googleAppsScriptUrl.includes('SAMPLE')) {
         try {
           const health = await (await window.fetch(CONFIG.googleAppsScriptUrl + '?action=health')).json();
-          if (health.protocolVersion !== 2) return {paid: false};
+          if (health.protocolVersion !== 2 || (/^PRO18T\s*\d+$/i.test(memo) && Number(health.paymentProtocolVersion || 0) < 3)) return {paid: false};
           const gasRes = await window.fetch(`${CONFIG.googleAppsScriptUrl}?action=check_payment&memo=${encodeURIComponent(memo)}&phone=${encodeURIComponent(phone)}&amount=${encodeURIComponent(amount || 0)}&orderId=${encodeURIComponent(currentOrder.orderId || '')}&createdAt=${encodeURIComponent(currentOrder.createdAt || '')}&publicId=${encodeURIComponent(currentOrder.apipayPublicId || '')}`);
           if (gasRes.ok) {
             const gasData = await gasRes.json();

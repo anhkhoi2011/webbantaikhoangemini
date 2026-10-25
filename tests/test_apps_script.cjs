@@ -86,6 +86,7 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
  const before=e.sheets.get('DON_HANG').rows[1][4];
  const result=e.post({...base,action:'new_order',orderId:'#OTHER',paymentTxId:'early-bank',name:'Wrong customer'});
  assert.equal(result.status,'error');assert.equal(e.sheets.get('DON_HANG').rows[1][4],before);
+ assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).paymentProtocolVersion,3);
  assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).columns,41);
  assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).trafficColumns,25);
  assert.equal(JSON.parse(e.ctx.doGet({parameter:{action:'health'}}).text).build,'2026-10-23-visit-orders');
