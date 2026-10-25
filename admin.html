@@ -842,7 +842,7 @@
                   <h3 class="text-base font-black text-slate-900">Cấu Hình Giá Bán & Gói Sản Phẩm (Tự Động Đồng Bộ Toàn Hệ Thống)</h3>
                   <span id="pricingSyncBadge" class="text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-full">✓ Tự Động Đồng Bộ Toàn Hệ Thống</span>
                 </div>
-                <p class="text-xs text-slate-600 mt-0.5 font-medium">Khi thay đổi giá tại đây: <b>Landing Page</b>, <b>Mã QR VietQR MBBank</b>, <b>Cổng API Pay tự quét</b>, <b>Tính toán Voucher</b> và <b>Thông báo Telegram</b> sẽ tự động cập nhật theo giá mới 100%.</p>
+                <p class="text-xs text-slate-600 mt-0.5 font-medium">Khi thay đổi giá tại đây: <b>Landing Page</b>, <b>Mã QR VietQR BIDV</b>, <b>Cổng API Pay tự quét</b>, <b>Tính toán Voucher</b> và <b>Thông báo Telegram</b> sẽ tự động cập nhật theo giá mới 100%.</p>
               </div>
             </div>
 
@@ -944,7 +944,7 @@
 
                   <div class="flex items-center justify-between bg-white/5 p-2.5 rounded-xl border border-white/5">
                     <span class="text-slate-300">Mã VietQR tạo cho khách:</span>
-                    <span id="previewQrAmount" class="font-mono font-black text-sky-300">129.000đ (MBBank)</span>
+                    <span id="previewQrAmount" class="font-mono font-black text-sky-300">129.000đ (BIDV)</span>
                   </div>
 
                   <div class="flex items-center justify-between bg-white/5 p-2.5 rounded-xl border border-white/5">
@@ -973,7 +973,7 @@
 
         
         <!-- ======================================================== -->
-        <!-- 0. CẤU HÌNH CỔNG THANH TOÁN TỰ ĐỘNG (API PAY / MBBANK VIETQR AUTO-DETECT) -->
+        <!-- 0. CẤU HÌNH CỔNG THANH TOÁN TỰ ĐỘNG (API PAY / BIDV VIETQR AUTO-DETECT) -->
         <!-- ======================================================== -->
         <div class="bg-gradient-to-br from-indigo-50/70 via-white to-blue-50/40 p-6 rounded-2xl border-2 border-indigo-300 shadow-sm space-y-5 md:col-span-2">
           
@@ -986,10 +986,10 @@
               </div>
               <div>
                 <div class="flex items-center gap-2 flex-wrap">
-                  <h3 class="text-base font-black text-slate-900">Cấu Hình Cổng Thanh Toán Tự Động (API Pay / MBBank VietQR)</h3>
-                  <span id="paymentStatusBadge" class="text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-full">✓ Tự Động Nhận Diện MBBank</span>
+                  <h3 class="text-base font-black text-slate-900">Cấu Hình Cổng Thanh Toán Tự Động (API Pay / BIDV VietQR)</h3>
+                  <span id="paymentStatusBadge" class="text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-full">✓ Tự Động Nhận Diện BIDV</span>
                 </div>
-                <p class="text-xs text-slate-600 mt-0.5 font-medium">Kết nối trực tiếp API Pay / Webhook để tự động quét biến động số dư khi khách quét QR. Chỉ mở link bản quyền khi có tiền thật vào tài khoản MBBank.</p>
+                <p class="text-xs text-slate-600 mt-0.5 font-medium">Kết nối trực tiếp API Pay / Webhook để tự động quét biến động số dư khi khách quét QR. Chỉ mở link bản quyền khi có tiền thật vào tài khoản BIDV.</p>
               </div>
             </div>
 
@@ -1008,7 +1008,7 @@
             <div class="lg:col-span-7 bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
               <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                 <span class="text-xs font-black text-slate-900 uppercase">Thông Số Cổng Kết Nối API Pay:</span>
-                <span class="text-xs font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">MBBank: 517041996</span>
+                <span class="text-xs font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">BIDV: 8809642706</span>
               </div>
 
               <div class="space-y-3 text-xs">
@@ -1016,7 +1016,7 @@
                   <div>
                     <label class="block font-bold text-slate-800 mb-1">1. Cổng Dịch Vụ Thanh Toán: <span class="text-red-500">*</span></label>
                     <select id="paymentProviderSelect" onchange="handlePaymentProviderChange()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs">
-                      <option value="apipay" selected>APIPay.vn (Khuyên dùng - MBBank Auto-Detect)</option>
+                      <option value="apipay" selected>APIPay.vn (Khuyên dùng - BIDV Auto-Detect)</option>
                       <option value="casso">Casso.vn (Open API Ngân Hàng Việt Nam)</option>
                       <option value="payos">PayOS.vn (Cổng VietQR Tự Động)</option>
                       <option value="mbbank_webhook">MBBank Webhook / SeAPay</option>
@@ -1042,14 +1042,14 @@
 
                 <div>
                   <label class="block font-bold text-slate-800 mb-1">4. API Endpoint URL (Địa chỉ tra soát giao dịch): <span class="text-red-500">*</span></label>
-                  <input type="text" id="paymentEndpointInput" value="https://api.apipay.vn/v1/transactions"
+                  <input type="text" id="paymentEndpointInput" value="https://app.apipay.vn/v1/client"
                     class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs">
                 </div>
 
                 <div class="grid sm:grid-cols-2 gap-3">
                   <div>
-                    <label class="block font-bold text-slate-800 mb-1">5. Số Tài Khoản MBBank:</label>
-                    <input type="text" id="paymentAccountNoInput" value="517041996" readonly
+                    <label class="block font-bold text-slate-800 mb-1">5. Số Tài Khoản BIDV:</label>
+                    <input type="text" id="paymentAccountNoInput" value="8809642706" readonly
                       class="w-full p-2.5 bg-slate-100 border border-slate-300 rounded-xl font-mono font-bold text-xs text-slate-700 shadow-2xs">
                   </div>
                   <div>
@@ -1174,7 +1174,7 @@
               <div class="bg-white p-4.5 rounded-2xl border-2 border-emerald-200 shadow-2xs space-y-3 text-xs">
                 <div class="flex items-center justify-between">
                   <div class="font-black text-emerald-950 flex items-center gap-1.5">
-                    <span>🧪 Mô Phỏng Bắn Thử Giao Dịch MBBank (Test Sandbox)</span>
+                    <span>🧪 Mô Phỏng Bắn Thử Giao Dịch BIDV (Test Sandbox)</span>
                   </div>
                   <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Không mất 90k</span>
                 </div>
@@ -1197,7 +1197,7 @@
             <div class="flex items-center justify-between pb-2 border-b border-slate-100">
               <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-                <span class="font-black text-slate-900 uppercase text-xs">Lịch Sử Biến Động Số Dư MBBank Thời Gian Thực (Live Bank Stream)</span>
+                <span class="font-black text-slate-900 uppercase text-xs">Lịch Sử Biến Động Số Dư BIDV Thời Gian Thực (Live Bank Stream)</span>
               </div>
               <div class="flex items-center gap-2">
                 <button onclick="renderBankTransactions()" class="text-blue-600 hover:underline font-bold text-[11px] cursor-pointer">🔄 Tải lại</button>
@@ -1954,7 +1954,7 @@
           <span class="text-base">💡</span>
           <div>
             <span class="font-bold text-slate-800">Cơ Chế Xác Nhận Tự Động 100%:</span>
-            Khi khách nhập mã voucher trên Landing Page (ví dụ: <code class="bg-rose-100 text-rose-800 px-1 py-0.5 rounded font-mono font-bold">SALE11</code>), hệ thống sẽ tính giá chính xác (<code class="bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-mono font-bold">69.000đ</code>), mã VietQR MBBank sinh đúng số tiền 69.000đ, và webhook APIPay nhận diện đúng 69.000đ để tự động xác nhận thành công sau 3 giây mà không cần khách bấm nút.
+            Khi khách nhập mã voucher trên Landing Page (ví dụ: <code class="bg-rose-100 text-rose-800 px-1 py-0.5 rounded font-mono font-bold">SALE11</code>), hệ thống sẽ tính giá chính xác (<code class="bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-mono font-bold">69.000đ</code>), mã VietQR BIDV sinh đúng số tiền 69.000đ, và webhook APIPay nhận diện đúng 69.000đ để tự động xác nhận thành công sau 3 giây mà không cần khách bấm nút.
           </div>
         </div>
       </div>
@@ -2700,7 +2700,7 @@
           licenseLink: o.licenseLink || '',
           referrer: o.referrer || 'Trực tiếp',
           ipLocation: `${o.ip || '127.0.0.1'} (${o.location || 'Việt Nam'})`,
-          status: o.status || 'Đã thanh toán (MBBank)'
+          status: o.status || 'Đã thanh toán (BIDV)'
         };
 
         try {
@@ -2968,7 +2968,7 @@
       const ord = orders.find(o => o.orderId === currentAssignOrderId);
       if (ord) {
         ord.licenseLink = link;
-        ord.status = 'Đã thanh toán (MBBank)';
+        ord.status = 'Đã thanh toán (BIDV)';
         ord.adminNote = 'Đã cấp link từ bot nguồn cấp link';
         localStorage.setItem('crm_orders', JSON.stringify(orders));
         syncOrderToBackend(ord);
@@ -2989,7 +2989,7 @@
       if (!ord) return;
 
       ord.licenseLink = link;
-      ord.status = 'Đã thanh toán (MBBank)';
+      ord.status = 'Đã thanh toán (BIDV)';
       ord.adminNote = 'Đã bàn giao link qua Zalo';
       localStorage.setItem('crm_orders', JSON.stringify(orders));
       syncOrderToBackend(ord);
@@ -3016,7 +3016,7 @@
       if (!ord) return;
 
       ord.licenseLink = link;
-      ord.status = 'Đã thanh toán (MBBank)';
+      ord.status = 'Đã thanh toán (BIDV)';
       ord.adminNote = 'Đã cấp link và gửi Gmail';
       
       showToast('Đang gửi email bản quyền tới ' + ord.email + '...');
@@ -4177,7 +4177,7 @@
         device: 'Quản trị viên',
         referrer: 'Tạo thủ công tại CRM',
         licenseLink: licenseLink,
-        status: 'Đã thanh toán (MBBank)',
+        status: 'Đã thanh toán (BIDV)',
         emailStatus: 'Đã gửi Gmail',
         adminNote: note || 'Tạo thủ công bởi Admin'
       };
@@ -4269,7 +4269,7 @@
         const link = o.licenseLink || '';
         const ref = o.referrer || 'Trực tiếp';
         const ipLoc = `${o.ip || ''} (${o.location || ''})`.replace(/"/g, '""');
-        const status = (o.status || 'Đã thanh toán (MBBank)').replace(/"/g, '""');
+        const status = (o.status || 'Đã thanh toán (BIDV)').replace(/"/g, '""');
         csv += `"${time}","${orderId}","${prod}","${amt}","${name}","${phone}","${email}","${memo}","${link}","${ref}","${ipLoc}","${status}"\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -4296,7 +4296,7 @@
         const link = o.licenseLink || '';
         const ref = o.referrer || 'Trực tiếp';
         const ipLoc = `${o.ip || ''} (${o.location || ''})`;
-        const status = o.status || 'Đã thanh toán (MBBank)';
+        const status = o.status || 'Đã thanh toán (BIDV)';
         tsv += `${time}\t${orderId}\t${prod}\t${amt}\t${name}\t${phone}\t${email}\t${memo}\t${link}\t${ref}\t${ipLoc}\t${status}\n`;
       });
 
@@ -4365,7 +4365,7 @@
           licenseLink: "https://one.google.com/promo/gemini-pro/ACT-TEST-LINK",
           referrer: "Facebook Ads",
           ipLocation: "113.161.42.18 (Hà Nội, VN)",
-          status: "Đã thanh toán (MBBank)"
+          status: "Đã thanh toán (BIDV)"
         };
         await fetch(cfg.googleSheetWebhookUrl, {
           method: 'POST',
@@ -4400,8 +4400,24 @@
     }
 
     // ==========================================
-    // CỔNG THANH TOÁN TỰ ĐỘNG (API PAY / MBBANK) & GOOGLE SHEETS
+    // CỔNG THANH TOÁN TỰ ĐỘNG (API PAY / BIDV) & GOOGLE SHEETS
     // ==========================================
+    function migrateWeb1PaymentConfig(cfg) {
+      if (!cfg || typeof cfg !== 'object') return {};
+      if (cfg.bankPublicId === 'cmv2nmvn408tb01mny26u27ie' ||
+          ['VQRQAMRMQ5816', '517041996'].includes(cfg.accountNo) ||
+          cfg.vaNumber === 'VQRQAMRMQ5816') {
+        return Object.assign({}, cfg, {
+          bankPublicId: 'cmvkpk77d128c01p4f27u9qy5',
+          vaNumber: 'V1T61023152838', accountNo: 'V1T61023152838',
+          physicalAccountNo: '8809642706', bankBin: '970418',
+          accountName: 'NGO ANH KHOI', bankCode: 'BIDV',
+          endpointUrl: 'https://app.apipay.vn/v1/client'
+        });
+      }
+      return cfg;
+    }
+
     function getPaymentConfig() {
       const defaultCfg = {
         packagePrice: 129000,
@@ -4409,14 +4425,16 @@
         nextPrice: 159000,
         packageName: 'Gemini Pro 18 Tháng (5TB Cloud)',
         provider: 'apipay',
-        apiKey: 'f316555d35e27b97ec26d5696298410a8fb02678317953c910cd3174225d052a',
-        secretKey: 'n8YnRXUY98MgtOB+Y+MDhIJY5AXhwbzae3+9KuGi/46Ac1nJ4+dgYonFykg60dRj61iTFaNAQUCKaPgO+W7epw==',
+        apiKey: '',
+        secretKey: '',
         endpointUrl: 'https://app.apipay.vn/v1/client',
-        bankPublicId: 'cmv2nmvn408tb01mny26u27ie',
-        vaNumber: 'VQRQAMRMQ5816',
-        accountNo: '517041996',
-        bankBin: '970422',
-        accountName: 'NGUYEN TRAN HAN',
+        bankPublicId: 'cmvkpk77d128c01p4f27u9qy5',
+        vaNumber: 'V1T61023152838',
+        accountNo: 'V1T61023152838',
+        physicalAccountNo: '8809642706',
+        bankCode: 'BIDV',
+        bankBin: '970418',
+        accountName: 'NGO ANH KHOI',
         testMode: false,
         pollIntervalSeconds: 3,
         enabled: true,
@@ -4426,7 +4444,7 @@
       };
       try {
         const raw = localStorage.getItem('crm_payment_api_config');
-        const merged = raw ? Object.assign(defaultCfg, JSON.parse(raw)) : defaultCfg;
+        const merged = raw ? Object.assign(defaultCfg, migrateWeb1PaymentConfig(JSON.parse(raw))) : defaultCfg;
         if ([90000, 119000].includes(Number(merged.packagePrice))) {
           merged.packagePrice = 129000;
           merged.nextPrice = 159000;
@@ -4466,7 +4484,7 @@
       if (liveDisc) liveDisc.innerText = `-${discountPct}% (Tiết kiệm ${(orig - price).toLocaleString('vi-VN')}đ)`;
 
       const qrAmt = document.getElementById('previewQrAmount');
-      if (qrAmt) qrAmt.innerText = `${fmtPrice} (MBBank)`;
+      if (qrAmt) qrAmt.innerText = `${fmtPrice} (BIDV)`;
 
       const apiAmt = document.getElementById('previewApiAmount');
       if (apiAmt) apiAmt.innerText = `Khớp đúng ${fmtPrice}`;
@@ -4507,7 +4525,7 @@
           const cfg = await res.json();
           if (cfg && typeof cfg === 'object') {
             const current = getPaymentConfig();
-            Object.assign(current, cfg);
+            Object.assign(current, migrateWeb1PaymentConfig(cfg));
             localStorage.setItem('crm_payment_api_config', JSON.stringify(current));
             try {
               localStorage.setItem('crm_payment_config', JSON.stringify({
@@ -4525,6 +4543,7 @@
     }
 
     function savePaymentConfig(cfg) {
+      cfg = migrateWeb1PaymentConfig(cfg);
       localStorage.setItem('crm_payment_api_config', JSON.stringify(cfg));
       try {
         localStorage.setItem('crm_payment_config', JSON.stringify({
@@ -4558,7 +4577,7 @@
 
       if (providerSel) providerSel.value = cfg.provider || 'apipay';
       if (apiKeyInput) apiKeyInput.value = cfg.apiKey || '';
-      if (endpointInput) endpointInput.value = cfg.endpointUrl || 'https://api.apipay.vn/v1/transactions';
+      if (endpointInput) endpointInput.value = cfg.endpointUrl || 'https://app.apipay.vn/v1/client';
       if (pollSel) pollSel.value = cfg.pollIntervalSeconds || 3;
       if (toggle) toggle.checked = cfg.enabled !== false;
       if (sheetInput) sheetInput.value = cfg.googleSheetWebhookUrl || '';
@@ -4587,7 +4606,7 @@
           badge.innerText = "✓ Đã Kết Nối API Pay Thật";
         } else {
           badge.className = "text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300 px-2.5 py-0.5 rounded-full";
-          badge.innerText = "● Sẵn Sàng (MBBank 517041996)";
+          badge.innerText = "● Sẵn Sàng (BIDV 8809642706)";
         }
       }
     }
@@ -4596,7 +4615,7 @@
       const provider = document.getElementById('paymentProviderSelect').value;
       const endpointInput = document.getElementById('paymentEndpointInput');
       if (provider === 'apipay') {
-        endpointInput.value = 'https://api.apipay.vn/v1/transactions';
+        endpointInput.value = 'https://app.apipay.vn/v1/client';
       } else if (provider === 'casso') {
         endpointInput.value = 'https://oauth.casso.vn/v2/transactions';
       } else if (provider === 'payos') {
@@ -4625,10 +4644,15 @@
       const cfg = getPaymentConfig();
       cfg.provider = provider;
       cfg.apiKey = apiKey;
+      cfg.accessKey = apiKey;
       cfg.endpointUrl = endpointUrl;
-      cfg.accountNo = '517041996';
-      cfg.bankBin = '970422';
-      cfg.accountName = 'NGUYEN TRAN HAN';
+      cfg.bankPublicId = 'cmvkpk77d128c01p4f27u9qy5';
+      cfg.vaNumber = 'V1T61023152838';
+      cfg.accountNo = 'V1T61023152838';
+      cfg.physicalAccountNo = '8809642706';
+      cfg.bankCode = 'BIDV';
+      cfg.bankBin = '970418';
+      cfg.accountName = 'NGO ANH KHOI';
       cfg.pollIntervalSeconds = pollInterval;
       cfg.enabled = toggle ? toggle.checked : true;
       if (sheetInput) cfg.googleSheetWebhookUrl = sheetInput.value.trim();
@@ -4673,7 +4697,7 @@
         const res = await adminApiFetch('/api/apipay-test');
         const data = await res.json();
         if (data && data.status === 'success') {
-          showToast(`✓ ${data.message} (${data.accountName} - MBBank: ${data.accountNumber})`);
+          showToast(`✓ ${data.message} (${data.accountName} - BIDV: ${data.accountNumber})`);
         } else {
           showToast(`⚠️ Lỗi kết nối: ${data.message || 'Không kết nối được'}`);
         }
@@ -4712,7 +4736,7 @@
         id: "SIM_" + Math.floor(100000 + Math.random() * 900000),
         amount: 129000,
         description: memo,
-        bank: "MBBank",
+        bank: "BIDV",
         time: new Date().toLocaleTimeString('vi-VN') + ' ' + new Date().toLocaleDateString('vi-VN'),
         source: "Mô phỏng Sandbox Admin"
       };
@@ -4790,7 +4814,7 @@
             <td class="py-2.5 px-3 text-slate-600">${tx.time || ''}</td>
             <td class="py-2.5 px-3 text-right font-black text-emerald-700">+${parseInt(tx.amount || 129000).toLocaleString('vi-VN')}đ</td>
             <td class="py-2.5 px-3 font-bold text-amber-900">${tx.description || ''}</td>
-            <td class="py-2.5 px-3 text-slate-600">${tx.source || 'MBBank API Pay'}</td>
+            <td class="py-2.5 px-3 text-slate-600">${tx.source || 'BIDV API Pay'}</td>
             <td class="py-2.5 px-3 text-center">
               <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                 ✓ Khớp Đơn
@@ -4820,8 +4844,8 @@
     // ==========================================
     function getTelegramConfig() {
       const defaultCfg = {
-        botToken: '8924743387:AAHmuHUEUyK2XtRL4N6dUEbHf98xmj1wE2c',
-        chatId: '-1004413665683',
+        botToken: '',
+        chatId: '-5585627393',
         lowStockThreshold: 5,
         dailyReportTime: '10:00',
         enabled: true
@@ -4873,8 +4897,8 @@
       const toggle = document.getElementById('teleEnabledToggle');
       const badge = document.getElementById('teleStatusBadge');
 
-      if (tokenInput) tokenInput.value = cfg.botToken || '8924743387:AAHmuHUEUyK2XtRL4N6dUEbHf98xmj1wE2c';
-      if (chatIdInput) chatIdInput.value = cfg.chatId || '-1004413665683';
+      if (tokenInput) tokenInput.value = cfg.botToken || '';
+      if (chatIdInput) chatIdInput.value = cfg.chatId || '-5585627393';
       if (thresholdSelect) thresholdSelect.value = cfg.lowStockThreshold || 5;
       if (reportTimeSelect) reportTimeSelect.value = cfg.dailyReportTime || '10:00';
       if (toggle) toggle.checked = cfg.enabled !== false;
@@ -4885,7 +4909,7 @@
           badge.innerText = "✕ Đang Tắt Tự Động";
         } else if (cfg.botToken && cfg.chatId && !cfg.botToken.includes('SAMPLE')) {
           badge.className = "text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-full";
-          badge.innerText = '✓ Chat nhận đơn: ' + (cfg.chatIds || [cfg.chatId, '-5585627393']).join(', ');
+          badge.innerText = '✓ Chat nhận đơn: ' + (cfg.chatIds || ['-5585627393']).filter(id => id !== '-1004413665683').join(', ');
         } else {
           badge.className = "text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full";
           badge.innerText = "● Chờ Nhập Token Thật";
@@ -4903,7 +4927,8 @@
 
     function saveTelegramConfigFromUI() {
       const token = document.getElementById('teleBotTokenInput').value.trim();
-      const chatId = document.getElementById('teleChatIdInput').value.trim();
+      const chatIdInputValue = document.getElementById('teleChatIdInput').value.trim();
+      const chatId = chatIdInputValue === '-1004413665683' ? '-5585627393' : chatIdInputValue;
       const threshold = parseInt(document.getElementById('teleStockThresholdSelect').value) || 5;
       const reportTime = document.getElementById('teleReportTimeSelect').value;
       const toggle = document.getElementById('teleEnabledToggle');
@@ -4942,6 +4967,7 @@
         }
       } catch(e) {}
 
+      if (String(cfg.chatId) === '-1004413665683') return false;
       if (!cfg.botToken || !cfg.chatId || cfg.botToken.includes('SAMPLE')) {
         console.log('[Telegram Mock Mode] Message:\n', htmlText);
         showToast('⚡ Mô phỏng gửi Telegram thành công! (Dán Token & Chat ID thật để nhận tin trên điện thoại)');

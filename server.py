@@ -1,3 +1,4 @@
+from runtime_config import with_runtime_secrets, separate_runtime_secrets
 # -*- coding: utf-8 -*-
 """
 Production HTTP Server for Google Gemini Pro CRM (Linux / Windows / Docker / Cloud)
@@ -120,17 +121,19 @@ def parse_money(value, default=0):
 
 def read_json_file(filename, default):
     filepath = os.path.join(BASE_DIR, filename)
+    result = default
     if os.path.exists(filepath):
         try:
             with open(filepath, "r", encoding="utf-8-sig") as f:
-                return json.load(f)
-        except:
-            return default
-    return default
+                result = json.load(f)
+        except (OSError, ValueError):
+            pass
+    return with_runtime_secrets(filename, result, BASE_DIR)
 
 def write_json_file(filename, data):
     filepath = os.path.join(BASE_DIR, filename)
     try:
+        data = separate_runtime_secrets(filename, data, BASE_DIR)
         tmp_path = filepath + ".tmp"
         with open(tmp_path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
@@ -190,9 +193,15 @@ def payment_key(tx):
     reference = tx.get("bankReference") or tx.get("referenceCode") or tx.get("transactionReference") or ""
     amount = parse_money(tx.get("amount") or tx.get("creditAmount") or tx.get("transferAmount"), 0)
     content = normalized_memo(tx.get("description") or tx.get("content") or tx.get("memo") or tx.get("comment"))
+    # Phone references recur. Use stable request/time data, never a delivery UUID.
+    if not reference and re.search(r"PRO18T\d+$", content):
+        reference = tx.get("publicId") or tx.get("transactionId") or tx.get("paidAt") or tx.get("completedAt") or tx.get("transactionDateTime") or tx.get("time") or tx.get("createdAt") or ""
     return hashlib.sha256(f"{reference}|{amount}|{content}".encode()).hexdigest()
 
 def successful_tx(tx):
+    simulated = str(tx.get("id") or "").startswith("SIM_") or any(word in str(tx.get("source") or "").lower() for word in ("simulat", "sandbox"))
+    if simulated and read_json_file("payment_config.json", {}).get("testMode") is not True:
+        return False
     status = str(tx.get("status") or "COMPLETED").upper()
     return status in {"PAID", "COMPLETED", "SUCCESS", "CREDIT"} and str(tx.get("transferType") or tx.get("direction") or "").lower() not in {"out", "debit"} and parse_money(tx.get("amount") or tx.get("transferAmount") or tx.get("creditAmount"), 0) > 0
 
@@ -339,6 +348,25 @@ def queue_visit_sync(visit_id):
         VISIT_SYNC_EVENT.set()
 
 
+def payment_is_current(tx, order):
+    # The short phone reference is reusable, so its payment must belong to this checkout.
+    if not re.fullmatch(r"PRO18T\s*\d+", str(order.get("memo") or ""), re.I) or not order.get("createdAt"):
+        return True
+    def parse(value):
+        text = str(value or "")
+        try:
+            parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+        except ValueError:
+            try:
+                parsed = datetime.strptime(text, "%d/%m/%Y %H:%M:%S")
+            except ValueError:
+                return None
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone(timedelta(hours=7)))
+    created = parse(order["createdAt"])
+    paid = parse(tx.get("paidAt") or tx.get("completedAt") or tx.get("transactionDateTime") or tx.get("time") or tx.get("updatedAt") or tx.get("createdAt"))
+    return created is not None and paid is not None and paid >= created
+
+
 def mark_order_paid(order_id, tx_id=None, tx_data=None, source="API Pay"):
     tx = dict(tx_data or {})
     with ORDER_LOCK:
@@ -349,6 +377,13 @@ def mark_order_paid(order_id, tx_id=None, tx_data=None, source="API Pay"):
         if is_paid_order(order):
             queue_order_sync(order_id)
             return dict(order)
+        if not successful_tx(tx) or not payment_is_current(tx, order):
+            return None
+        memo = normalized_memo(order.get("memo"))
+        content = normalized_memo(tx.get("description") or tx.get("content") or tx.get("memo"))
+        exact_request = bool(order.get("apipayPublicId") and order["apipayPublicId"] == tx.get("publicId"))
+        if memo and (content and memo not in content or not content and not exact_request):
+            return None
         amount = parse_money(tx.get("amount"), 0)
         if amount < parse_money(order.get("amountRaw") or order.get("amount"), get_current_package_price()):
             return None
@@ -367,7 +402,7 @@ def mark_order_paid(order_id, tx_id=None, tx_data=None, source="API Pay"):
                     free.update(status="Đã cấp", assignedTo=f"{order.get('name')} ({order_id})")
                     write_json_file(LICENSES_FILE, lics)
                     order["licenseLink"] = free["link"]
-        order["status"] = "Đã thanh toán (MBBank)" if order.get("licenseLink") else "Đã thanh toán (Chờ cấp link)"
+        order["status"] = "Đã thanh toán (BIDV)" if order.get("licenseLink") else "Đã thanh toán (Chờ cấp link)"
         if order.get("couponCode") and not order.get("couponCounted"):
             with COUPONS_LOCK:
                 coupons = read_json_file(COUPONS_FILE, [])
@@ -385,6 +420,8 @@ def mark_order_paid(order_id, tx_id=None, tx_data=None, source="API Pay"):
 
 
 class GeminiCRMHandler(SimpleHTTPRequestHandler):
+    # Explicit MIME keeps MP4 playback reliable behind simple Python hosting.
+    extensions_map = {**SimpleHTTPRequestHandler.extensions_map, ".mp4": "video/mp4"}
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=BASE_DIR, **kwargs)
 
@@ -434,7 +471,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
         if _requires_admin(path, "GET") and not _admin_authorized(self):
             return self.send_json({"status": "error", "message": "Admin authentication required"}, 401)
 
-        blocked_files = {"/payment_config.json", "/telegram_config.json", "/orders.json", "/licenses.json", "/bank_transactions.json", "/visits.json", "/pixel_stats.json", "/coupons.json", "/temp_login.json", "/GoogleAppsScript_CRM_AutoBot.js", "/server.py", "/server.ps1", "/api.php"}
+        blocked_files = {"/runtime_secrets.json", "/runtime_config.py", "/payment_config.json", "/telegram_config.json", "/orders.json", "/licenses.json", "/bank_transactions.json", "/visits.json", "/pixel_stats.json", "/coupons.json", "/temp_login.json", "/GoogleAppsScript_CRM_AutoBot.js", "/server.py", "/server.ps1", "/api.php"}
         if path in blocked_files:
             return self.send_json({"status": "error", "message": "Resource not available"}, 404)
 
@@ -449,7 +486,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
         # 1. API: Cấu hình cổng thanh toán
         if path == "/api/payment-config":
             cfg = read_json_file("payment_config.json", {})
-            public_keys = {"packagePrice", "originalPrice", "nextPrice", "packageName", "provider", "bankPublicId", "vaNumber", "accountNo", "physicalAccountNo", "bankBin", "accountName", "pollIntervalSeconds", "testMode", "enabled", "pixelId", "pixelEnabled"}
+            public_keys = {"packagePrice", "originalPrice", "nextPrice", "packageName", "provider", "bankPublicId", "vaNumber", "accountNo", "physicalAccountNo", "bankBin", "accountName", "bankCode", "pollIntervalSeconds", "testMode", "enabled", "pixelId", "pixelEnabled"}
             return self.send_json({k: v for k, v in cfg.items() if k in public_keys})
 
         # 1.1 API: Cấu hình Meta Pixel (Facebook Ads)
@@ -564,12 +601,26 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             clean_phone = phone.replace("+84", "0").replace(" ", "") if phone else ""
             clean_memo = memo.replace(" ", "").upper() if memo else ""
             expected_amount = 0
+            order_created_at = None
+            pending_order = {}
             if order_id:
                 for pending in read_json_file("orders.json", []):
                     if str(pending.get("orderId") or "") == order_id:
+                        pending_order = pending
+                        order_created_at = pending.get("createdAt")
                         expected_amount = parse_money(pending.get("amount"), get_current_package_price())
                         break
 
+            if not pending_order:
+                return self.send_json({"paid": False, "message": "Order not found"}, 404)
+            # Match against saved checkout data, never caller-supplied phone/memo/amount.
+            memo = str(pending_order.get("memo") or "")
+            phone = str(pending_order.get("phone") or "")
+            clean_memo = normalized_memo(memo)
+            clean_phone = phone.replace("+84", "0").replace(" ", "")
+            expected_amount = parse_money(pending_order.get("amountRaw") or pending_order.get("amount"), get_current_package_price())
+            public_id = str(pending_order.get("apipayPublicId") or public_id)
+            ambiguous_reference = sum(1 for candidate in read_json_file("orders.json", []) if not is_paid_order(candidate) and normalized_memo(candidate.get("memo")) == clean_memo) > 1
             if not order_id:
                 return self.send_json({"paid": False, "message": "Missing orderId"}, 400)
             # 4.1 Kiểm tra qua ApiPay bridge nếu có publicId
@@ -591,10 +642,10 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                     pass
 
             # 4.2 Kiểm tra danh sách Payment Requests gần nhất trên ApiPay Cloud bằng phone / memo
-            if clean_phone or clean_memo:
+            if (clean_phone or clean_memo) and not ambiguous_reference:
                 try:
                     import apipay_bridge
-                    res = apipay_bridge.check_recent_payment_requests(memo, phone, expected_amount or parse_money(query.get("amount", [0])[0], 0))
+                    res = apipay_bridge.check_recent_payment_requests(memo, phone, expected_amount or parse_money(query.get("amount", [0])[0], 0), not_before=order_created_at)
                     if res.get("paid"):
                         pr_tx = res.get("transaction") or {}
                         pr_pub = pr_tx.get("publicId") or pr_tx.get("id") or public_id
@@ -626,7 +677,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 elif not clean_memo and clean_phone and len(clean_phone) >= 9 and clean_phone in desc:
                     is_match = True
 
-                if is_match and successful_tx(tx):
+                if is_match and not ambiguous_reference and successful_tx(tx) and payment_is_current(tx, pending_order):
                     if expected_amount and parse_money(tx.get("amount"), 0) < expected_amount:
                         continue
                     if order_id and not tx.get("used_by_order"):
@@ -672,7 +723,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                     raw_b64 = f.read().replace("data:image/png;base64,", "").strip()
                 img_data = base64.b64decode(raw_b64)
                 self.send_response(200)
-                self.send_header("Content-Type", "image/png")
+                self.send_header("Content-Type", "image/svg+xml" if img_data.lstrip().startswith(b"<svg") else "image/png")
                 self.send_header("Content-Length", str(len(img_data)))
                 self.end_headers()
                 self.wfile.write(img_data)
@@ -1206,6 +1257,8 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                         for key in ("ip", "location"):
                             if captured_visit.get(key):
                                 body[key] = captured_visit[key]
+                if is_paid_order(body) and not is_paid_order(existing) and not _admin_authorized(self):
+                    return self.send_json({"status": "error", "message": "Payment must be verified by the server before confirming the order"}, 409)
                 merged = dict(existing)
                 merged.update({key: value for key, value in body.items() if value is not None and value != ""})
                 preserve_order_tracking(existing, merged)
@@ -1289,9 +1342,10 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                         "id": str(it.get("id") or it.get("publicId") or f"TX_{int(datetime.now().timestamp()) % 1000000:06d}"),
                         "amount": actual_amt,
                         "description": desc or f"PRO18T (APIPay {public_id})",
-                        "bank": it.get("bank") or it.get("bankCode") or "MBBank",
+                        "bank": it.get("bank") or it.get("bankCode") or "BIDV",
                         "time": it.get("paidAt") or it.get("completedAt") or it.get("transactionDateTime") or it.get("time") or it.get("updatedAt") or it.get("createdAt") or datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        "source": "APIPay Webhook"
+                        "source": "APIPay Webhook",
+                        "publicId": public_id
                     }
                     tx_record["paymentKey"] = payment_key(it)
                     tx_record["status"] = status_raw or "COMPLETED"
@@ -1305,19 +1359,25 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
 
                     # Tự động khớp với đơn hàng đang chờ thanh toán
                     clean_desc = (desc or "").upper().replace(" ", "")
-                    matched_order = None
+                    candidates = []
+                    exact_requests = []
                     for order in read_json_file("orders.json", []):
                         st = (order.get("status") or "").lower()
                         if "chờ thanh toán" in st and not order.get("paidNotified"):
                             order_amount = parse_money(order.get("amount"), pkg_price)
-                            if actual_amt < order_amount:
+                            if actual_amt < order_amount or not payment_is_current(tx_record, order):
                                 continue
                             phone = (order.get("phone") or "").replace("+84", "0").replace(" ", "")
                             memo = (order.get("memo") or f"PRO18T {phone}").upper().replace(" ", "")
                             o_pub = (order.get("apipayPublicId") or "").strip()
-                            if (public_id and public_id == o_pub) or (memo and memo in clean_desc):
-                                matched_order = order
-                                break
+                            if public_id and public_id == o_pub:
+                                exact_requests.append(order)
+                            elif memo and memo in clean_desc:
+                                candidates.append(order)
+                    # Prefer APIPay's unique request ID. A shared phone reference must not
+                    # select an arbitrary order when more than one checkout is pending.
+                    matches = exact_requests or candidates
+                    matched_order = matches[0] if len(matches) == 1 else None
 
                     if matched_order:
                         tx_record["used_by_order"] = matched_order.get("orderId")
@@ -1329,6 +1389,8 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
 
         # 4. API: Mô phỏng thanh toán (Simulate)
         if path == "/api/simulate-payment":
+            if read_json_file("payment_config.json", {}).get("testMode") is not True:
+                return self.send_json({"status": "error", "message": "Simulation is disabled for live payments"}, 403)
             phone = body.get("phone", "0901234567")
             memo = body.get("memo", f"PRO18T {phone}")
             amount = int(body.get("amount") or get_current_package_price())
@@ -1336,7 +1398,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
                 "id": f"SIM_{int(datetime.now().timestamp()) % 1000000:06d}",
                 "amount": amount,
                 "description": memo,
-                "bank": "MBBank",
+                "bank": "BIDV",
                 "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "source": "Simulated / Test Admin"
             }

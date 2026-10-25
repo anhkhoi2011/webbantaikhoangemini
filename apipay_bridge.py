@@ -2,7 +2,7 @@
 """
 ApiPay Bridge Module for Google Gemini Pro CRM
 Author: CRM Team
-Description: Connects to app.apipay.vn API for MBBank Auto-Detection using AccessKey & SecretKey
+Description: Connects to app.apipay.vn for automatic payment verification
 """
 
 import sys
@@ -12,6 +12,7 @@ import urllib.request
 import urllib.error
 import ssl
 import os
+from runtime_config import with_runtime_secrets
 
 # SSL Context to handle certificates across environments
 ctx = ssl.create_default_context()
@@ -22,12 +23,15 @@ DEFAULT_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "
 
 def load_config():
     cfg = {
-        "accessKey": "f316555d35e27b97ec26d5696298410a8fb02678317953c910cd3174225d052a",
-        "secretKey": "n8YnRXUY98MgtOB+Y+MDhIJY5AXhwbzae3+9KuGi/46Ac1nJ4+dgYonFykg60dRj61iTFaNAQUCKaPgO+W7epw==",
-        "bankPublicId": "cmv2nmvn408tb01mny26u27ie",
-        "accountNo": "517041996",
-        "bankBin": "970422",
-        "accountName": "NGUYEN TRAN HAN"
+        "accessKey": "",
+        "secretKey": "",
+        "bankPublicId": "cmvkpk77d128c01p4f27u9qy5",
+        "accountNo": "V1T61023152838",
+        "physicalAccountNo": "8809642706",
+        "vaNumber": "V1T61023152838",
+        "bankCode": "BIDV",
+        "bankBin": "970418",
+        "accountName": "NGO ANH KHOI"
     }
     if os.path.exists(DEFAULT_CONFIG_PATH):
         try:
@@ -36,7 +40,7 @@ def load_config():
                 cfg.update(saved)
         except Exception:
             pass
-    return cfg
+    return with_runtime_secrets("payment_config.json", cfg, os.path.dirname(DEFAULT_CONFIG_PATH))
 
 def get_headers(access_key, secret_key):
     auth_str = f"{access_key}:{secret_key}"
@@ -56,11 +60,16 @@ def test_connection():
         with urllib.request.urlopen(req, context=ctx, timeout=8) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             banks = data.get("data", {}).get("message", [])
-            primary_bank = banks[0] if banks else None
+            primary_bank = next((bank for bank in banks if bank.get("publicId") == cfg["bankPublicId"]), None)
+            if not primary_bank:
+                return {"status": "error", "message": "Configured bankPublicId is not linked to this APIPay account"}
+            if primary_bank.get("status") != "ACTIVE":
+                return {"status": "error", "message": "Configured APIPay bank account is not active"}
             return {
                 "status": "success",
                 "message": "Kết nối APIPay thành công 100%!",
                 "bank": primary_bank,
+                "bankCode": primary_bank.get("bankShortName", cfg.get("bankCode", "BIDV")),
                 "accountName": primary_bank.get("accountName") if primary_bank else cfg["accountName"],
                 "accountNumber": primary_bank.get("accountNumber") if primary_bank else cfg["accountNo"]
             }
@@ -75,7 +84,7 @@ def create_payment_request(phone, amount=None, memo=None):
         memo = f"PRO18T {phone}"
     headers = get_headers(cfg["accessKey"], cfg["secretKey"])
     url = "https://app.apipay.vn/v1/client/payment-requests"
-    bank_id = cfg.get("bankPublicId", "cmv2nmvn408tb01mny26u27ie")
+    bank_id = cfg.get("bankPublicId", "cmvkpk77d128c01p4f27u9qy5")
     payload = {
         "bankPublicId": bank_id,
         "amount": int(amount),
@@ -93,7 +102,7 @@ def create_payment_request(phone, amount=None, memo=None):
                 "qrUrl": pr_data.get("qrUrl"),
                 "accountNumber": pr_data.get("accountNumber", cfg["accountNo"]),
                 "accountName": pr_data.get("accountName", cfg["accountName"]),
-                "bankCode": pr_data.get("bankCode", "MB"),
+                "bankCode": pr_data.get("bankCode", cfg.get("bankCode", "BIDV")),
                 "amount": pr_data.get("amount", amount),
                 "content": memo
             }
@@ -124,7 +133,7 @@ def check_payment_status(public_id):
     except Exception as e:
         return {"status": "error", "paid": False, "message": str(e)}
 
-def check_recent_payment_requests(memo=None, phone=None, amount=None):
+def check_recent_payment_requests(memo=None, phone=None, amount=None, not_before=None):
     """
     Tra cứu danh sách Payment Requests gần nhất trên ApiPay Cloud.
     Nếu có bất kỳ Payment Request nào khớp với memo hoặc phone có trạng thái COMPLETED hoặc PAID thì trả về True ngay!
@@ -141,6 +150,9 @@ def check_recent_payment_requests(memo=None, phone=None, amount=None):
     try:
         from datetime import datetime, timezone
         now_utc = datetime.now(timezone.utc)
+        order_created = datetime.fromisoformat(not_before.replace("Z", "+00:00")) if not_before else None
+        if order_created and order_created.tzinfo is None:
+            order_created = order_created.replace(tzinfo=timezone.utc)
         with urllib.request.urlopen(req, context=ctx, timeout=8) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             payload = data.get("data", {})
@@ -151,6 +163,16 @@ def check_recent_payment_requests(memo=None, phone=None, amount=None):
             else:
                 prs = []
             for pr in prs:
+                # A phone-only reference can recur; never approve an older payment request.
+                if order_created:
+                    try:
+                        request_created = datetime.fromisoformat(str(pr.get("createdAt") or "").replace("Z", "+00:00"))
+                        if request_created.tzinfo is None:
+                            request_created = request_created.replace(tzinfo=timezone.utc)
+                        if request_created < order_created:
+                            continue
+                    except (ValueError, TypeError):
+                        continue
                 st = (pr.get("status") or "").upper()
                 is_paid = st in ["PAID", "COMPLETED", "SUCCESS"]
                 if is_paid:
@@ -192,9 +214,9 @@ def get_qr_base64(memo="PRO18T", amount=None):
     cfg = load_config()
     if amount is None or amount <= 0:
         amount = cfg.get("packagePrice", 129000)
-    bank_bin = cfg.get("bankBin", "970422")
-    acc_no = cfg.get("vaNumber", cfg.get("accountNo", "VQRQAMRMQ5816"))
-    acc_name = cfg.get("accountName", "NGUYEN TRAN HAN")
+    bank_bin = cfg.get("bankBin", "970418")
+    acc_no = cfg.get("vaNumber", cfg.get("accountNo", "V1T61023152838"))
+    acc_name = cfg.get("accountName", "NGO ANH KHOI")
     import urllib.parse
     url = f"https://img.vietqr.io/image/{bank_bin}-{acc_no}-compact2.png?amount={amount}&addInfo={urllib.parse.quote(memo)}&accountName={urllib.parse.quote(acc_name)}"
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})

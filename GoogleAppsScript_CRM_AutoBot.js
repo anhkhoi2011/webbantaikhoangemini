@@ -13,17 +13,23 @@
  */
 
 // ============================== 1. CẤU HÌNH THÔNG TIN DOANH NGHIỆP & BẢNG TÍNH ==============================
+const TELEGRAM_BLOCKED_CHAT_IDS = ["-1004413665683"];
+
+function privateSetting_(name) {
+  return typeof PropertiesService === "undefined" ? "" : (PropertiesService.getScriptProperties().getProperty(name) || "");
+}
+
 const BOT_CONFIG = {
   // Bảng tính Google Sheets mục tiêu:
   SPREADSHEET_ID: "17JXfu0NcYQ2sJ9AQn8ZR-gOIYDQBgTquT4bu9pM6QrE",
   SPREADSHEET_URL: "https://docs.google.com/spreadsheets/d/17JXfu0NcYQ2sJ9AQn8ZR-gOIYDQBgTquT4bu9pM6QrE/edit?gid=0#gid=0",
 
   // Token Bot Telegram thông báo đơn hàng:
-  TELEGRAM_BOT_TOKEN: "8924743387:AAHmuHUEUyK2XtRL4N6dUEbHf98xmj1wE2c", 
+  TELEGRAM_BOT_TOKEN: privateSetting_("TELEGRAM_BOT_TOKEN"),
   
   // ID Nhóm chat Telegram nhận thông báo:
-  TELEGRAM_CHAT_ID: "-1004413665683",
-  TELEGRAM_CHAT_IDS: ["-1004413665683", "-5585627393"],
+  TELEGRAM_CHAT_ID: "-5585627393",
+  TELEGRAM_CHAT_IDS: ["-5585627393"],
 
   // Tên thương hiệu hiển thị trong email:
   BRAND_NAME: "TRẠM CÔNG NGHỆ - Gemini Pro",
@@ -32,11 +38,22 @@ const BOT_CONFIG = {
 };
 
 // API Pay fallback cho website tĩnh: không cần PHP/Python trên hosting.
-const APIPAY_ACCESS_KEY = "f316555d35e27b97ec26d5696298410a8fb02678317953c910cd3174225d052a";
-const APIPAY_SECRET_KEY = "n8YnRXUY98MgtOB+Y+MDhIJY5AXhwbzae3+9KuGi/46Ac1nJ4+dgYonFykg60dRj61iTFaNAQUCKaPgO+W7epw==";
+const APIPAY_ACCESS_KEY = privateSetting_("APIPAY_ACCESS_KEY");
+const APIPAY_SECRET_KEY = privateSetting_("APIPAY_SECRET_KEY");
 
 function jsonOutput_(value) {
   return ContentService.createTextOutput(JSON.stringify(value)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function paymentIsCurrent_(time, createdAt, memo) {
+  if (!/^PRO18T\s*\d+$/i.test(String(memo || "")) || !createdAt) return true;
+  const parse = value => {
+    const text = String(value || "");
+    const local = text.match(/^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}:\d{2}:\d{2})$/);
+    return new Date(local ? local[3] + "-" + local[2] + "-" + local[1] + "T" + local[4] + "+07:00" : text).getTime();
+  };
+  const created = parse(createdAt), paid = parse(time);
+  return Number.isFinite(created) && Number.isFinite(paid) && paid >= created;
 }
 
 function doGet(e) {
@@ -53,12 +70,16 @@ function doGet(e) {
     const orders = orderSheet && orderSheet.getLastRow() > 1 ? orderSheet.getRange(2, 1, orderSheet.getLastRow() - 1, Math.min(ORDER_COLUMNS.length, orderSheet.getMaxColumns())).getValues().map(rowToOrder_) : [];
     const approved = orders.find(order => String(order.orderId) === orderId && isPaidOrder_(order));
     if (approved) return jsonOutput_({paid: true, transaction: Object.assign({}, approved, {id: approved.paymentTxId || approved.orderId, amount: money_(approved.amountRaw || approved.amount)}), source: "Order Database"});
+    const pending = orders.find(order => String(order.orderId) === orderId);
+    const createdAt = pending && pending.createdAt || e.parameter.createdAt || "";
+    const publicId = String(e.parameter.publicId || "");
+    const ambiguous = orders.filter(order => !isPaidOrder_(order) && normalizeMemo_(order.memo) === memo).length > 1;
     const claimed = (id, key) => orders.some(order => String(order.orderId) !== orderId && isPaidOrder_(order) && ((id && order.paymentTxId === id) || (key && order.paymentKey === key)));
     const txSheet = ss.getSheetByName("GIAO_DICH");
-    if (txSheet && txSheet.getLastRow() > 1) {
+    if (!ambiguous && txSheet && txSheet.getLastRow() > 1) {
       const rows = txSheet.getRange(2, 1, txSheet.getLastRow() - 1, Math.min(8, txSheet.getMaxColumns())).getValues();
       for (const row of rows) {
-        if ((row[7] && String(row[7]) !== orderId) || claimed(String(row[0]), row[6])) continue;
+        if ((row[7] && String(row[7]) !== orderId) || claimed(String(row[0]), row[6]) || !paymentIsCurrent_(row[4], createdAt, memo)) continue;
         const content = String(row[2] || "").replace(/\s+/g, "").toUpperCase();
         const amount = money_(row[1]);
         const status = String(row[3] || "").toUpperCase();
@@ -77,6 +98,7 @@ function doGet(e) {
     const payload = JSON.parse(response.getContentText() || "{}");
     const rows = payload && payload.data && Array.isArray(payload.data.data) ? payload.data.data : [];
     for (const row of rows) {
+      if ((ambiguous && !publicId) || (publicId && String(row.publicId || "") !== publicId) || !paymentIsCurrent_(row.createdAt, createdAt, memo)) continue;
       if (claimed(String(row.transactionId || row.publicId || row.id || ""), paymentKey_(row, money_(row.amount), row.content || ""))) continue;
       const status = String(row.status || "").toUpperCase();
       if (!["PAID", "COMPLETED", "SUCCESS"].includes(status)) continue;
@@ -270,7 +292,7 @@ function doPost(e) {
       ensureOrderHeaders_(orderSheet);
       const orders = orderSheet.getLastRow() > 1 ? orderSheet.getRange(2, 1, orderSheet.getLastRow() - 1, ORDER_COLUMNS.length).getValues().map(rowToOrder_) : [];
       if (paid) {
-        const candidates = orders.filter(order => orderId ? order.orderId === orderId : !isPaidOrder_(order) && order.memo && normalizeMemo_(content).includes(normalizeMemo_(order.memo)) && amount >= money_(order.amountRaw || order.amount));
+        const candidates = orders.filter(order => orderId ? order.orderId === orderId : !isPaidOrder_(order) && order.memo && normalizeMemo_(content).includes(normalizeMemo_(order.memo)) && paymentIsCurrent_(time, order.createdAt, order.memo) && amount >= money_(order.amountRaw || order.amount));
         // Ambiguous legacy phone-only transfers need manual reconciliation.
         if (candidates.length === 1) {
           const order = candidates[0];
@@ -281,7 +303,7 @@ function doPost(e) {
           order.paymentSource = "APIPay Webhook";
           order.amountRaw = amount;
           order.amount = amount;
-          order.status = order.licenseLink ? "Đã thanh toán (MBBank)" : "Đã thanh toán (Chờ cấp link)";
+          order.status = order.licenseLink ? "Đã thanh toán (BIDV)" : "Đã thanh toán (Chờ cấp link)";
           upsertOrder_(ss, order, true);
         }
       }
@@ -368,7 +390,8 @@ function sheetText_(value) { return typeof value === "string" && /^[=+@-]/.test(
 function html_(value) { return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 function paymentKey_(tx, amount, content) {
   // Provider delivery IDs can change on retry. Bank reference/content are stable.
-  const reference = tx.bankReference || tx.referenceCode || tx.transactionReference || "";
+  let reference = tx.bankReference || tx.referenceCode || tx.transactionReference || "";
+  if (!reference && /PRO18T\d+$/.test(normalizeMemo_(content))) reference = tx.publicId || tx.transactionId || tx.paidAt || tx.completedAt || tx.transactionDateTime || tx.time || tx.createdAt || "";
   const seed = [reference, amount, normalizeMemo_(content)].join("|");
   return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, seed).map(b => ("0" + ((b + 256) % 256).toString(16)).slice(-2)).join("");
 }
@@ -432,17 +455,18 @@ function upsertOrder_(ss, data, notify) {
   };
   write();
   linkOrderVisit_(ss, order);
-  if (!isPaidOrder_(order) && data.action !== "sync_order" && order.memo) {
+  const ambiguousReference = rows.map(rowToOrder_).some(other => other.orderId !== order.orderId && !isPaidOrder_(other) && normalizeMemo_(other.memo) === normalizeMemo_(order.memo));
+  if (!isPaidOrder_(order) && data.action !== "sync_order" && order.memo && !ambiguousReference) {
     const txSheet = ss.getSheetByName("GIAO_DICH");
     if (txSheet && txSheet.getLastRow() > 1) {
       const transactions = txSheet.getRange(2, 1, txSheet.getLastRow() - 1, 8).getValues();
-      const matches = transactions.map((row, i) => ({row: row, number: i + 2})).filter(item => paidStatus_(item.row[3]) && (!item.row[7] || String(item.row[7]) === String(order.orderId)) && normalizeMemo_(item.row[2]).includes(normalizeMemo_(order.memo)) && money_(item.row[1]) >= money_(order.amountRaw || order.amount));
+      const matches = transactions.map((row, i) => ({row: row, number: i + 2})).filter(item => paidStatus_(item.row[3]) && paymentIsCurrent_(item.row[4], order.createdAt, order.memo) && (!item.row[7] || String(item.row[7]) === String(order.orderId)) && normalizeMemo_(item.row[2]).includes(normalizeMemo_(order.memo)) && money_(item.row[1]) >= money_(order.amountRaw || order.amount));
       if (matches.length === 1) {
         const tx = matches[0];
         order.paymentTxId = tx.row[0]; order.paymentKey = tx.row[6]; order.paidAt = tx.row[4];
         order.amountRaw = money_(tx.row[1]); order.amount = order.amountRaw;
         order.paymentSource = "APIPay Webhook";
-        order.status = order.licenseLink ? "Đã thanh toán (MBBank)" : "Đã thanh toán (Chờ cấp link)";
+        order.status = order.licenseLink ? "Đã thanh toán (BIDV)" : "Đã thanh toán (Chờ cấp link)";
         txSheet.getRange(tx.number, 8).setValue(order.orderId);
         return upsertOrder_(ss, order, true);
       }
@@ -453,7 +477,7 @@ function upsertOrder_(ss, data, notify) {
     const sent = order.telegramSent ? JSON.parse(order.telegramSent) : {};
     const text = orderTelegramText_(order);
     const hash = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, text).map(b => ("0" + ((b + 256) % 256).toString(16)).slice(-2)).join("");
-    for (const chatId of Array.from(new Set(BOT_CONFIG.TELEGRAM_CHAT_IDS || [BOT_CONFIG.TELEGRAM_CHAT_ID]))) {
+    for (const chatId of Array.from(new Set(BOT_CONFIG.TELEGRAM_CHAT_IDS || [BOT_CONFIG.TELEGRAM_CHAT_ID])).filter(id => !TELEGRAM_BLOCKED_CHAT_IDS.includes(String(id)))) {
       const receipt = sent[chatId];
       const messageId = receipt && typeof receipt === "object" ? receipt.messageId : receipt;
       if (receipt && receipt.contentHash === hash) continue;
@@ -617,7 +641,7 @@ function testAppendSampleOrder() {
         licenseLink: "https://one.google.com/promo/gemini-pro/ACT-TEST-VIP99",
         referrer: "Facebook Ads",
         ipLocation: "113.161.42.18 (TP. Hồ Chí Minh)",
-        status: "Đã thanh toán (MBBank)"
+        status: "Đã thanh toán (BIDV)"
       })
     }
   };

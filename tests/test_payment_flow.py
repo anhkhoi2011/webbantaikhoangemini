@@ -41,6 +41,98 @@ class PaymentFlowTests(unittest.TestCase):
         req = Request(f"http://127.0.0.1:{self.http.server_port}{path}", data=json.dumps(data).encode(), headers={"Content-Type": "application/json", **(headers or {})})
         with urlopen(req, timeout=5) as response:
             return json.load(response)
+    def test_phone_only_memo_rejects_payment_before_checkout(self):
+        order = dict(self.order, memo="PRO18T 0900000000", createdAt="2026-10-26T05:00:00Z")
+        server.write_json_file("orders.json", [order])
+        self.assertIsNone(server.mark_order_paid(order["orderId"], "OLD", {"amount": 90000, "description": order["memo"], "paidAt": "2026-10-25T05:00:00Z"}))
+        self.assertFalse(server.is_paid_order(server.read_json_file("orders.json", [])[0]))
+        self.assertIsNotNone(server.mark_order_paid(order["orderId"], "NEW", {"amount": 90000, "description": order["memo"], "paidAt": "2026-10-26T05:01:00Z"}))
+
+    def test_shared_phone_memo_webhook_requires_unambiguous_order(self):
+        first = dict(self.order, memo="PRO18T 0900000000", apipayPublicId="REQUEST-A")
+        second = dict(first, orderId="#TEST-B", apipayPublicId="REQUEST-B")
+        server.write_json_file("orders.json", [second, first])
+        self.post("/api/webhook", {"id": "AMBIGUOUS", "amount": 90000, "content": first["memo"], "status": "COMPLETED"})
+        self.assertTrue(all(not server.is_paid_order(order) for order in server.read_json_file("orders.json", [])))
+        self.post("/api/webhook", {"id": "EXACT", "publicId": "REQUEST-A", "amount": 90000, "content": first["memo"], "status": "COMPLETED"})
+        orders = {order["orderId"]: order for order in server.read_json_file("orders.json", [])}
+        self.assertTrue(server.is_paid_order(orders[first["orderId"]]))
+        self.assertFalse(server.is_paid_order(orders[second["orderId"]]))
+
+    def test_repeated_phone_purchase_uses_new_transaction(self):
+        first = dict(self.order, memo="PRO18T 0900000000", createdAt="2026-10-26T05:00:00Z")
+        server.write_json_file("orders.json", [first])
+        tx = {"id": "DELIVERY-A", "amount": 90000, "content": first["memo"], "status": "COMPLETED", "time": "2026-10-26T05:01:00Z"}
+        self.post("/api/webhook", tx)
+        self.assertTrue(server.is_paid_order(server.read_json_file("orders.json", [])[0]))
+        second = dict(first, orderId="#TEST-B", createdAt="2026-10-26T06:00:00Z")
+        server.write_json_file("orders.json", [second] + server.read_json_file("orders.json", []))
+        self.post("/api/webhook", dict(tx, id="RETRY-A"))
+        self.assertFalse(server.is_paid_order(server.read_json_file("orders.json", [])[0]))
+        self.post("/api/webhook", dict(tx, id="DELIVERY-B", time="2026-10-26T06:01:00Z"))
+        self.assertTrue(all(server.is_paid_order(order) for order in server.read_json_file("orders.json", [])))
+        self.assertEqual(len(server.read_json_file("bank_transactions.json", [])), 2)
+
+    def get_payment(self, order=None, **params):
+        from urllib.parse import urlencode
+        values = {"orderId": (order or self.order)["orderId"], **params}
+        with urlopen(f"http://127.0.0.1:{self.http.server_port}/api/check-payment?{urlencode(values)}", timeout=5) as response:
+            return json.load(response)
+
+    def test_payment_polling_waits_then_confirms_real_provider_payment(self):
+        order = dict(self.order, memo="PRO18T 0900000000", createdAt="2026-10-26T05:00:00Z", apipayPublicId="REQUEST-A")
+        server.write_json_file("orders.json", [order])
+        with patch.object(apipay_bridge, "check_payment_status", return_value={"paid": False}) as check, patch.object(apipay_bridge, "check_recent_payment_requests", return_value={"paid": False}):
+            self.assertFalse(self.get_payment(order, publicId="WRONG-REQUEST", memo="WRONG", amount=1)["paid"])
+            check.assert_called_with("REQUEST-A")
+        self.assertEqual(server.license_stock_count(server.read_licenses()), 1)
+        tx = {"publicId": "REQUEST-A", "amount": 90000, "status": "PAID", "content": order["memo"], "createdAt": "2026-10-26T05:01:00Z"}
+        with patch.object(apipay_bridge, "check_payment_status", return_value={"paid": True, "amount": 90000, "transaction": tx}):
+            result = self.get_payment(order)
+        self.assertTrue(result["paid"])
+        self.assertEqual(result["order"]["paymentTxId"], "REQUEST-A")
+        self.assertEqual(result["order"]["licenseLink"], "https://example.invalid/license")
+        self.assertEqual(server.license_stock_count(server.read_licenses()), 0)
+
+    def test_paid_provider_request_with_wrong_memo_never_confirms(self):
+        tx = {"publicId": "WRONG-REQUEST", "amount": 90000, "status": "PAID", "content": "PRO18T 0999999999"}
+        with patch.object(apipay_bridge, "check_payment_status", return_value={"paid": True, "amount": 90000, "transaction": tx}):
+            self.assertFalse(self.get_payment(publicId="WRONG-REQUEST")["paid"])
+        self.assertFalse(server.is_paid_order(server.read_json_file("orders.json", [])[0]))
+        self.assertEqual(server.license_stock_count(server.read_licenses()), 1)
+
+    def test_client_cannot_create_paid_order_without_verification(self):
+        from urllib.error import HTTPError
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/orders", dict(self.order, status="PAID", paymentTxId="FORGED"))
+        self.assertEqual(error.exception.code, 409)
+        self.assertFalse(server.is_paid_order(server.read_json_file("orders.json", [])[0]))
+
+    def test_live_checkout_rejects_simulated_transactions(self):
+        from urllib.error import HTTPError
+        from datetime import datetime, timedelta
+        token = "TEST-ADMIN-ONLY"
+        server.ADMIN_TOKENS[token] = (datetime.now() + timedelta(minutes=1)).timestamp()
+        try:
+            with self.assertRaises(HTTPError) as error:
+                self.post("/api/simulate-payment", {"phone": self.order["phone"], "amount": 90000}, {"X-Admin-Token": token})
+            self.assertEqual(error.exception.code, 403)
+        finally:
+            server.ADMIN_TOKENS.pop(token, None)
+        self.assertEqual(server.read_json_file("bank_transactions.json", []), [])
+        self.assertIsNone(server.mark_order_paid(self.order["orderId"], "SIM_1", {"id": "SIM_1", "amount": 90000, "description": self.order["memo"]}))
+
+    def test_runtime_secret_file_is_not_public(self):
+        from urllib.error import HTTPError
+        server.write_json_file("payment_config.json", {"accessKey": "private-test-access", "secretKey": "private-test-secret", "packagePrice": 90000})
+        for filename in ["runtime_secrets.json", "runtime_config.py"]:
+            with self.assertRaises(HTTPError) as error:
+                urlopen(f"http://127.0.0.1:{self.http.server_port}/{filename}", timeout=5)
+            self.assertEqual(error.exception.code, 404)
+        public = json.loads(Path(self.temp.name, "payment_config.json").read_text(encoding="utf-8"))
+        self.assertFalse(public["secretKey"])
+        self.assertEqual(server.read_json_file("payment_config.json", {})["secretKey"], "private-test-secret")
+
     def test_current_pricing_drives_checkout_fomo_and_coupons(self):
         server.write_json_file("payment_config.json", {"packagePrice": 129000, "nextPrice": 159000})
         with urlopen(f"http://127.0.0.1:{self.http.server_port}/api/payment-config", timeout=5) as response:

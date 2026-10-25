@@ -29,3 +29,6 @@ temp_login.json
 # OS generated files
 Thumbs.db
 .DS_Store
+
+# Private server credentials (never publish)
+runtime_secrets.json

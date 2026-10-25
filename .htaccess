@@ -1,12 +1,13 @@
 DirectoryIndex index.html index.php
+AddType video/mp4 .mp4
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
 
     # Không cho tải trực tiếp dữ liệu, token và mã nguồn nội bộ
-    RewriteRule ^(?:payment_config|telegram_config|orders|licenses|bank_transactions|visits|pixel_stats|coupons|temp_login)\.json$ - [F,L,NC]
-    RewriteRule ^(?:server\.py|server\.ps1|api\.php|GoogleAppsScript_CRM_AutoBot\.js)$ - [F,L,NC]
+    RewriteRule ^(?:runtime_secrets|payment_config|telegram_config|orders|licenses|bank_transactions|visits|pixel_stats|coupons|temp_login)\.json$ - [F,L,NC]
+    RewriteRule ^(?:runtime_config\.py|server\.py|server\.ps1|api\.php|GoogleAppsScript_CRM_AutoBot\.js)$ - [F,L,NC]
 
     # Điều hướng /admin sang admin/index.html hoặc admin.html
     RewriteRule ^admin/?$ admin/index.html [L,QSA]

@@ -23,12 +23,35 @@ function readJsonFile($filename, $default = []) {
     if (file_exists($fullPath)) {
         $content = file_get_contents($fullPath);
         $data = json_decode($content, true);
-        return $data !== null ? $data : $default;
+        $data = $data !== null ? $data : $default;
+        $section = ['payment_config.json' => 'payment', 'telegram_config.json' => 'telegram'][basename($filename)] ?? null;
+        if ($section && is_array($data)) {
+            $privatePath = __DIR__ . '/runtime_secrets.json';
+            $private = file_exists($privatePath) ? (json_decode(file_get_contents($privatePath), true) ?: []) : [];
+            $data = array_replace($data, array_filter($private[$section] ?? []));
+            if ($section === 'payment') {
+                if (getenv('APIPAY_ACCESS_KEY')) $data['accessKey'] = $data['apiKey'] = getenv('APIPAY_ACCESS_KEY');
+                if (getenv('APIPAY_SECRET_KEY')) $data['secretKey'] = getenv('APIPAY_SECRET_KEY');
+            }
+            if (getenv('TELEGRAM_BOT_TOKEN')) $data[$section === 'telegram' ? 'botToken' : 'telegramBotToken'] = getenv('TELEGRAM_BOT_TOKEN');
+        }
+        return $data;
     }
     return $default;
 }
 
 function writeJsonFile($filename, $data) {
+    $sections = ['payment_config.json' => ['payment', ['apiKey','accessKey','secretKey','telegramBotToken']], 'telegram_config.json' => ['telegram', ['botToken']]];
+    if (isset($sections[basename($filename)]) && is_array($data)) {
+        list($section, $fields) = $sections[basename($filename)];
+        $privatePath = __DIR__ . '/runtime_secrets.json';
+        $private = file_exists($privatePath) ? (json_decode(file_get_contents($privatePath), true) ?: []) : [];
+        foreach ($fields as $field) {
+            if (!empty($data[$field])) $private[$section][$field] = $data[$field];
+            if (array_key_exists($field, $data)) $data[$field] = '';
+        }
+        if ($private) file_put_contents($privatePath, json_encode($private, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+    }
     $fullPath = __DIR__ . '/' . basename($filename);
     file_put_contents($fullPath, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
@@ -287,7 +310,25 @@ function amountValue($value) {
 function normalizeMemo($value) { return strtoupper(preg_replace('/\s+/', '', (string)$value)); }
 function paymentKey($tx) {
     $amount = amountValue($tx['amount'] ?? $tx['creditAmount'] ?? $tx['transferAmount'] ?? 0);
-    return hash('sha256', ($tx['bankReference'] ?? $tx['referenceCode'] ?? $tx['transactionReference'] ?? '') . '|' . $amount . '|' . normalizeMemo($tx['description'] ?? $tx['content'] ?? $tx['memo'] ?? ''));
+    $content = normalizeMemo($tx['description'] ?? $tx['content'] ?? $tx['memo'] ?? '');
+    $reference = $tx['bankReference'] ?? $tx['referenceCode'] ?? $tx['transactionReference'] ?? '';
+    if (!$reference && preg_match('/PRO18T\d+$/', $content)) $reference = $tx['publicId'] ?? $tx['transactionId'] ?? $tx['paidAt'] ?? $tx['completedAt'] ?? $tx['transactionDateTime'] ?? $tx['time'] ?? $tx['createdAt'] ?? '';
+    return hash('sha256', $reference . '|' . $amount . '|' . $content);
+}
+function paymentIsCurrent($tx, $order) {
+    if (!preg_match('/^PRO18T\s*\d+$/i', $order['memo'] ?? '') || empty($order['createdAt'])) return true;
+    $parse = function($value) {
+        $text = (string)$value;
+        if (preg_match('/^\d{2}\/\d{2}\/\d{4} /', $text)) {
+            $date = DateTimeImmutable::createFromFormat('d/m/Y H:i:s', $text);
+            return $date ? floatval($date->format('U.u')) : false;
+        }
+        try { return $text !== '' ? floatval((new DateTimeImmutable($text))->format('U.u')) : false; }
+        catch (Exception $error) { return false; }
+    };
+    $created = $parse($order['createdAt']);
+    $paid = $parse($tx['paidAt'] ?? $tx['completedAt'] ?? $tx['transactionDateTime'] ?? $tx['time'] ?? $tx['updatedAt'] ?? $tx['createdAt'] ?? '');
+    return $created !== false && $paid !== false && $paid >= $created;
 }
 function syncSheetOrder($order) {
     $cfg = readJsonFile('payment_config.json', []);
@@ -305,7 +346,7 @@ function syncSheetOrder($order) {
     if (isset($result['notificationsComplete']) && $result['notificationsComplete'] === false) { $result['status'] = 'error'; $result['message'] = 'Sheet đã ghi, còn chat Telegram cần gửi lại'; }
     return $result;
 }
-function saveOrder($body) {
+function saveOrder($body, $verifiedPayment = false) {
     $handle = fopen(__DIR__ . '/orders.json', 'c+');
     if (!$handle || !flock($handle, LOCK_EX)) throw new RuntimeException('Không khóa được kho đơn');
     try {
@@ -322,6 +363,7 @@ function saveOrder($body) {
         } elseif (!empty($order['fullUrl'])) {
             $order['domain'] = strtolower(parse_url($order['fullUrl'], PHP_URL_HOST) ?: '');
         }
+        if (orderIsPaid($order) && !orderIsPaid($previous) && !$verifiedPayment) throw new RuntimeException('Payment must be verified by the server before confirming the order');
         $order['orderId'] = $orderId;
         $order['createdAt'] = $previous['createdAt'] ?? $body['createdAt'] ?? date('c');
         if (empty($order['ip']) || in_array($order['ip'], ['127.0.0.1','::1'])) {
@@ -369,8 +411,13 @@ if (strpos($requestUri, '/api/check-payment') !== false) {
         syncSheetOrder($order);
         echo json_encode(['paid' => true, 'transaction' => $order, 'order' => $order, 'source' => 'Order Database']); exit();
     }
+    $memo = normalizeMemo($order['memo'] ?? '');
     $expected = intval(preg_replace('/[^0-9]/', '', (string)($order['amountRaw'] ?? $order['amount'] ?? 0)));
+    $pendingMatches = array_filter($orders, function($candidate) use ($order) { return !orderIsPaid($candidate) && normalizeMemo($candidate['memo'] ?? '') === normalizeMemo($order['memo'] ?? ''); });
+    if (count($pendingMatches) > 1) { echo json_encode(['paid' => false]); exit(); }
     foreach (readJsonFile('bank_transactions.json', []) as $tx) {
+        if (!paymentIsCurrent($tx, $order)) continue;
+        if (strpos((string)($tx['id'] ?? ''), 'SIM_') === 0 && (readJsonFile('payment_config.json', [])['testMode'] ?? false) !== true) continue;
         $desc = normalizeMemo($tx['description'] ?? $tx['content'] ?? $tx['memo'] ?? '');
         $amount = intval($tx['amount'] ?? 0);
         if (!$memo || strpos($desc, $memo) === false || $amount < $expected || $amount <= 0 || !in_array(strtoupper($tx['status'] ?? 'COMPLETED'), ['PAID','COMPLETED','SUCCESS','CREDIT']) || (($tx['used_by_order'] ?? $orderId) !== $orderId)) continue;
@@ -378,12 +425,12 @@ if (strpos($requestUri, '/api/check-payment') !== false) {
         $used = false;
         foreach ($orders as $other) if (($other['orderId'] ?? '') !== $orderId && orderIsPaid($other) && (($other['paymentKey'] ?? '') === $key || ($other['paymentTxId'] ?? '') === ($tx['id'] ?? ''))) { $used = true; break; }
         if ($used) continue;
-        $order['status'] = empty($order['licenseLink']) ? 'Đã thanh toán (Chờ cấp link)' : 'Đã thanh toán (MBBank)';
+        $order['status'] = empty($order['licenseLink']) ? 'Đã thanh toán (Chờ cấp link)' : 'Đã thanh toán (BIDV)';
         $order['paymentTxId'] = $tx['id']; $order['paymentKey'] = $key;
         $order['paymentSource'] = $tx['source'] ?? 'Bank webhook';
         $order['paidAt'] = $tx['time'] ?? date('c');
         $order['amountRaw'] = $amount;
-        $order = saveOrder($order); syncSheetOrder($order);
+        $order = saveOrder($order, true); syncSheetOrder($order);
         echo json_encode(['paid' => true, 'transaction' => $tx, 'order' => $order, 'source' => $order['paymentSource']]); exit();
     }
     echo json_encode(['paid' => false]); exit();
@@ -391,6 +438,7 @@ if (strpos($requestUri, '/api/check-payment') !== false) {
 
 // 5. API: Mô phỏng thanh toán
 if (strpos($requestUri, '/api/simulate-payment') !== false) {
+    if ((readJsonFile('payment_config.json', [])['testMode'] ?? false) !== true) { http_response_code(403); echo json_encode(['status' => 'error', 'message' => 'Simulation is disabled for live payments']); exit(); }
     $body = getPostJson();
     $phone = $body['phone'] ?? '0901234567';
     $memo = $body['memo'] ?? "PRO18T {$phone}";
@@ -398,7 +446,7 @@ if (strpos($requestUri, '/api/simulate-payment') !== false) {
         "id" => "SIM_" . rand(100000, 999999),
         "amount" => intval($body['amount'] ?? 129000),
         "description" => $memo,
-        "bank" => "MBBank",
+        "bank" => "BIDV",
         "time" => date('Y-m-d H:i:s'),
         "source" => "Simulated / Test Admin"
     ];
@@ -413,8 +461,9 @@ if (strpos($requestUri, '/api/simulate-payment') !== false) {
 if (strpos($requestUri, '/api/telegram-notify') !== false) {
     $body = getPostJson();
     $teleCfg = readJsonFile('telegram_config.json', []);
-    $botToken = $teleCfg['botToken'] ?? '8924743387:AAHmuHUEUyK2XtRL4N6dUEbHf98xmj1wE2c';
-    $chatId = $teleCfg['chatId'] ?? '-1004413665683';
+    $botToken = $teleCfg['botToken'] ?? '';
+    $chatId = $teleCfg['chatId'] ?? '-5585627393';
+    if ((string)$chatId === '-1004413665683') $chatId = '-5585627393';
     
     $res = @file_get_contents("https://api.telegram.org/bot{$botToken}/sendMessage?" . http_build_query([
         'chat_id' => $chatId,
@@ -430,8 +479,9 @@ if (strpos($requestUri, '/api/telegram-notify') !== false) {
 if (strpos($requestUri, '/api/admin-login-notify') !== false) {
     $body = getPostJson();
     $teleCfg = readJsonFile('telegram_config.json', []);
-    $botToken = $teleCfg['botToken'] ?? '8924743387:AAHmuHUEUyK2XtRL4N6dUEbHf98xmj1wE2c';
-    $chatId = $teleCfg['chatId'] ?? '-1004413665683';
+    $botToken = $teleCfg['botToken'] ?? '';
+    $chatId = $teleCfg['chatId'] ?? '-5585627393';
+    if ((string)$chatId === '-1004413665683') $chatId = '-5585627393';
 
     $msg = "🛡️ <b>ĐĂNG NHẬP ADMIN THÀNH CÔNG</b>\n" .
            "Thời gian: " . ($body['time'] ?? date('d/m/Y H:i:s')) . "\n" .
@@ -452,6 +502,8 @@ if (strpos($requestUri, '/api/admin-login-notify') !== false) {
 if (strpos($requestUri, '/api/telegram-config') !== false) {
     if ($method === 'POST') {
         $body = getPostJson();
+        if (($body['chatId'] ?? '') === '-1004413665683') $body['chatId'] = '-5585627393';
+        if (isset($body['chatIds']) && is_array($body['chatIds'])) $body['chatIds'] = array_values(array_filter(array_map('strval', $body['chatIds']), function ($id) { return $id !== '-1004413665683'; }));
         writeJsonFile('telegram_config.json', $body);
         echo json_encode(["status" => "success", "message" => "Telegram config saved"]);
     } else {
@@ -503,24 +555,28 @@ if (strpos($requestUri, '/api/webhook') !== false) {
                 "id" => isset($it['id']) ? (string)$it['id'] : $key,
                 "amount" => $amt,
                 "description" => $desc,
-                "bank" => isset($it['bank']) ? $it['bank'] : "MBBank",
+                "bank" => isset($it['bank']) ? $it['bank'] : "BIDV",
                 "time" => $it['paidAt'] ?? $it['completedAt'] ?? $it['transactionDateTime'] ?? $it['time'] ?? $it['updatedAt'] ?? date('c'),
                 "source" => "Webhook API Pay"
             ]);
         }
     }
     writeJsonFile('bank_transactions.json', array_slice($currentTxs, 0, 150));
-    foreach (readJsonFile('orders.json', []) as $pending) {
+    $pendingOrders = readJsonFile('orders.json', []);
+    foreach ($pendingOrders as $pending) {
         if (orderIsPaid($pending) || empty($pending['memo'])) continue;
+        $shared = array_filter($pendingOrders, function($other) use ($pending) { return !orderIsPaid($other) && normalizeMemo($other['memo'] ?? '') === normalizeMemo($pending['memo']); });
+        if (count($shared) > 1) continue;
         foreach ($currentTxs as $tx) {
+            if (!paymentIsCurrent($tx, $pending)) continue;
             if (strpos(normalizeMemo($tx['description'] ?? ''), normalizeMemo($pending['memo'])) === false) continue;
             $expected = intval(preg_replace('/[^0-9]/', '', (string)($pending['amountRaw'] ?? $pending['amount'] ?? 0)));
             if (intval($tx['amount'] ?? 0) < $expected || !in_array(strtoupper($tx['status'] ?? 'COMPLETED'), ['PAID','COMPLETED','SUCCESS','CREDIT'])) continue;
             $pending['paymentTxId'] = $tx['id']; $pending['paymentKey'] = $tx['paymentKey'] ?? paymentKey($tx);
             $pending['paidAt'] = $tx['time'] ?? date('c');
             $pending['paymentSource'] = $tx['source'] ?? 'Bank Webhook';
-            $pending['status'] = empty($pending['licenseLink']) ? 'Đã thanh toán (Chờ cấp link)' : 'Đã thanh toán (MBBank)';
-            try { syncSheetOrder(saveOrder($pending)); } catch (Throwable $error) { error_log('Payment reconciliation: ' . $error->getMessage()); }
+            $pending['status'] = empty($pending['licenseLink']) ? 'Đã thanh toán (Chờ cấp link)' : 'Đã thanh toán (BIDV)';
+            try { syncSheetOrder(saveOrder($pending, true)); } catch (Throwable $error) { error_log('Payment reconciliation: ' . $error->getMessage()); }
             break;
         }
     }

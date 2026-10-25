@@ -11,7 +11,7 @@ Dữ liệu được ghi
 - Mỗi lần tải trang có visitId mới; tải lại cùng URL có thể giữ sessionId trong 30 phút nhưng vẫn là một lượt mới. Gửi lại dữ liệu hoặc bổ sung IP dùng cùng visitId nên không tăng lượt.
 - Đơn mới có visitId đã được ghi nhận sẽ lấy link/nguồn từ lượt đó. Sau khi tạo, các lần gửi lại giữ nguyên nguồn, URL, UTM, click ID và mã lượt của đơn, kể cả UTM ban đầu trống. IP/vị trí có thể được bổ sung.
 - Đơn và lượt nối bằng visitId, không dựa vào IP/số điện thoại. Dữ liệu cũ thiếu visitId chỉ nối theo sessionId + đúng URL khi duy nhất một lượt có thể khớp; trường hợp không rõ để trống.
-- Telegram thông báo đơn đã thanh toán về cả -1004413665683 và -5585627393, có mã đơn, mã lượt, mã phiên, URL, nguồn, chiến dịch, giờ tạo/thanh toán/vào trang, IP/vị trí ước lượng và thông tin khách.
+- Telegram sends paid order notifications only to channel -5585627393, including order ID, visit ID, session ID, URL, source, campaign, timestamps, IP/location estimate, and customer details.
 - Một mã đơn chỉ có một thông báo mỗi chat. Khi có link cấp sau đó, sửa tin đã gửi; lỗi một chat chỉ thử lại chat đó. Đồng bộ im lặng sync_order không gửi/sửa Telegram hay gửi email.
 - Telegram có giới hạn độ dài nên thông tin quá dài có dấu …; Sheet giữ URL/UTM đầy đủ. Không tự suy ra nguồn/IP/vị trí chưa thu thập được.
 

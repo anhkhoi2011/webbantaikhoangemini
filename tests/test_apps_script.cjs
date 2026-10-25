@@ -46,20 +46,20 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
  for(let i=0;i<4;i++) assert.equal(e.post({...base,action:'new_order'}).status,'success');
  assert.equal(e.sheets.has('GIAO_DICH'),false,'new_order must never become a raw bank event');
  assert.equal(e.sheets.get('DON_HANG').rows.length,2);
- assert.equal(e.sends.length,2,'one notification per chat');
- assert.deepEqual(e.sends.map(x=>x.chat_id),['-1004413665683','-5585627393']);
+ assert.equal(e.sends.length,1,'one notification for the active chat');
+ assert.deepEqual(e.sends.map(x=>x.chat_id),['-5585627393']);
  assert.ok(e.sends[0].text.includes('203.0.113.5'));
  assert.ok(e.sends[0].text.includes('Khách &lt;test&gt;'));
  const row=e.sheets.get('DON_HANG').rows[1];
  assert.equal(row[18],'Safari');assert.equal(row[22],'cpc');assert.equal(row[29],'BANK-1');
- e.post({...base,action:'sync_order',name:'Updated'});assert.equal(e.sends.length,2);
+ e.post({...base,action:'sync_order',name:'Updated'});assert.equal(e.sends.length,1);
  e.post({...base,action:'pending_order',status:'Chờ thanh toán'});assert.equal(e.sheets.get('DON_HANG').rows[1][11],base.status,'late pending must not downgrade paid');
 }
 {
  const e=environment();e.fail('-5585627393');
  assert.equal(e.post({...base,action:'new_order'}).notificationsComplete,false);
  e.fail('');assert.equal(e.post({...base,action:'new_order'}).notificationsComplete,true);
- assert.deepEqual(e.sends.map(x=>x.chat_id),['-1004413665683','-5585627393','-5585627393']);
+ assert.deepEqual(e.sends.map(x=>x.chat_id),['-5585627393','-5585627393']);
 }
 {
  const e=environment();
@@ -67,7 +67,7 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
  for(let i=0;i<4;i++) e.post({id:'delivery-'+i,amount:90000,content:'QAMRMQ5816 '+base.memo,status:'COMPLETED',time:'2026-10-23T05:01:00Z'});
  assert.equal(e.sheets.get('GIAO_DICH').rows.length,2,'delivery UUID must not create another transaction');
  assert.equal(e.sheets.get('DON_HANG').rows.length,2);
- assert.equal(e.sends.length,2);
+ assert.equal(e.sends.length,1);
  assert.ok(e.sheets.get('DON_HANG').rows[1][11].startsWith('Đã thanh toán'));
 }
 {
@@ -82,7 +82,7 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
  const e=environment();
  e.post({id:'early-bank',amount:'90000.00',content:base.memo,status:'COMPLETED'});
  e.post({...base,action:'pending_order',status:'Chờ thanh toán',paymentTxId:''});
- assert.equal(e.sends.length,2,'payment before pending_order must reconcile once');
+ assert.equal(e.sends.length,1,'payment before pending_order must reconcile once');
  const before=e.sheets.get('DON_HANG').rows[1][4];
  const result=e.post({...base,action:'new_order',orderId:'#OTHER',paymentTxId:'early-bank',name:'Wrong customer'});
  assert.equal(result.status,'error');assert.equal(e.sheets.get('DON_HANG').rows[1][4],before);
@@ -136,13 +136,13 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
 {
  const e=environment();
  e.post({...base, action:'new_order'});
- assert.equal(e.sends.length,2);
+ assert.equal(e.sends.length,1);
  assert.equal(e.edits.length,0);
  const issued={...base, action:'new_order', licenseLink:'https://example.invalid/real-issued-link',status:'Đã thanh toán (MBBank)'};
  for(let i=0;i<4;i++) e.post(issued);
- assert.equal(e.sends.length,2,'issuing a link must edit the existing message, not send another order');
- assert.equal(e.edits.length,2,'one successful edit per chat');
- assert.deepEqual(e.edits.map(x=>x.message_id),[1,2]);
+ assert.equal(e.sends.length,1,'issuing a link must edit the existing message, not send another order');
+ assert.equal(e.edits.length,1,'one successful edit for the active chat');
+ assert.deepEqual(e.edits.map(x=>x.message_id),[1]);
  assert.ok(e.edits.every(x=>x.text.includes('real-issued-link')));
  assert.ok(e.edits.every(x=>!x.text.includes('Chờ cấp link')));
 }
@@ -154,8 +154,8 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
  assert.equal(e.post(issued).notificationsComplete,false);
  e.fail('');
  assert.equal(e.post(issued).notificationsComplete,true);
- assert.equal(e.sends.length,2,'an edit retry must never create a duplicate order notification');
- assert.deepEqual(e.edits.map(x=>x.chat_id),['-1004413665683','-5585627393','-5585627393']);
+ assert.equal(e.sends.length,1,'an edit retry must never create a duplicate order notification');
+ assert.deepEqual(e.edits.map(x=>x.chat_id),['-5585627393','-5585627393']);
 }
 {
  const e=environment();
@@ -204,3 +204,31 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
  }
 }
 console.log('PASS Apps Script: routing, four retries, changed UUID, row upsert, tracking, two chats, partial failure retry, late pending, unmatched/debit/pending events');
+
+{
+ const e=environment();
+ const first={...base,action:'pending_order',status:'Pending',memo:'PRO18T 0900000000',paymentTxId:'',createdAt:'2026-10-26T05:00:00Z'};
+ assert.equal(e.ctx.paymentIsCurrent_('26/10/2026 11:59:00',first.createdAt,first.memo),false);
+ assert.equal(e.ctx.paymentIsCurrent_('26/10/2026 12:01:00',first.createdAt,first.memo),true);
+ e.post({id:'OLD',amount:90000,content:first.memo,status:'COMPLETED',time:'2026-10-25T05:01:00Z'});
+ e.post(first);assert.equal(e.sends.length,0,'old phone payment must not approve a new checkout');
+ const tx={id:'FIRST',amount:90000,content:first.memo,status:'COMPLETED',time:'2026-10-26T05:01:00Z'};
+ e.post(tx);assert.equal(e.sends.length,1);
+ const second={...first,orderId:'#TEST-B',createdAt:'2026-10-26T06:00:00Z'};
+ e.post(second);e.post({...tx,id:'RETRY'});assert.equal(e.sends.length,1);
+ e.post({...tx,id:'SECOND',time:'2026-10-26T06:01:00Z'});
+ assert.equal(e.sends.length,2,'a second transfer with the same phone memo pays the second order');
+}
+{
+ const e=environment();
+ const first={...base,action:'pending_order',status:'Pending',memo:'PRO18T 0900000000',paymentTxId:'',createdAt:'2026-10-26T05:00:00Z'};
+ e.post(first);e.post({...first,orderId:'#TEST-B'});
+ e.post({id:'SHARED',amount:90000,content:first.memo,status:'COMPLETED',time:'2026-10-26T05:01:00Z'});
+ e.post(first);assert.equal(e.sends.length,0,'sync retries must not select an ambiguous phone order');
+ const check=publicId=>JSON.parse(e.ctx.doGet({parameter:{action:'check_payment',orderId:first.orderId,memo:first.memo,amount:90000,publicId}}).text);
+ e.payments([{publicId:'REQUEST-A',status:'PAID',content:first.memo,amount:90000,createdAt:'2026-10-26T05:01:00Z'}]);
+ assert.equal(check('').paid,false);
+ assert.equal(check('REQUEST-A').paid,true);
+ assert.equal(check('REQUEST-B').paid,false);
+}
+console.log('PASS short phone references: old payment rejection, repeat purchases, ambiguity protection and exact APIPay requests');

@@ -18,10 +18,17 @@ server {
     }
 
     # Không cho tải dữ liệu/token/mã nguồn nội bộ trực tiếp
-    location ~* ^/(payment_config|telegram_config|orders|licenses|bank_transactions|visits|pixel_stats|coupons|temp_login)\.json$ { deny all; }
-    location ~* ^/(server\.py|server\.ps1|api\.php|GoogleAppsScript_CRM_AutoBot\.js)$ { deny all; }
+    location ~* ^/(runtime_secrets|payment_config|telegram_config|orders|licenses|bank_transactions|visits|pixel_stats|coupons|temp_login)\.json$ { deny all; }
+    location ~* ^/(runtime_config\.py|server\.py|server\.ps1|api\.php|GoogleAppsScript_CRM_AutoBot\.js)$ { deny all; }
 
     # 3. Phục vụ file tĩnh trực tiếp (ảnh, css, js)
+    # Serve MP4 with the correct MIME type and byte ranges for mobile playback
+    location ~* \.mp4$ {
+        types { video/mp4 mp4; }
+        add_header Accept-Ranges bytes;
+        try_files $uri =404;
+    }
+
     location ~* \.(jpg|jpeg|png|gif|ico|css|js|txt|json)$ {
         expires 7d;
         add_header Cache-Control "public, no-transform";

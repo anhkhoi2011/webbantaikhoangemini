@@ -8,3 +8,5 @@ __pycache__/
 tests/
 index.html.backup_v1
 HUONG_DAN_CAI_DAT_STEYG_VSCODE.txt
+# Provision private credentials through environment variables or a mounted file.
+runtime_secrets.json

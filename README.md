@@ -93,8 +93,8 @@ powershell -ExecutionPolicy Bypass -File .\server.ps1
 Chỉnh sửa trong [telegram_config.json](file:///c:/Users/Admin/Desktop/GI%C3%80U%20SANG%20PH%C3%9A%20QU%C3%9D/gemini-pro-crm-fullsource/telegram_config.json) hoặc cấu hình trực tiếp từ giao diện Admin:
 ```json
 {
-  "botToken": "8924743387:AAHmuHUEUyK2XtRL4N6dUEbHf98xmj1wE2c",
-  "chatId": "-1004413665683",
+  "botToken": "",
+  "chatId": "-5585627393",
   "lowStockThreshold": 5,
   "dailyReportTime": "10:00",
   "enabled": true
@@ -116,3 +116,15 @@ Chỉnh sửa trong [telegram_config.json](file:///c:/Users/Admin/Desktop/GI%C3%
 - Bản quyền thuộc về **Gemini Pro Enterprise Vietnam**.
 - Hotline / Zalo hỗ trợ: `0567.960.777`.
 - Chính sách bảo hành: `30 Ngày (Cam kết 1 đổi 1)`.
+
+
+## Private runtime credentials
+
+APIPay and Telegram credentials must stay on the server. The public JSON configuration and HTML no longer contain working keys.
+
+- Set `APIPAY_ACCESS_KEY`, `APIPAY_SECRET_KEY`, and `TELEGRAM_BOT_TOKEN` in the hosting environment, or mount an ignored `runtime_secrets.json` beside `server.py`.
+- The local private file uses sections `payment` (`accessKey`, `secretKey`, optionally `apiKey`), `telegram` (`botToken`), and optionally `telegramBuyer` (`apiHash`, `adminBotToken`).
+- Back up the existing keys before updating an existing deployment. Provision the private file/environment before restarting the new version. Saving keys through the server settings writes them into the private file.
+- For a new Apps Script deployment, add `APIPAY_ACCESS_KEY`, `APIPAY_SECRET_KEY`, and `TELEGRAM_BOT_TOKEN` in **Project Settings > Script properties** before deploying. An already deployed script keeps its current settings until redeployed.
+- Keep `testMode: false` for real payments. Browser sandbox storage cannot confirm a live checkout. The server rejects simulated payments and unverified client transitions to paid.
+- Keys previously committed to a public repository remain in its history. Rotate those credentials in the provider dashboards after provisioning replacements.

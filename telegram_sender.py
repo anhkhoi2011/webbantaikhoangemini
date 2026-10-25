@@ -25,9 +25,11 @@ if sys.stdout.encoding != 'utf-8':
         pass
 
 import os
+from runtime_config import with_runtime_secrets
 
-DEFAULT_BOT_TOKEN = "8924743387:AAHmuHUEUyK2XtRL4N6dUEbHf98xmj1wE2c"
-DEFAULT_CHAT_ID = "-1004413665683"
+DEFAULT_BOT_TOKEN = ""
+BLOCKED_CHAT_IDS = {"-1004413665683"}
+DEFAULT_CHAT_ID = "-5585627393"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def get_current_tele_config():
@@ -35,17 +37,19 @@ def get_current_tele_config():
     for filename in ["telegram_config.json", "payment_config.json"]:
         try:
             with open(os.path.join(BASE_DIR, filename), encoding="utf-8-sig") as f:
-                config = json.load(f)
+                config = with_runtime_secrets(filename, json.load(f), BASE_DIR)
             token = token or config.get("botToken") or config.get("telegramBotToken")
             values = config.get("chatIds") or config.get("telegramChatIds") or [config.get("chatId") or config.get("telegramChatId")]
             ids.extend(str(value) for value in values if value)
         except (OSError, ValueError):
             pass
-    return token or DEFAULT_BOT_TOKEN, list(dict.fromkeys(ids or [DEFAULT_CHAT_ID, "-5585627393"]))
+    recipients = list(dict.fromkeys(ids or [DEFAULT_CHAT_ID]))
+    recipients = [chat_id for chat_id in recipients if chat_id not in BLOCKED_CHAT_IDS]
+    return token or DEFAULT_BOT_TOKEN, recipients
 
 def send_telegram_raw(html_text, bot_token=None, chat_id=None):
     token, default_ids = get_current_tele_config()
-    recipients = [str(chat_id)] if chat_id else default_ids
+    recipients = [str(chat_id)] if chat_id and str(chat_id) not in BLOCKED_CHAT_IDS else ([] if chat_id else default_ids)
     results = []
     for cid in recipients:
         payload = {"chat_id": cid, "text": html_text, "parse_mode": "HTML", "disable_web_page_preview": True}

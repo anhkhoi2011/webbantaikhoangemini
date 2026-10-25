@@ -8,14 +8,17 @@ import re
 import sys
 import json
 import asyncio
+from runtime_config import with_runtime_secrets
 from datetime import datetime
 
-# Cấu hình API Telegram lấy từ người dùng
+_private_buyer = with_runtime_secrets("telegram_buyer", {}, os.path.dirname(os.path.abspath(__file__)))
+
+# Private userbot credentials stay on the server.
 API_ID = 35960524
-API_HASH = "84ccced1603c27fdec1051965e31c6dc"
+API_HASH = os.environ.get("TELEGRAM_API_HASH") or _private_buyer.get("apiHash", "")
 SESSION_FILE = "userbot_session"
 BOT_USERNAME = "shopxoainon_bot"
-ADMIN_BOT_TOKEN = "7942171549:AAEBc_r5z8e05ZtL-m1Z_6yX-1z7j7818Y8"  # Token bot thông báo admin nếu có
+ADMIN_BOT_TOKEN = os.environ.get("TELEGRAM_BUYER_BOT_TOKEN") or _private_buyer.get("adminBotToken", "")
 ADMIN_CHAT_ID = "6828551915"
 
 try:
