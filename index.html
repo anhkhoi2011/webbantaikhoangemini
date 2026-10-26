@@ -441,8 +441,8 @@
         <div class="purchase-guide-layout">
           <div class="purchase-guide-player">
             <video id="purchaseGuideVideo" poster="purchase-guide-poster.jpg" controls autoplay playsinline preload="auto" aria-label="Gemini Pro purchase and activation guide">
-              <source src="huong-dan-gemini.mp4" type="video/mp4">
-              Trình duyệt của bạn không hỗ trợ video. <a href="huong-dan-gemini.mp4">Mở video hướng dẫn</a>.
+              <source src="huong-dan-gemini.mp4?v=2b465f502983" type="video/mp4">
+              Trình duyệt của bạn không hỗ trợ video. <a href="huong-dan-gemini.mp4?v=2b465f502983">Mở video hướng dẫn</a>.
             </video>
           </div>
           <div class="purchase-guide-summary">
@@ -1519,11 +1519,10 @@
 
   <!-- 10. JAVASCRIPT XỬ LÝ ĐẶT HÀNG & BẮT IP NGẦM CHO ADMIN CRM -->
   <script>
-    // Prefer sound; on mobile, keep the clip playing muted if audible autoplay is blocked.
+    // Prefer sound; keep the clip playing muted on every device if audible autoplay is blocked.
     function initPurchaseGuide() {
       const video = document.getElementById('purchaseGuideVideo');
       if (!video) return;
-      const isMobile = window.matchMedia('(max-width: 767px), (pointer: coarse)').matches;
       video.defaultMuted = false;
       video.muted = false;
       video.volume = 1;
@@ -1551,13 +1550,9 @@
         video.muted = false;
         video.play().then(stopWaiting).catch(error => {
           if (error.name !== 'NotAllowedError') return;
-          if (isMobile) {
-            video.defaultMuted = true;
-            video.muted = true;
-            video.play().then(waitForInteraction).catch(waitForInteraction);
-          } else {
-            waitForInteraction();
-          }
+          video.defaultMuted = true;
+          video.muted = true;
+          video.play().then(waitForInteraction).catch(waitForInteraction);
         });
       }
       video.addEventListener('playing', () => { if (!video.muted) stopWaiting(); });

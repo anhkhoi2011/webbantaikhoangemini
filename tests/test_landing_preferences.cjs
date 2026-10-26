@@ -18,11 +18,11 @@ function videoEnv(blocked=false,mobile=false){
  const ready=videoEnv();await new Promise(setImmediate);
  assert.equal(ready.plays(),1);assert.equal(ready.video.muted,false);assert.equal(ready.video.volume,1);
  const blocked=videoEnv(true);await new Promise(setImmediate);
- assert.equal(blocked.plays(),1);assert.ok(blocked.listeners.has('click'));
+ assert.equal(blocked.plays(),2,'desktop retries autoplay muted immediately');assert.equal(blocked.video.muted,true);assert.ok(blocked.listeners.has('click'));
  blocked.listeners.get('click')({isTrusted:true,target:{closest:()=>true}});
- assert.equal(blocked.plays(),1,'form/skip/native controls do not start video');
+ assert.equal(blocked.plays(),2,'form/skip/native controls do not change playback');
  blocked.listeners.get('click')({isTrusted:true,target:{closest:()=>false}});
- await new Promise(setImmediate);assert.equal(blocked.plays(),2);assert.equal(blocked.listeners.size,0);
+ await new Promise(setImmediate);assert.equal(blocked.plays(),3);assert.equal(blocked.video.muted,false);assert.equal(blocked.listeners.size,0);
  const mobileReady=videoEnv(false,true);await new Promise(setImmediate);
  assert.equal(mobileReady.plays(),1);assert.equal(mobileReady.video.muted,false,'mobile uses sound when permitted');
  const mobile=videoEnv(true,true);await new Promise(setImmediate);
@@ -47,5 +47,5 @@ function videoEnv(blocked=false,mobile=false){
  assert.equal(new URL(fields.modalQrImage.src).searchParams.get('addInfo'),first.memo);
  assert.equal(requests[0].data.memo,first.memo);
  ctx.handleFormSubmit();assert.equal(ctx.currentOrder.memo,first.memo);assert.notEqual(ctx.currentOrder.orderId,first.orderId,'internal orders remain unique');
- console.log('PASS Web1 requested UX: audible autoplay, mobile muted fallback, tap to unmute, manual pause, removed helpers/coupon UI, short memo in QR/API, unique internal order IDs');
+ console.log('PASS Web1 requested UX: audible autoplay, desktop/mobile muted fallback, tap to unmute, manual pause, removed helpers/coupon UI, short memo in QR/API, unique internal order IDs');
 })().catch(error=>{console.error(error);process.exitCode=1;});
