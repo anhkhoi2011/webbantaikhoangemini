@@ -57,8 +57,13 @@ const base={orderId:'#TEST-A',amount:90000,amountRaw:90000,name:'Khách <test>',
 }
 {
  const e=environment();e.fail('-5585627393');
- assert.equal(e.post({...base,action:'new_order'}).notificationsComplete,false);
- e.fail('');assert.equal(e.post({...base,action:'new_order'}).notificationsComplete,true);
+ const failed=e.post({...base,action:'new_order'});
+ assert.equal(failed.notificationsComplete,false);
+ assert.deepEqual(failed.telegramSent,{});
+ e.fail('');
+ const delivered=e.post({...base,action:'new_order'});
+ assert.equal(delivered.notificationsComplete,true);
+ assert.ok(delivered.telegramSent['-5585627393'].messageId);
  assert.deepEqual(e.sends.map(x=>x.chat_id),['-5585627393','-5585627393']);
 }
 {

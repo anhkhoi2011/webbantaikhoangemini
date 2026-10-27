@@ -114,7 +114,7 @@ Chỉnh sửa trong [telegram_config.json](file:///c:/Users/Admin/Desktop/GI%C3%
 ## 🔒 Bảo Mật & Bản Quyền
 
 - Bản quyền thuộc về **Gemini Pro Enterprise Vietnam**.
-- Hotline / Zalo hỗ trợ: `0567.960.777`.
+- Hotline / Zalo hỗ trợ: `0962.333.608`.
 - Chính sách bảo hành: `30 Ngày (Cam kết 1 đổi 1)`.
 
 
@@ -128,3 +128,13 @@ APIPay and Telegram credentials must stay on the server. The public JSON configu
 - For a new Apps Script deployment, add `APIPAY_ACCESS_KEY`, `APIPAY_SECRET_KEY`, and `TELEGRAM_BOT_TOKEN` in **Project Settings > Script properties** before deploying. An already deployed script keeps its current settings until redeployed.
 - Keep `testMode: false` for real payments. Browser sandbox storage cannot confirm a live checkout. The server rejects simulated payments and unverified client transitions to paid.
 - Keys previously committed to a public repository remain in its history. Rotate those credentials in the provider dashboards after provisioning replacements.
+
+
+## Restoring missing Telegram order alerts
+
+1. On the **deployed Python hosting service**, set `APIPAY_ACCESS_KEY`, `APIPAY_SECRET_KEY`, and `TELEGRAM_BOT_TOKEN`, or mount the private `runtime_secrets.json` next to `server.py`. These keys are intentionally absent from Git and the Docker build context; having them on the development PC does not configure the hosted website.
+2. Deploy the updated server and `telegram_sender.py`, then restart the service. `GET /api/health` must show build `2026-10-27-telegram-retry`, `paymentConfigured: true`, and `telegramConfigured: true`. These checks confirm configuration presence, not successful provider authentication or message delivery.
+3. Update the Apps Script web app to the current `GoogleAppsScript_CRM_AutoBot.js`, retain its `/exec` deployment URL, and set the same private properties in that project. Its health response must include `protocolVersion: 2` and `paymentProtocolVersion: 3` so the browser can use its payment fallback.
+4. Check a real verified payment through to the order notification. Only paid orders trigger Telegram alerts. A local automated test uses mocked provider responses and does not establish live delivery.
+
+The Python worker falls back to local Telegram delivery when the Sheet health check fails or Apps Script explicitly reports failed delivery. It stores a receipt per chat and keeps one sender in charge of retries. A timeout after posting to Apps Script remains a Sheet retry because Telegram may already have received the alert. New Apps Script responses include per-chat receipts so partially completed notifications can be recovered without sending again to successful chats. The worker preserves `sheetSyncError` until the Sheet itself acknowledges the order, even when the Telegram fallback succeeds. Telegram API rejections include their description in the server log; `/api/telegram-notify` returns HTTP 502 on delivery failure.

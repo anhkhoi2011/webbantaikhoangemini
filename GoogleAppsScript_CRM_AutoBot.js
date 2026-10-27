@@ -33,8 +33,8 @@ const BOT_CONFIG = {
 
   // Tên thương hiệu hiển thị trong email:
   BRAND_NAME: "TRẠM CÔNG NGHỆ - Gemini Pro",
-  HOTLINE: "0567.960.777",
-  ZALO_SUPPORT: "https://zalo.me/0567960777"
+  HOTLINE: "0962.333.608",
+  ZALO_SUPPORT: "https://zalo.me/0962333608"
 };
 
 // API Pay fallback cho website tĩnh: không cần PHP/Python trên hosting.
@@ -491,7 +491,7 @@ function upsertOrder_(ss, data, notify) {
       try { sendInvoiceEmail(order.name, order.email, order.phone, order.orderId, order.licenseLink, order.amountRaw || order.amount); order.emailSent = nowVN_(); write(); } catch (err) { Logger.log(String(err)); }
     }
   }
-  return {status: "success", notificationsComplete: notificationsComplete, orderId: order.orderId, duplicate: index >= 0, allocatedLink: order.licenseLink || "", columns: ORDER_COLUMNS.length};
+  return {status: "success", notificationsComplete: notificationsComplete, telegramSent: order.telegramSent ? JSON.parse(order.telegramSent) : {}, orderId: order.orderId, duplicate: index >= 0, allocatedLink: order.licenseLink || "", columns: ORDER_COLUMNS.length};
 }
 function orderTelegramText_(order) {
   const fields = [["Mã đơn", order.orderId], ["Mã lượt truy cập", order.visitId], ["Mã phiên", order.sessionId], ["Khách", order.name], ["SĐT", order.phone], ["Email", order.email], ["Thanh toán lúc (GMT+7)", order.paidAt], ["Tạo đơn lúc", order.createdAt], ["Vào trang lúc", order.landingAt], ["IP", order.ip || "Không xác định"], ["Vị trí IP (ước lượng)", order.location || "Không xác định"], ["Thiết bị / Trình duyệt", [order.device, order.browser].filter(Boolean).join(" / ")], ["Nguồn khách", order.referrer || "Không xác định"], ["Tên miền", order.domain], ["URL vào trang", order.fullUrl], ["Referrer gốc", order.rawReferrer], ["UTM Source / Medium", [order.utmSource, order.utmMedium].filter(Boolean).join(" / ")], ["Chiến dịch", order.utmCampaign], ["UTM Content / Term", [order.utmContent, order.utmTerm].filter(Boolean).join(" / ")], ["FB / Google / TikTok Click ID", [order.fbclid, order.gclid, order.ttclid].filter(Boolean).join(" / ")], ["Nội dung CK", order.memo], ["Mã giao dịch", order.paymentTxId], ["Cổng thanh toán", order.paymentSource], ["Voucher", order.couponCode], ["Link cấp", order.licenseLink || "Chờ cấp link"], ["Trạng thái", order.status]];
@@ -574,7 +574,7 @@ function sendInvoiceEmail(name, email, phone, orderId, link, amount) {
           <div><strong>SĐT Zalo:</strong> ${phone}</div>
           <div><strong>Gmail nhận quyền:</strong> ${email}</div>
           <div><strong>Bảo hành:</strong> 30 Ngày (Cam kết 1 đổi 1)</div>
-          <div><strong>Hỗ trợ Zalo:</strong> <a href="${BOT_CONFIG.ZALO_SUPPORT}">0567.960.777</a></div>
+          <div><strong>Hỗ trợ Zalo:</strong> <a href="${BOT_CONFIG.ZALO_SUPPORT}">0962.333.608</a></div>
         </div>
       </div>
       <div style="background: #f8fafc; padding: 12px; text-align: center; font-size: 11px; color: #94a3b8;">

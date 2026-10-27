@@ -54,7 +54,7 @@ def send_activation_email(data):
         # 1. Plain text fallback part (Crucial for anti-spam filters)
         plain_text = strip_tags(html_body)
         if not plain_text.strip():
-            plain_text = f"""Xin chào,\n\nCảm ơn bạn đã đăng ký gói Google Gemini Pro 18 Tháng (5TB Cloud).\nVui lòng mở email ở chế độ HTML để kích hoạt đường link bản quyền.\nHotline hỗ trợ: 0567.960.777"""
+            plain_text = f"""Xin chào,\n\nCảm ơn bạn đã đăng ký gói Google Gemini Pro 18 Tháng (5TB Cloud).\nVui lòng mở email ở chế độ HTML để kích hoạt đường link bản quyền.\nHotline hỗ trợ: 0962.333.608"""
         part_text = MIMEText(plain_text, "plain", "utf-8")
         msg.attach(part_text)
 

@@ -8,6 +8,7 @@ import threading
 import unittest
 from unittest.mock import patch
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import server
@@ -370,6 +371,23 @@ class PaymentFlowTests(unittest.TestCase):
             server.sync_visit_integrations("PAGE-A")
         self.assertEqual(opener.call_count, 1)
         self.assertIn("sheetSyncError", server.read_json_file(server.VISITS_FILE, {})["visits"][0])
+
+    def test_browser_cannot_override_telegram_delivery_ownership(self):
+        self.post("/api/orders", dict(self.order, telegramOwner="server", telegramSyncError="forged", telegramSent={"chat": "forged"}, paidNotified=True))
+        stored = server.read_json_file("orders.json", [])[0]
+        for key in ("telegramOwner", "telegramSyncError", "telegramSent", "paidNotified"):
+            self.assertNotIn(key, stored)
+
+    def test_telegram_notify_returns_502_on_delivery_failure(self):
+        import telegram_sender
+        token = "test-telegram-admin"
+        server.ADMIN_TOKENS[token] = server.datetime.now().timestamp() + 60
+        self.addCleanup(server.ADMIN_TOKENS.pop, token, None)
+        with patch.object(telegram_sender, "send_telegram_raw", return_value=False):
+            with self.assertRaises(HTTPError) as error:
+                self.post("/api/telegram-notify", {"message": "test"}, {"X-Admin-Token": token})
+        self.assertEqual(error.exception.code, 502)
+        self.assertEqual(json.load(error.exception)["status"], "error")
 
     def test_old_script_rejected_without_posting(self):
         server.write_json_file("payment_config.json", {"googleSheetWebhookUrl": "https://example.invalid/webhook"})

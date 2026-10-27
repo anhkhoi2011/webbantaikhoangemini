@@ -36,8 +36,12 @@ def get_current_tele_config():
     token, ids = None, []
     for filename in ["telegram_config.json", "payment_config.json"]:
         try:
-            with open(os.path.join(BASE_DIR, filename), encoding="utf-8-sig") as f:
-                config = with_runtime_secrets(filename, json.load(f), BASE_DIR)
+            try:
+                with open(os.path.join(BASE_DIR, filename), encoding="utf-8-sig") as f:
+                    config = json.load(f)
+            except (OSError, ValueError):
+                config = {}
+            config = with_runtime_secrets(filename, config, BASE_DIR)
             token = token or config.get("botToken") or config.get("telegramBotToken")
             values = config.get("chatIds") or config.get("telegramChatIds") or [config.get("chatId") or config.get("telegramChatId")]
             ids.extend(str(value) for value in values if value)
@@ -49,6 +53,9 @@ def get_current_tele_config():
 
 def send_telegram_raw(html_text, bot_token=None, chat_id=None):
     token, default_ids = get_current_tele_config()
+    if not (bot_token or token) or not str(html_text or "").strip():
+        sys.stderr.write("Telegram: missing bot token or empty message\n")
+        return False
     recipients = [str(chat_id)] if chat_id and str(chat_id) not in BLOCKED_CHAT_IDS else ([] if chat_id else default_ids)
     results = []
     for cid in recipients:
@@ -56,7 +63,17 @@ def send_telegram_raw(html_text, bot_token=None, chat_id=None):
         req = urllib.request.Request(f"https://api.telegram.org/bot{bot_token or token}/sendMessage", data=json.dumps(payload, ensure_ascii=False).encode("utf-8"), headers={"Content-Type": "application/json; charset=utf-8"})
         try:
             with urllib.request.urlopen(req, context=tele_ssl_ctx, timeout=10) as resp:
-                results.append(bool(json.loads(resp.read().decode("utf-8")).get("ok")))
+                result = json.loads(resp.read().decode("utf-8"))
+                results.append(result.get("ok") is True)
+                if result.get("ok") is not True:
+                    sys.stderr.write(f"Telegram chat {cid}: {result.get('description', 'delivery rejected')}\n")
+        except urllib.error.HTTPError as exc:
+            try:
+                description = json.loads(exc.read().decode("utf-8")).get("description", "request rejected")
+            except (ValueError, UnicodeError):
+                description = "request rejected"
+            sys.stderr.write(f"Telegram chat {cid}: HTTP {exc.code}: {description}\n")
+            results.append(False)
         except Exception as exc:
             sys.stderr.write(f"Telegram chat {cid}: {type(exc).__name__}\n")
             results.append(False)

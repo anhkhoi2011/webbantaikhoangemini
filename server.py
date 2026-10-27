@@ -221,54 +221,96 @@ def preserve_order_tracking(previous, updated):
 
 def sheet_payload(order):
     payload = dict(order)
-    payload.update(action="sync_order" if order.get("paidNotified") else "new_order" if is_paid_order(order) else "pending_order", product=order.get("package") or order.get("product") or "Google Gemini Pro 18 Tháng")
-    for key in ["paidNotified", "sheetSyncedHash", "sheetSyncedAt", "sheetSyncError", "telegramSent", "emailSent"]:
+    payload.update(action="sync_order" if order.get("paidNotified") or order.get("telegramOwner") == "server" else "new_order" if is_paid_order(order) else "pending_order", product=order.get("package") or order.get("product") or "Google Gemini Pro 18 Tháng")
+    for key in ["paidNotified", "sheetSyncedHash", "sheetSyncedAt", "sheetSyncError", "telegramSent", "telegramOwner", "telegramSyncError", "emailSent"]:
         payload.pop(key, None)
     return payload
 
 def sync_order_integrations(order_id):
     with SYNC_LOCK:
         with ORDER_LOCK:
-            order = next((o for o in read_json_file("orders.json", []) if o.get("orderId") == order_id), None)
-            if not order:
+            order = next((dict(o) for o in read_json_file("orders.json", []) if o.get("orderId") == order_id), None)
+        if not order:
+            return
+
+        def persist(updates):
+            order.update(updates)
+            with ORDER_LOCK:
+                orders = read_json_file("orders.json", [])
+                current = next((o for o in orders if o.get("orderId") == order_id), None)
+                if current is not None:
+                    current.update(updates)
+                    if not write_json_file("orders.json", orders):
+                        raise OSError("Cannot persist integration delivery state")
+
+        def send_local_telegram():
+            if order.get("paidNotified"):
                 return
-            order = dict(order)
-        cfg = read_json_file("payment_config.json", {})
-        webhook = cfg.get("googleSheetWebhookUrl") or ""
-        payload = sheet_payload(order)
-        digest = hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
-        if webhook and "SAMPLE" not in webhook:
-            if order.get("sheetSyncedHash") == digest:
-                return
-            try:
-                with urllib.request.urlopen(webhook + "?action=health", timeout=15) as response:
-                    health = json.loads(response.read().decode("utf-8"))
-                if health.get("protocolVersion") != 2:
-                    raise ValueError("Cần triển khai Apps Script v2")
-                req = urllib.request.Request(webhook, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"), headers={"Content-Type": "application/json"})
-                with urllib.request.urlopen(req, timeout=25) as response:
-                    result = json.loads(response.read().decode("utf-8"))
-                if result.get("status") != "success" or result.get("notificationsComplete") is False:
-                    raise ValueError("Sheet did not acknowledge the order")
-                updates = {"sheetSyncedHash": digest, "sheetSyncError": "", "sheetSyncedAt": now_vn()}
-            except Exception as exc:
-                updates = {"sheetSyncError": type(exc).__name__ + ": Sheet chưa xác nhận, sẽ gửi lại"}
-        elif is_paid_order(order):
             import telegram_sender
             _, recipients = telegram_sender.get_current_tele_config()
             sent = dict(order.get("telegramSent") or {})
             for cid in recipients:
                 if not sent.get(cid) and telegram_sender.send_telegram_raw(telegram_sender.get_payment_success_template(order), chat_id=cid):
                     sent[cid] = now_vn()
-            updates = {"telegramSent": sent, "paidNotified": all(sent.get(cid) for cid in recipients)}
-        else:
+                    persist({"telegramSent": dict(sent)})
+            complete = bool(recipients) and all(sent.get(cid) for cid in recipients)
+            persist({"paidNotified": complete, "telegramSyncError": "" if complete else "Telegram delivery failed; retry pending"})
+
+        paid = is_paid_order(order)
+        webhook = read_json_file("payment_config.json", {}).get("googleSheetWebhookUrl") or ""
+        webhook = webhook if webhook and "SAMPLE" not in webhook else ""
+        # Once fallback starts, keep one owner for all remaining chat retries.
+        # sync_order stores the row without asking Apps Script to send again.
+        if paid and (order.get("telegramOwner") == "server" or not webhook):
+            if order.get("telegramOwner") != "server":
+                persist({"telegramOwner": "server"})
+            send_local_telegram()
+        if not webhook:
             return
-        with ORDER_LOCK:
-            orders = read_json_file("orders.json", [])
-            current = next((o for o in orders if o.get("orderId") == order_id), None)
-            if current:
-                current.update(updates)
-                write_json_file("orders.json", orders)
+        payload = sheet_payload(order)
+        digest = hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+        if order.get("sheetSyncedHash") == digest and (not paid or order.get("paidNotified")):
+            return
+        posted = False
+        result = None
+        try:
+            with urllib.request.urlopen(webhook + "?action=health", timeout=15) as response:
+                health = json.loads(response.read().decode("utf-8"))
+            if health.get("protocolVersion") != 2:
+                raise ValueError("Apps Script v2 is required")
+            req = urllib.request.Request(webhook, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"), headers={"Content-Type": "application/json"})
+            posted = True
+            with urllib.request.urlopen(req, timeout=25) as response:
+                result = json.loads(response.read().decode("utf-8"))
+            if result.get("status") != "success":
+                raise ValueError("Sheet did not acknowledge the order")
+            if paid and payload["action"] == "new_order" and result.get("notificationsComplete") is not True:
+                raise ValueError("Apps Script did not confirm Telegram delivery")
+            updates = {"sheetSyncedHash": digest, "sheetSyncError": "", "sheetSyncedAt": now_vn()}
+            if paid and payload["action"] == "new_order":
+                updates.update(paidNotified=True, telegramSyncError="")
+            persist(updates)
+        except Exception as exc:
+            persist({"sheetSyncError": type(exc).__name__ + ": Sheet sync failed; retry pending"})
+            if not paid or order.get("paidNotified") or order.get("telegramOwner") == "server":
+                return
+            import telegram_sender
+            _, recipients = telegram_sender.get_current_tele_config()
+            receipts = result.get("telegramSent") if isinstance(result, dict) else None
+            explicit_failure = isinstance(result, dict) and result.get("status") == "success" and result.get("notificationsComplete") is False
+            # A timeout after POST is ambiguous: Apps Script may already have sent
+            # the message. Retry the same idempotent endpoint instead of duplicating it.
+            # Legacy scripts have no per-chat receipts; fallback is safe for one chat
+            # only, when their response explicitly confirms failed delivery.
+            if not posted or (explicit_failure and (isinstance(receipts, dict) or len(recipients) == 1)):
+                updates = {"telegramOwner": "server"}
+                if isinstance(receipts, dict):
+                    sent = dict(order.get("telegramSent") or {})
+                    sent.update({str(cid): receipt for cid, receipt in receipts.items() if receipt})
+                    updates["telegramSent"] = sent
+                persist(updates)
+                send_local_telegram()
+
 
 def queue_order_sync(order_id):
     threading.Thread(target=sync_order_integrations, args=(order_id,), daemon=True).start()
@@ -485,7 +527,9 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
 
         if path == "/api/health":
             cfg = read_json_file("payment_config.json", {})
-            return self.send_json({"status": "success", "build": "2026-10-26-verified-payments", "paymentVerificationVersion": 3, "paymentConfigured": bool(cfg.get("accessKey") and cfg.get("secretKey")), "bankCode": cfg.get("bankCode"), "testMode": cfg.get("testMode") is True})
+            import telegram_sender
+            telegram_token, telegram_chats = telegram_sender.get_current_tele_config()
+            return self.send_json({"status": "success", "build": "2026-10-27-telegram-retry", "paymentVerificationVersion": 3, "paymentConfigured": bool(cfg.get("accessKey") and cfg.get("secretKey")), "telegramConfigured": bool(telegram_token and telegram_chats), "bankCode": cfg.get("bankCode"), "testMode": cfg.get("testMode") is True})
 
         # 1. API: Cấu hình cổng thanh toán
         if path == "/api/payment-config":
@@ -1243,7 +1287,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             with ORDER_LOCK:
                 orders = read_json_file("orders.json", [])
                 existing = next((o for o in orders if o.get("orderId") == order_id), {})
-                for flag in ("paidNotified", "couponCounted", "telegramSent", "sheetSyncedHash", "sheetSyncedAt", "sheetSyncError"):
+                for flag in ("paidNotified", "couponCounted", "telegramSent", "telegramOwner", "telegramSyncError", "sheetSyncedHash", "sheetSyncedAt", "sheetSyncError"):
                     body.pop(flag, None)
                 if not existing and body.get("fullUrl"):
                     origin = self.headers.get("Origin", "").rstrip("/")
@@ -1429,7 +1473,7 @@ class GeminiCRMHandler(SimpleHTTPRequestHandler):
             try:
                 import telegram_sender
                 ok = telegram_sender.send_telegram_raw(msg)
-                return self.send_json({"status": "success" if ok else "error"})
+                return self.send_json({"status": "success" if ok else "error", "message": "" if ok else "Telegram delivery failed"}, 200 if ok else 502)
             except Exception as e:
                 return self.send_json({"status": "error", "message": str(e)}, 500)
 
